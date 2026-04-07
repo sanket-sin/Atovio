@@ -1,14 +1,12 @@
+import type { Metadata } from "next";
+import { LandingExperience } from "@/components/landing";
+
+export const metadata: Metadata = {
+  title: "BeyondAQI · Real-Time India Air Quality Index, News & Hyperlocal Data",
+  description:
+    "Real-time Mumbai AQI data from BeyondAQI's hyperlocal sensor network. PM2.5, PM10, O3, NO2, SO2, CO — zero API smoothing, 30-minute refresh.",
+};
+
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm">
-        <h1 className="text-4xl font-bold text-center mb-8">
-          Welcome to Atovio BeyondAQI Web
-        </h1>
-        <p className="text-center text-gray-600">
-          Your Next.js application is ready!
-        </p>
-      </div>
-    </main>
-  );
+  return <LandingExperience />;
 }

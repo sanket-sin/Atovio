@@ -1,3 +1,5 @@
+@import "./landing-extras.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -17,7 +19,19 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+/**
+ * Inter variable font — use with Tailwind weight utilities, e.g. `inter font-semibold`.
+ * Weights 100–900 supported via the Google Fonts stylesheet in layout.tsx.
+ */
+.inter {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
 }
 
 @layer utilities {

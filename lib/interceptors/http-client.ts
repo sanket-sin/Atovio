@@ -58,28 +58,24 @@ class HttpClient {
   private setupDefaultInterceptors(): void {
     // Request interceptor
     this.instance.interceptors.request.use(
-      (config) => {
-        // Apply custom request interceptors
-        return this.requestInterceptors.reduce(
-          (acc, interceptor) => {
-            return interceptor(acc);
-          },
-          config
-        );
+      async (config) => {
+        let next = config;
+        for (const interceptor of this.requestInterceptors) {
+          next = await interceptor(next);
+        }
+        return next;
       },
       (error) => Promise.reject(error)
     );
 
     // Response interceptor
     this.instance.interceptors.response.use(
-      (response) => {
-        // Apply custom response interceptors
-        return this.responseInterceptors.reduce(
-          (acc, interceptor) => {
-            return interceptor(acc);
-          },
-          response
-        );
+      async (response) => {
+        let next = response;
+        for (const interceptor of this.responseInterceptors) {
+          next = await interceptor(next);
+        }
+        return next;
       },
       async (error: AxiosError) => {
         // Apply custom error interceptors

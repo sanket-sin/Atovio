@@ -2,6 +2,22 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  // Reduces stale chunk references (e.g. Cannot find module './948.js') when using `npm run dev:webpack`
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.cache = false;
+    }
+    return config;
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
+    ],
+  },
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
