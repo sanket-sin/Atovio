@@ -28,7 +28,7 @@ export function LandingSiteHeader() {
   const rowPad = "px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12";
 
   const searchInputClass =
-    "h-10 w-full rounded-full border border-white/[0.1] bg-[#0a101a] py-2 pl-10 pr-4 text-[0.78rem] text-slate-200 outline-none transition-colors placeholder:text-slate-400 focus:border-white/[0.18] focus:bg-[#0d1420] sm:pl-11 sm:pr-4";
+    "h-10 w-full rounded-[6px] border border-white/[0.1] bg-[#0a101a] py-2 pl-10 pr-4 text-[0.78rem] text-slate-200 outline-none transition-colors placeholder:text-slate-400 focus:border-white/[0.18] focus:bg-[#0d1420] sm:pl-11 sm:pr-4";
 
   const searchIconWrapClass =
     "pointer-events-none absolute left-3.5 top-1/2 flex h-[18px] w-[18px] -translate-y-1/2 items-center justify-center sm:left-4";
@@ -86,7 +86,7 @@ export function LandingSiteHeader() {
               </nav>
 
               {/* Narrower search ~35–40% feel vs full bar; pill */}
-              <div className="relative w-[min(18.5rem,36vw)] shrink-0 sm:w-[19.5rem] md:w-[20.5rem] lg:w-[22rem] xl:w-[23.5rem]">
+              <div className="relative ml-[3rem] w-[min(20.5rem,40vw)] shrink-0 sm:w-[21.5rem] md:w-[23rem] lg:w-[24.5rem] xl:w-[26.5rem]">
                 <span className={searchIconWrapClass} aria-hidden>
                   <Image
                     src="/images/search-icon.svg"
