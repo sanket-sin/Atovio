@@ -3,8 +3,7 @@
 import { useId } from "react";
 import { AqiBadge } from "./AqiBadge";
 
-const HERO_BG =
-  "https://images.unsplash.com/photo-1574607383476-f517f19d3623?w=1600&q=80";
+const HERO_BG = "/images/hero-bg.png";
 
 type LandingHeroProps = {
   onScrollToMap: () => void;
@@ -20,7 +19,7 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
   return (
     <section className="relative flex min-h-[100dvh] items-center overflow-hidden border-b border-sky-400/10 pt-[7.75rem] sm:pt-[8rem]">
       <div
-        className="absolute inset-0 z-0 scale-105 animate-hero-drift bg-cover bg-[center_40%]"
+        className="absolute inset-0 z-0 scale-105 animate-hero-drift bg-cover bg-[center_20%]"
         style={{ backgroundImage: `url(${HERO_BG})` }}
         aria-hidden
       />
@@ -38,8 +37,10 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
       />
 
       <div className="relative z-[2] mx-auto w-full max-w-container px-4 sm:px-7">
-        <div className="grid grid-cols-1 gap-4 py-8 md:grid-cols-2 md:gap-5 lg:grid-cols-[1fr_1fr_320px] lg:items-start">
-          <div className="max-lg:order-1">
+        <div className="grid grid-cols-1 gap-4 py-8 md:grid-cols-2 md:gap-5 lg:grid-cols-[1fr_1fr_360px] lg:items-start">
+
+          {/* Left: headline text */}
+          <div className="max-lg:order-1 lg:self-center">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-400/30 bg-rose-500/10 px-3 py-1 font-mono text-[0.72rem] font-bold uppercase tracking-wider text-rose-200">
               <span
                 className="h-1.5 w-1.5 animate-blink rounded-full bg-bqa-unhealthy shadow-[0_0_8px_#ff4d6d]"
@@ -61,30 +62,53 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
             </p>
           </div>
 
+          {/* Center: AQI card */}
           <div className="max-lg:order-3 md:max-lg:col-span-2 lg:order-none lg:max-w-none">
             <div className="relative overflow-hidden rounded-[20px] border border-sky-400/10 bg-bqa-navy2/80 p-6 shadow-[0_24px_48px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl transition-shadow hover:shadow-[0_24px_60px_rgba(0,0,0,0.5),0_0_60px_rgba(255,140,66,0.08)]">
               <div
                 className="pointer-events-none absolute inset-x-0 top-0 h-[3px] rounded-t-[20px] bg-[linear-gradient(90deg,#00e5aa,#ffd24d,#ff8c42,#ff4d6d,#c77dff,#9b2dff)]"
                 aria-hidden
               />
-              <div className="relative flex flex-col items-center text-center">
-                <div className="mb-1 font-mono text-[0.68rem] uppercase tracking-widest text-bqa-dim">
-                  Outdoor AQI • Mumbai
-                </div>
-                <div className="font-numeric text-[clamp(3rem,12vw,5rem)] font-bold leading-[1] tracking-normal text-bqa-poor drop-shadow-[0_0_40px_rgba(255,140,66,0.3)]">
+
+              {/* Label */}
+              <div className="mb-1 font-body text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] text-bqa-dim">
+                Outdoor AQI • Mumbai
+              </div>
+
+              {/* Big number left, buttons right */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="font-numeric text-[clamp(3.5rem,10vw,5.5rem)] font-bold leading-[1] tracking-normal text-bqa-poor drop-shadow-[0_0_40px_rgba(255,140,66,0.3)]">
                   160
                 </div>
-                <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-orange-400/35 bg-orange-400/10 px-3 py-1">
-                  <span className="text-[0.7rem] font-bold uppercase tracking-wide text-bqa-poor">
-                    Orange
-                  </span>
-                  <span className="text-bqa-dim/80">/</span>
-                  <span className="text-[0.7rem] font-bold uppercase tracking-wide text-bqa-poor">
-                    Poor
-                  </span>
+                <div className="flex shrink-0 flex-col gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={onScrollToMap}
+                    className="rounded-[10px] bg-bqa-accent px-5 py-2.5 text-center text-[0.78rem] font-semibold text-white shadow-[0_4px_16px_rgba(61,158,255,0.25)] transition-all hover:brightness-110 min-w-[10.5rem]"
+                  >
+                    AQI Sensor Map
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center gap-2 rounded-[10px] border border-sky-400/10 bg-transparent px-5 py-2.5 text-[0.78rem] font-semibold text-bqa-muted backdrop-blur-sm transition-all hover:border-sky-400/20 hover:bg-bqa-slate hover:text-bqa-text min-w-[10.5rem]"
+                  >
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full bg-bqa-unhealthy shadow-[0_0_6px_#ff4d6d]"
+                      aria-hidden
+                    />
+                    Ping Location
+                  </button>
                 </div>
               </div>
 
+              {/* POOR badge */}
+              <div className="mt-3 inline-flex items-center rounded-full border border-orange-400/35 bg-orange-400/10 px-3 py-1">
+                <span className="text-[0.7rem] font-bold uppercase tracking-wide text-bqa-poor">
+                  Poor
+                </span>
+              </div>
+
+              {/* PM2.5 / PM10 */}
               <div className="my-4 grid grid-cols-2 gap-2.5">
                 <div className="rounded-lg border-l-[3px] border-bqa-moderate bg-bqa-slate/60 p-3">
                   <div className="mb-0.5 text-[0.68rem] font-semibold tracking-wide text-bqa-dim">
@@ -116,6 +140,7 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
                 </div>
               </div>
 
+              {/* AQI gradient bar */}
               <div className="mt-4">
                 <div className="relative mb-1.5 h-2.5 rounded-md bg-gradient-to-r from-bqa-good via-bqa-moderate via-bqa-poor via-bqa-unhealthy via-bqa-severe to-bqa-hazardous shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]">
                   <div
@@ -136,30 +161,17 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
                   <span className="text-bqa-hazardous">Hazardous</span>
                 </div>
               </div>
-
-              <div className="mt-5 flex flex-col gap-2 sm:mt-6 sm:flex-row sm:justify-center sm:gap-3">
-                <button
-                  type="button"
-                  onClick={onScrollToMap}
-                  className="rounded-[10px] bg-bqa-accent px-4 py-2.5 text-center text-[0.78rem] font-semibold text-white shadow-[0_4px_16px_rgba(61,158,255,0.25)] transition-all hover:brightness-110 sm:min-w-[10.5rem]"
-                >
-                  AQI Sensor Map
-                </button>
-                <button
-                  type="button"
-                  className="rounded-[10px] border border-sky-400/10 bg-transparent px-4 py-2.5 text-center text-[0.78rem] font-semibold text-bqa-muted backdrop-blur-sm transition-all hover:border-sky-400/20 hover:bg-bqa-slate hover:text-bqa-text sm:min-w-[10.5rem]"
-                >
-                  Ping Location
-                </button>
-              </div>
             </div>
           </div>
 
+          {/* Right: weather card */}
           <div className="max-lg:order-2 md:max-lg:col-span-1 lg:order-none">
             <div className="rounded-[20px] border border-sky-400/10 bg-bqa-navy2/80 p-5 backdrop-blur-xl sm:p-6">
-              <div className="mb-4 font-mono text-[0.68rem] uppercase tracking-widest text-bqa-dim">
+              <div className="mb-4 font-body text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] text-bqa-dim">
                 Weather Conditions
               </div>
+
+              {/* Temperature row */}
               <div className="mb-4 flex items-center gap-3.5">
                 <svg
                   width="38"
@@ -184,11 +196,11 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
                   <div className="font-numeric text-4xl font-bold tracking-normal text-bqa-text">
                     30°C
                   </div>
-                  <div className="text-sm text-bqa-muted">
-                    Sunny · Clear Skies
-                  </div>
+                  <div className="text-sm text-bqa-muted">Sunny · Clear Skies</div>
                 </div>
               </div>
+
+              {/* 2×2 weather grid */}
               <div className="grid grid-cols-2 gap-2.5">
                 {(
                   [
@@ -209,11 +221,12 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
                 ))}
               </div>
 
-              <div className="mt-5 flex flex-col items-center">
-                <div
-                  className="relative h-[120px] w-[120px]"
-                  aria-label="19 of 24 hours above WHO PM2.5 guideline today"
-                >
+              {/* WHO ring — horizontal: ring left, text right */}
+              <div
+                className="mt-5 flex items-center gap-4"
+                aria-label="19 of 24 hours above WHO PM2.5 guideline today"
+              >
+                <div className="relative h-[90px] w-[90px] shrink-0">
                   <svg
                     className="h-full w-full -rotate-90"
                     viewBox="0 0 100 100"
@@ -250,18 +263,19 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
                       </linearGradient>
                     </defs>
                   </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="font-numeric text-3xl font-bold tracking-normal text-bqa-text">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="font-numeric text-2xl font-bold tracking-normal text-bqa-text">
                       19
                     </span>
                   </div>
                 </div>
-                <p className="mt-2 max-w-[220px] text-center text-[0.72rem] leading-snug text-bqa-dim">
+                <p className="text-[0.72rem] leading-snug text-bqa-dim">
                   /24 hours above WHO PM 2.5 guideline today
                 </p>
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </section>
