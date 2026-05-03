@@ -37,7 +37,7 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
       />
 
       <div className="relative z-[2] mx-auto w-full max-w-container px-4 sm:px-7">
-        <div className="grid grid-cols-1 gap-4 py-8 md:grid-cols-2 md:gap-5 lg:grid-cols-[1fr_1fr_360px] lg:items-start">
+        <div className="grid grid-cols-1 gap-4 py-8 md:grid-cols-2 md:gap-5 lg:grid-cols-[1fr_1fr_1fr] lg:items-stretch">
 
           {/* Left: headline text */}
           <div className="max-lg:order-1 lg:self-center">
@@ -63,15 +63,15 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
           </div>
 
           {/* Center: AQI card */}
-          <div className="max-lg:order-3 md:max-lg:col-span-2 lg:order-none lg:max-w-none">
-            <div className="relative overflow-hidden rounded-[20px] border border-sky-400/10 bg-bqa-navy2/80 p-6 shadow-[0_24px_48px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl transition-shadow hover:shadow-[0_24px_60px_rgba(0,0,0,0.5),0_0_60px_rgba(255,140,66,0.08)]">
+          <div className="max-lg:order-3 md:max-lg:col-span-2 lg:order-none lg:max-w-none lg:flex lg:flex-col">
+            <div className="relative flex flex-col flex-1 overflow-hidden rounded-[20px] border border-sky-400/10 bg-bqa-navy2/80 p-6 shadow-[0_24px_48px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl transition-shadow hover:shadow-[0_24px_60px_rgba(0,0,0,0.5),0_0_60px_rgba(255,140,66,0.08)]">
               <div
                 className="pointer-events-none absolute inset-x-0 top-0 h-[3px] rounded-t-[20px] bg-[linear-gradient(90deg,#00e5aa,#ffd24d,#ff8c42,#ff4d6d,#c77dff,#9b2dff)]"
                 aria-hidden
               />
 
               {/* Label */}
-              <div className="mb-1 font-body text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] text-bqa-dim">
+              <div className="mb-1 font-outfit text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] text-bqa-dim">
                 Outdoor AQI • Mumbai
               </div>
 
@@ -165,9 +165,9 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
           </div>
 
           {/* Right: weather card */}
-          <div className="max-lg:order-2 md:max-lg:col-span-1 lg:order-none">
-            <div className="rounded-[20px] border border-sky-400/10 bg-bqa-navy2/80 p-5 backdrop-blur-xl sm:p-6">
-              <div className="mb-4 font-body text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] text-bqa-dim">
+          <div className="max-lg:order-2 md:max-lg:col-span-1 lg:order-none lg:flex lg:flex-col">
+            <div className="flex flex-col flex-1 rounded-[20px] border border-sky-400/10 bg-bqa-navy2/80 p-5 backdrop-blur-xl sm:p-6">
+              <div className="mb-4 font-outfit text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] text-bqa-dim">
                 Weather Conditions
               </div>
 

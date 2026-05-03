@@ -11,7 +11,7 @@ export function SectionTitle({
 }: SectionTitleProps) {
   return (
     <Tag
-      className={`mb-9 font-display text-[2rem] font-normal leading-tight tracking-tight text-bqa-text ${className}`}
+      className={`mb-9 font-outfit text-[2rem] font-bold leading-tight tracking-[-0.03em] text-bqa-text ${className}`}
     >
       {children}
     </Tag>

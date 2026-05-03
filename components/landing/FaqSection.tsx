@@ -35,14 +35,11 @@ export function FaqSection() {
       className="sec-fx border-t border-sky-400/10 py-12 sm:py-14"
     >
       <div className="mx-auto max-w-container px-4 sm:px-7">
-        <p className="mb-3 text-center font-mono text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-bqa-accent">
-          Knowledge Base
-        </p>
         <SectionTitle className="mb-10 text-center">
           Frequently Asked Questions
         </SectionTitle>
 
-        <div className="mx-auto flex max-w-3xl flex-col gap-2.5">
+        <div className="flex flex-col gap-2.5">
           {FAQS.map((item, i) => {
             const isOpen = open === i;
             return (

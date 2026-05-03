@@ -4,3 +4,4 @@
  */
 
 export * from "./api-service";
+export * from "./aqi-search";

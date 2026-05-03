@@ -111,6 +111,45 @@ export function RealtimeAqiMapSection() {
             </div>
           </div>
         </div>
+
+        {/* Most Polluted + Cleanest City */}
+        <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+
+          {/* Most Polluted */}
+          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.07] p-5">
+            <p className="mb-3 font-outfit text-[0.65rem] font-bold uppercase tracking-widest text-rose-400">
+              Most Polluted City Today
+            </p>
+            <h3 className="mb-2 font-outfit text-2xl font-bold text-white">Kharagpur</h3>
+            <div className="flex items-baseline gap-3">
+              <span className="font-outfit text-4xl font-bold text-bqa-unhealthy">182</span>
+              <span className="rounded-md bg-rose-500/20 px-2 py-0.5 font-outfit text-[0.75rem] font-semibold text-rose-300">
+                Unhealthy
+              </span>
+            </div>
+            <div className="mt-5 h-1.5 w-full rounded-full bg-bqa-navy">
+              <div className="h-full rounded-full bg-bqa-unhealthy" style={{ width: "36.4%" }} />
+            </div>
+          </div>
+
+          {/* Cleanest City */}
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] p-5">
+            <p className="mb-3 font-outfit text-[0.65rem] font-bold uppercase tracking-widest text-emerald-400">
+              Cleanest City Today
+            </p>
+            <h3 className="mb-2 font-outfit text-2xl font-bold text-white">Srinagar</h3>
+            <div className="flex items-baseline gap-3">
+              <span className="font-outfit text-4xl font-bold text-bqa-good">21</span>
+              <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 font-outfit text-[0.75rem] font-semibold text-emerald-300">
+                Good
+              </span>
+            </div>
+            <div className="mt-5 h-1.5 w-full rounded-full bg-bqa-navy">
+              <div className="h-full rounded-full bg-bqa-good" style={{ width: "4.2%" }} />
+            </div>
+          </div>
+
+        </div>
       </div>
     </section>
   );

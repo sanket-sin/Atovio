@@ -3,7 +3,6 @@
 import { DM_Serif_Display, JetBrains_Mono, Outfit, Sora } from "next/font/google";
 import { AirQualityToolkitSection } from "./AirQualityToolkitSection";
 import { ChartHistorySection } from "./ChartHistorySection";
-import { CompareChartsSection } from "./CompareChartsSection";
 import { FaqSection } from "./FaqSection";
 import { HealthGuidanceSection } from "./HealthGuidanceSection";
 import { IndiaAqiOverviewSection } from "./IndiaAqiOverviewSection";
@@ -11,14 +10,10 @@ import { LandingFooter } from "./LandingFooter";
 import { LandingHero } from "./LandingHero";
 import { LandingSiteHeader } from "./LandingSiteHeader";
 import { LeaderboardSection } from "./LeaderboardSection";
-import { MetroSection } from "./MetroSection";
-import { NewsSection } from "./NewsSection";
 import { PollutantsSection } from "./PollutantsSection";
 import { RealtimeAqiMapSection } from "./RealtimeAqiMapSection";
 import { StarFieldCanvas } from "./StarFieldCanvas";
 import { SubscribeSection } from "./SubscribeSection";
-import { TrendsAnalysisSection } from "./TrendsAnalysisSection";
-import { WhyBeyondSection } from "./WhyBeyondSection";
 
 const dmSerif = DM_Serif_Display({
   subsets: ["latin"],
@@ -38,7 +33,7 @@ const sora = Sora({
 
 const outfit = Outfit({
   subsets: ["latin"],
-  weight: ["700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-outfit",
 });
 
@@ -54,7 +49,7 @@ function scrollToRealtimeMap() {
 export function LandingExperience() {
   return (
     <div
-      className={`landing-theme ${dmSerif.variable} ${jetbrains.variable} ${sora.variable} ${outfit.variable} min-h-screen bg-bqa-navy font-body text-[15px] leading-relaxed text-bqa-text antialiased`}
+      className={`landing-theme ${dmSerif.variable} ${jetbrains.variable} ${sora.variable} ${outfit.variable} min-h-screen bg-bqa-navy font-outfit text-[15px] leading-relaxed text-bqa-text antialiased`}
     >
       <StarFieldCanvas />
       <div
@@ -67,17 +62,12 @@ export function LandingExperience() {
 
       <main className="pt-0">
         <LandingHero onScrollToMap={scrollToRealtimeMap} />
-        <IndiaAqiOverviewSection />
-        <RealtimeAqiMapSection />
         <AirQualityToolkitSection />
-        <TrendsAnalysisSection />
-        <NewsSection />
-        <WhyBeyondSection />
-        <PollutantsSection />
         <ChartHistorySection />
-        <CompareChartsSection />
-        <MetroSection />
+        <RealtimeAqiMapSection />
+        <PollutantsSection />
         <LeaderboardSection />
+        <IndiaAqiOverviewSection />
         <HealthGuidanceSection />
         <FaqSection />
         <SubscribeSection />

@@ -107,7 +107,7 @@ export function HealthGuidanceSection() {
     >
       <div className="mx-auto max-w-container px-4 sm:px-7">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-          <h2 className="shrink-0 font-display text-[1.65rem] font-normal leading-tight tracking-tight text-bqa-text sm:text-[2rem]">
+          <h2 className="shrink-0 font-outfit text-[1.65rem] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:text-[2rem]">
             Adaptive Health Guidance
           </h2>
           <div
@@ -151,7 +151,7 @@ export function HealthGuidanceSection() {
                       Good
                     </AqiBadge>
                   </div>
-                  <div className="font-mono text-5xl font-bold text-emerald-400">
+                  <div className="font-outfit text-5xl font-bold text-emerald-400">
                     38
                   </div>
                 </div>
@@ -165,7 +165,7 @@ export function HealthGuidanceSection() {
                       Poor
                     </AqiBadge>
                   </div>
-                  <div className="font-mono text-5xl font-bold text-bqa-poor">
+                  <div className="font-outfit text-5xl font-bold text-bqa-poor">
                     160
                   </div>
                 </div>
@@ -175,7 +175,7 @@ export function HealthGuidanceSection() {
                 <h4 className="mb-3 text-[0.78rem] font-bold uppercase tracking-wide text-bqa-dim">
                   {h.liveTitle}
                 </h4>
-                <div className="font-mono text-5xl font-bold text-bqa-poor">
+                <div className="font-outfit text-5xl font-bold text-bqa-poor">
                   160
                 </div>
                 <AqiBadge variant="poor" className="mt-2">

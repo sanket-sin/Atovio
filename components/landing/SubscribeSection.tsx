@@ -10,7 +10,7 @@ export function SubscribeSection() {
         <div className="grid grid-cols-1 items-center gap-10 rounded-[20px] border border-sky-400/10 bg-bqa-navy2/80 p-8 backdrop-blur-md sm:gap-12 sm:p-12 lg:grid-cols-[1.2fr_1fr]">
           <div>
             <SectionEyebrow className="sr-only">Newsletter</SectionEyebrow>
-            <h2 className="mb-3.5 font-display text-[clamp(1.75rem,5vw,2.2rem)] font-normal leading-tight tracking-tight text-bqa-text">
+            <h2 className="mb-3.5 font-outfit text-[clamp(1.75rem,5vw,2.2rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text">
               Get Daily Air Quality
               <br />
               <em className="not-italic text-bqa-accent2">Intelligence</em> for
