@@ -39,3 +39,159 @@ body {
     text-wrap: balance;
   }
 }
+
+/* ── BQA design tokens — dark mode defaults ── */
+:root {
+  --bqa-navy:      5 11 24;
+  --bqa-navy2:     10 22 40;
+  --bqa-navy3:     15 32 64;
+  --bqa-slate:     26 45 74;
+  --bqa-slate2:    36 61 92;
+  --bqa-text:      232 244 255;
+  --bqa-muted:     125 165 201;
+  --bqa-dim:       74 114 138;
+  --bqa-accent:    61 158 255;
+  --bqa-accent2:   96 180 255;
+  --bqa-compare:   167 139 250;
+  --bqa-good:      0 229 170;
+  --bqa-moderate:  255 210 77;
+  --bqa-poor:      255 140 66;
+  --bqa-unhealthy: 255 77 109;
+  --bqa-severe:    199 125 255;
+  --bqa-hazardous: 155 45 255;
+}
+
+/* ── Light mode overrides ── */
+.light-theme {
+  --bqa-navy:      248 250 252;
+  --bqa-navy2:     255 255 255;
+  --bqa-navy3:     240 245 251;
+  --bqa-slate:     226 235 245;
+  --bqa-slate2:    210 222 235;
+  --bqa-text:      10 24 46;
+  --bqa-muted:     60 90 120;
+  --bqa-dim:       90 120 148;
+  --bqa-accent:    61 158 255;
+  --bqa-accent2:   20 110 210;
+  --bqa-compare:   110 75 210;
+  --bqa-good:      0 168 120;
+  --bqa-moderate:  190 140 0;
+  --bqa-poor:      200 100 10;
+  --bqa-unhealthy: 200 30 65;
+  --bqa-severe:    140 50 210;
+  --bqa-hazardous: 110 10 200;
+}
+
+/* ── Light mode: header nav ── */
+.light-theme header nav,
+.light-theme header > nav {
+  background: rgba(255 255 255 / 0.97) !important;
+  border-color: rgba(0 0 0 / 0.07) !important;
+}
+
+/* ── Light mode: star canvas hidden ── */
+.light-theme canvas {
+  display: none;
+}
+
+/* ── Light mode: hero overlay adjustments ── */
+.light-theme #sec-hero .hero-overlay-t {
+  background: linear-gradient(to top, rgb(248 250 252) 0%, rgba(248 250 252 / 0.5) 50%, transparent 100%);
+}
+.light-theme #sec-hero .hero-overlay-r {
+  background: linear-gradient(to right, rgba(248 250 252 / 0.95) 0%, rgba(248 250 252 / 0.7) 50%, rgba(248 250 252 / 0.2) 100%);
+}
+
+/* ── Light mode: map iframe section ── */
+.light-theme #sec-realtime-map .map-shell {
+  background: #d8e8f4;
+}
+
+/* ── Light mode: grain overlay hidden ── */
+.light-theme .grain-overlay {
+  display: none;
+}
+
+/* ── Light mode: site logo → dark ── */
+.light-theme .site-logo {
+  filter: brightness(0);
+}
+
+/* ── Light mode: live AQI ticker ── */
+.light-theme .live-ticker-bg {
+  background: rgb(248 250 252) !important;
+  border-color: rgb(213 226 240) !important;
+}
+.light-theme .live-ticker-bg .ticker-label {
+  color: rgb(10 24 46);
+}
+.light-theme .live-ticker-bg .ticker-divider {
+  border-color: rgb(180 200 220);
+}
+.light-theme .live-ticker-bg .ticker-city {
+  color: rgb(90 110 130);
+}
+
+/* ── Light mode: all sky-400 borders → subtle gray ── */
+.light-theme [class*="border-sky-400"] {
+  border-color: rgb(213 226 240) !important;
+}
+
+/* ── Light mode: white/opacity borders (mobile menu) → subtle gray ── */
+.light-theme [class*="border-white/"] {
+  border-color: rgb(213 226 240) !important;
+}
+
+/* ── Light mode: clock SVG center fill ── */
+.light-theme .clock-bg-fill {
+  fill: rgb(248 250 252);
+}
+
+/* ── Light mode: WHO / donut ring track ── */
+.light-theme .ring-track {
+  stroke: rgb(213 226 240);
+}
+
+/* ── Light mode: dark hardcoded map container ── */
+.light-theme .map-dark-bg {
+  background: rgb(226 235 245) !important;
+}
+
+/* ── Light mode: footer brand text ── */
+.light-theme .footer-brand-text {
+  color: rgb(10 24 46) !important;
+}
+
+/* ── Light mode: dark hardcoded button/input backgrounds ── */
+.light-theme .dark-btn-bg {
+  background: rgb(226 235 245) !important;
+  border-color: rgb(213 226 240) !important;
+  color: rgb(10 24 46) !important;
+}
+
+/* ── Light mode: search dropdown ── */
+.light-theme .search-dropdown {
+  background: rgb(255 255 255) !important;
+  border-color: rgb(213 226 240) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12) !important;
+}
+.light-theme .search-dropdown-item:hover {
+  background: rgb(240 247 255) !important;
+}
+.light-theme .search-dropdown-text {
+  color: rgb(10 24 46) !important;
+}
+.light-theme .search-dropdown-sub {
+  color: rgb(90 120 148) !important;
+}
+
+/* ── Light mode: section radial gradient backgrounds → none ── */
+.light-theme.landing-theme #sec-pollutants,
+.light-theme.landing-theme #sec-chart,
+.light-theme.landing-theme #sec-compare,
+.light-theme.landing-theme #sec-leaderboard,
+.light-theme.landing-theme #sec-health,
+.light-theme.landing-theme #sec-faq,
+.light-theme.landing-theme #sec-subscribe {
+  background: none;
+}

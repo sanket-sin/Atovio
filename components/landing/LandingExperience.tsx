@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { DM_Serif_Display, JetBrains_Mono, Outfit, Sora } from "next/font/google";
 import { AirQualityToolkitSection } from "./AirQualityToolkitSection";
 import { ChartHistorySection } from "./ChartHistorySection";
@@ -47,18 +48,20 @@ function scrollToRealtimeMap() {
 }
 
 export function LandingExperience() {
+  const [isLight, setIsLight] = useState(false);
+
   return (
     <div
-      className={`landing-theme ${dmSerif.variable} ${jetbrains.variable} ${sora.variable} ${outfit.variable} min-h-screen bg-bqa-navy font-outfit text-[15px] leading-relaxed text-bqa-text antialiased`}
+      className={`${isLight ? "light-theme" : ""} landing-theme ${dmSerif.variable} ${jetbrains.variable} ${sora.variable} ${outfit.variable} min-h-screen bg-bqa-navy font-outfit text-[15px] leading-relaxed text-bqa-text antialiased`}
     >
-      <StarFieldCanvas />
+      {!isLight && <StarFieldCanvas />}
       <div
-        className="pointer-events-none fixed inset-0 -z-10 bg-[length:256px_256px] opacity-40"
+        className="grain-overlay pointer-events-none fixed inset-0 -z-10 bg-[length:256px_256px] opacity-40"
         style={{ backgroundImage: GRAIN }}
         aria-hidden
       />
 
-      <LandingSiteHeader />
+      <LandingSiteHeader isLight={isLight} onToggleTheme={() => setIsLight((p) => !p)} />
 
       <main className="pt-0">
         <LandingHero onScrollToMap={scrollToRealtimeMap} />

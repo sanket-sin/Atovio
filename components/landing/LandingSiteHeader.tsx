@@ -40,9 +40,8 @@ function AqiChip({ aqi }: { aqi?: number }) {
   );
 }
 
-export function LandingSiteHeader() {
+export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean; onToggleTheme: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [themeHint, setThemeHint] = useState<"dark" | "light">("dark");
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<AqiSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -98,11 +97,11 @@ export function LandingSiteHeader() {
     setDropdownOpen(false);
   }
 
-  const navLinkClass =
-    "text-sm font-medium text-white transition-colors hover:text-white/90";
+  const navLinkClass = `text-sm font-medium transition-colors ${isLight ? "text-gray-800 hover:text-gray-600" : "text-white hover:text-white/90"}`;
   const rowPad = "px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12";
-  const searchInputClass =
-    "h-10 w-full rounded-[6px] border border-white/[0.1] bg-[#0a101a] py-2 pl-10 pr-4 text-[0.78rem] text-slate-200 outline-none transition-colors placeholder:text-slate-400 focus:border-white/[0.18] focus:bg-[#0d1420] sm:pl-11 sm:pr-4";
+  const searchInputClass = isLight
+    ? "h-10 w-full rounded-[6px] border border-gray-300 bg-gray-100 py-2 pl-10 pr-4 text-[0.78rem] text-gray-800 outline-none transition-colors placeholder:text-gray-400 focus:border-bqa-accent focus:bg-white sm:pl-11 sm:pr-4"
+    : "h-10 w-full rounded-[6px] border border-white/[0.1] bg-[#0a101a] py-2 pl-10 pr-4 text-[0.78rem] text-slate-200 outline-none transition-colors placeholder:text-slate-400 focus:border-white/[0.18] focus:bg-[#0d1420] sm:pl-11 sm:pr-4";
   const searchIconWrapClass =
     "pointer-events-none absolute left-3.5 top-1/2 flex h-[18px] w-[18px] -translate-y-1/2 items-center justify-center sm:left-4";
 
@@ -110,10 +109,10 @@ export function LandingSiteHeader() {
     dropdownOpen && (results.length > 0 || loading) ? (
       <div
         ref={dropdownRef}
-        className="absolute left-0 top-full z-[300] mt-1.5 w-full overflow-hidden rounded-[10px] border border-white/[0.08] bg-[#0a101a] shadow-[0_16px_48px_rgba(0,0,0,0.6)]"
+        className={`search-dropdown absolute left-0 top-full z-[300] mt-1.5 w-full overflow-hidden rounded-[10px] border shadow-[0_16px_48px_rgba(0,0,0,0.6)] ${isLight ? "border-gray-200 bg-white" : "border-white/[0.08] bg-[#0a101a]"}`}
       >
         {loading && results.length === 0 ? (
-          <div className="flex items-center justify-center gap-2 px-4 py-3 text-[0.78rem] text-slate-400">
+          <div className={`flex items-center justify-center gap-2 px-4 py-3 text-[0.78rem] ${isLight ? "text-gray-500" : "text-slate-400"}`}>
             <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/20 border-t-bqa-accent" />
             Searching…
           </div>
@@ -124,14 +123,14 @@ export function LandingSiteHeader() {
                 <button
                   type="button"
                   onClick={() => handleResultClick(r)}
-                  className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/[0.05]"
+                  className={`search-dropdown-item flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors ${isLight ? "hover:bg-blue-50" : "hover:bg-white/[0.05]"}`}
                 >
                   <div className="min-w-0">
-                    <div className="truncate text-[0.82rem] font-medium text-slate-200">
+                    <div className={`search-dropdown-text truncate text-[0.82rem] font-medium ${isLight ? "text-gray-900" : "text-slate-200"}`}>
                       {r.name ?? r.city}
                     </div>
                     {(r.state || r.country) && (
-                      <div className="truncate text-[0.7rem] text-slate-500">
+                      <div className={`search-dropdown-sub truncate text-[0.7rem] ${isLight ? "text-gray-500" : "text-slate-500"}`}>
                         {[r.state, r.country].filter(Boolean).join(", ")}
                       </div>
                     )}
@@ -143,7 +142,7 @@ export function LandingSiteHeader() {
           </ul>
         )}
         {!loading && results.length === 0 && debouncedQuery.trim() && (
-          <div className="px-4 py-3 text-[0.78rem] text-slate-500">
+          <div className={`px-4 py-3 text-[0.78rem] ${isLight ? "text-gray-400" : "text-slate-500"}`}>
             No results for &quot;{debouncedQuery}&quot;
           </div>
         )}
@@ -152,7 +151,7 @@ export function LandingSiteHeader() {
 
   return (
     <header className="fixed left-0 right-0 top-0 z-[200] w-full min-w-0">
-      <nav className="relative z-[10] w-full min-w-0 border-b border-white/[0.06] bg-[#020617] py-3 backdrop-blur-xl">
+      <nav className={`relative z-[10] w-full min-w-0 border-b py-3 backdrop-blur-xl transition-colors ${isLight ? "border-black/[0.07] bg-white/97" : "border-white/[0.06] bg-[#020617]"}`}>
         <div
           className={`flex w-full min-w-0 items-center gap-4 lg:gap-6 ${rowPad}`}
         >
@@ -168,7 +167,7 @@ export function LandingSiteHeader() {
               height={43}
               priority
               unoptimized
-              className="h-8 w-auto sm:h-9"
+              className="site-logo h-8 w-auto sm:h-9"
             />
           </Link>
 
@@ -236,14 +235,12 @@ export function LandingSiteHeader() {
 
           <button
             type="button"
-            onClick={() =>
-              setThemeHint((t) => (t === "dark" ? "light" : "dark"))
-            }
-            className="relative z-10 hidden shrink-0 items-center gap-2.5 rounded-full border border-white/[0.12] bg-[#020617] py-2 pl-4 pr-3 text-[0.78rem] font-medium text-slate-200 transition-colors hover:border-white/[0.18] hover:bg-[#0a101a] md:flex"
+            onClick={onToggleTheme}
+            className={`relative z-10 hidden shrink-0 items-center gap-2.5 rounded-full border py-2 pl-4 pr-3 text-[0.78rem] font-medium transition-colors md:flex ${isLight ? "border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200" : "border-white/[0.12] bg-[#020617] text-slate-200 hover:border-white/[0.18] hover:bg-[#0a101a]"}`}
             aria-label="Toggle color theme"
           >
             <span className="whitespace-nowrap">
-              {themeHint === "dark" ? "Light Mode" : "Dark Mode"}
+              {isLight ? "Dark Mode" : "Light Mode"}
             </span>
             <Image
               src="/images/light-mode.svg"
@@ -258,7 +255,7 @@ export function LandingSiteHeader() {
           <div className="ml-auto flex items-center gap-2 md:hidden">
             <button
               type="button"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-[#0a101a] text-slate-400"
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${isLight ? "border-gray-300 bg-gray-100 text-gray-600" : "border-white/[0.08] bg-[#0a101a] text-slate-400"}`}
               aria-label="Search city, area, or pincode"
             >
               <Image
@@ -267,12 +264,12 @@ export function LandingSiteHeader() {
                 width={18}
                 height={18}
                 unoptimized
-                className="opacity-90"
+                className={`${isLight ? "opacity-60" : "opacity-90"}`}
               />
             </button>
             <button
               type="button"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/[0.1] text-white"
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${isLight ? "border-gray-300 text-gray-700" : "border-white/[0.1] text-white"}`}
               onClick={() => setMenuOpen((o) => !o)}
               aria-expanded={menuOpen}
               aria-label="Toggle menu"
@@ -283,9 +280,7 @@ export function LandingSiteHeader() {
         </div>
 
         <div
-          className={`mt-3 flex flex-col gap-3 border-t border-white/[0.06] pt-3 md:hidden ${rowPad} ${
-            menuOpen ? "" : "hidden"
-          }`}
+          className={`mt-3 flex flex-col gap-3 border-t pt-3 md:hidden ${rowPad} ${isLight ? "border-gray-200" : "border-white/[0.06]"} ${menuOpen ? "" : "hidden"}`}
         >
           <div className="flex flex-col gap-2.5">
             {NAV.map((item) =>
@@ -345,7 +340,7 @@ export function LandingSiteHeader() {
             {dropdownOpen && results.length > 0 && (
               <div
                 ref={dropdownRef}
-                className="absolute left-0 top-full z-[300] mt-1.5 w-full overflow-hidden rounded-[10px] border border-white/[0.08] bg-[#0a101a] shadow-[0_16px_48px_rgba(0,0,0,0.6)]"
+                className={`absolute left-0 top-full z-[300] mt-1.5 w-full overflow-hidden rounded-[10px] border shadow-[0_16px_48px_rgba(0,0,0,0.6)] ${isLight ? "border-gray-200 bg-white" : "border-white/[0.08] bg-[#0a101a]"}`}
               >
                 <ul>
                   {results.map((r, i) => (
@@ -353,14 +348,14 @@ export function LandingSiteHeader() {
                       <button
                         type="button"
                         onClick={() => handleResultClick(r)}
-                        className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/[0.05]"
+                        className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors ${isLight ? "hover:bg-blue-50" : "hover:bg-white/[0.05]"}`}
                       >
                         <div className="min-w-0">
-                          <div className="truncate text-[0.82rem] font-medium text-slate-200">
+                          <div className={`truncate text-[0.82rem] font-medium ${isLight ? "text-gray-900" : "text-slate-200"}`}>
                             {r.name ?? r.city}
                           </div>
                           {(r.state || r.country) && (
-                            <div className="truncate text-[0.7rem] text-slate-500">
+                            <div className={`truncate text-[0.7rem] ${isLight ? "text-gray-500" : "text-slate-500"}`}>
                               {[r.state, r.country].filter(Boolean).join(", ")}
                             </div>
                           )}
@@ -376,12 +371,10 @@ export function LandingSiteHeader() {
 
           <button
             type="button"
-            onClick={() =>
-              setThemeHint((t) => (t === "dark" ? "light" : "dark"))
-            }
+            onClick={onToggleTheme}
             className="flex items-center justify-center gap-2.5 rounded-full border border-white/[0.12] py-2.5 text-[0.78rem] font-medium text-slate-200"
           >
-            {themeHint === "dark" ? "Light Mode" : "Dark Mode"}
+            {isLight ? "Dark Mode" : "Light Mode"}
             <Image
               src="/images/light-mode.svg"
               alt=""
