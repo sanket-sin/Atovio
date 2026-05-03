@@ -69,8 +69,9 @@ body {
   --bqa-slate:     226 235 245;
   --bqa-slate2:    210 222 235;
   --bqa-text:      10 24 46;
-  --bqa-muted:     60 90 120;
-  --bqa-dim:       90 120 148;
+  /* Readable secondary copy on light surfaces (screenshot 3 reference) */
+  --bqa-muted:     71 85 105;
+  --bqa-dim:       100 116 139;
   --bqa-accent:    61 158 255;
   --bqa-accent2:   20 110 210;
   --bqa-compare:   110 75 210;

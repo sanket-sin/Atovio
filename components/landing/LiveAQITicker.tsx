@@ -17,15 +17,29 @@ const LIVE_CITIES = [
 
 type LiveAQITickerProps = {
   rowPad?: string;
+  isLight?: boolean;
 };
 
 export function LiveAQITicker({
   rowPad = "px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12",
+  isLight = false,
 }: LiveAQITickerProps) {
   const items = [...LIVE_CITIES, ...LIVE_CITIES];
 
+  const barClass = isLight
+    ? "border-b border-black/[0.07] bg-white"
+    : "border-b border-white/[0.06] bg-[#020617]";
+  const labelClass = isLight
+    ? "font-mono text-[0.68rem] font-bold uppercase tracking-[0.12em] text-gray-800"
+    : "font-mono text-[0.68rem] font-bold uppercase tracking-[0.12em] text-white";
+  const tickerBorderClass = isLight
+    ? "border-l border-gray-300"
+    : "border-l border-slate-600/70";
+  const cityClass = isLight ? "text-gray-600" : "text-slate-400";
+  const sepClass = isLight ? "px-2 text-gray-300 sm:px-2.5" : "px-2 text-slate-600 sm:px-2.5";
+
   return (
-    <div className="w-full min-w-0 border-b border-white/[0.06] bg-[#020617]">
+    <div className={`w-full min-w-0 transition-colors ${barClass}`}>
       <div
         className={`flex w-full min-w-0 items-stretch overflow-hidden py-2.5 ${rowPad}`}
       >
@@ -34,22 +48,22 @@ export function LiveAQITicker({
             className="h-1.5 w-1.5 shrink-0 animate-blink rounded-full bg-red-500 shadow-[0_0_10px_#ef4444]"
             aria-hidden
           />
-          <span className="font-mono text-[0.68rem] font-bold uppercase tracking-[0.12em] text-white">
-            Live AQI
-          </span>
+          <span className={labelClass}>Live AQI</span>
         </div>
-        <div className="min-h-[1.25rem] min-w-0 flex-1 self-center overflow-hidden border-l border-slate-600/70 pl-3 sm:pl-4">
+        <div
+          className={`min-h-[1.25rem] min-w-0 flex-1 self-center overflow-hidden pl-3 sm:pl-4 ${tickerBorderClass}`}
+        >
           <div className="flex w-max animate-ticker gap-0 pr-8">
             {items.map((c, i) => (
               <span
                 key={`${c.city}-${i}`}
                 className="inline-flex items-baseline whitespace-nowrap font-mono text-[0.78rem] sm:text-[0.8rem]"
               >
-                <span className="text-slate-400">{c.city}</span>
+                <span className={cityClass}>{c.city}</span>
                 <span className="ml-1.5 font-bold tabular-nums sm:ml-2">
                   <span className={c.color}>{c.aqi}</span>
                 </span>
-                <span className="px-2 text-slate-600 sm:px-2.5" aria-hidden>
+                <span className={sepClass} aria-hidden>
                   |
                 </span>
               </span>

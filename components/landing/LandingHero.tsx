@@ -6,10 +6,11 @@ import { AqiBadge } from "./AqiBadge";
 const HERO_BG = "/images/hero-bg.png";
 
 type LandingHeroProps = {
+  isLight?: boolean;
   onScrollToMap: () => void;
 };
 
-export function LandingHero({ onScrollToMap }: LandingHeroProps) {
+export function LandingHero({ isLight = false, onScrollToMap }: LandingHeroProps) {
   const whoRingGradId = useId().replace(/:/g, "");
   const ringR = 42;
   const ringC = 2 * Math.PI * ringR;
@@ -17,7 +18,10 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
   const whoDash = (whoHours / 24) * ringC;
 
   return (
-    <section className="relative flex min-h-[100dvh] items-center overflow-hidden border-b border-sky-400/10 pt-[7.75rem] sm:pt-[8rem]">
+    <section
+      id="sec-hero"
+      className="relative flex min-h-[100dvh] items-center overflow-hidden border-b border-sky-400/10 pt-[7.75rem] sm:pt-[8rem]"
+    >
       <div
         className="absolute inset-0 z-0 scale-105 animate-hero-drift bg-cover bg-[center_20%]"
         style={{ backgroundImage: `url(${HERO_BG})` }}
@@ -41,7 +45,13 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
 
           {/* Left: headline text */}
           <div className="max-lg:order-1 lg:self-center">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-400/30 bg-rose-500/10 px-3 py-1 font-mono text-[0.72rem] font-bold uppercase tracking-wider text-rose-200">
+            <div
+              className={`mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-[0.72rem] font-bold uppercase tracking-wider ${
+                isLight
+                  ? "border-rose-400 bg-rose-50 text-rose-700"
+                  : "border-rose-400/30 bg-rose-500/10 text-rose-200"
+              }`}
+            >
               <span
                 className="h-1.5 w-1.5 animate-blink rounded-full bg-bqa-unhealthy shadow-[0_0_8px_#ff4d6d]"
                 aria-hidden
@@ -52,11 +62,19 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
               Mumbai Air Quality
               <br />
               Index —{" "}
-              <em className="not-italic font-numeric tracking-normal text-bqa-poor">
+              <em
+                className={`not-italic font-numeric tracking-normal ${
+                  isLight ? "text-orange-600" : "text-bqa-poor"
+                }`}
+              >
                 160
               </em>
             </h1>
-            <p className="mb-6 max-w-[380px] text-[0.95rem] leading-relaxed text-bqa-muted">
+            <p
+              className={`mb-6 max-w-[380px] text-[0.95rem] leading-relaxed ${
+                isLight ? "text-slate-600" : "text-bqa-muted"
+              }`}
+            >
               Real-time PM₂.₅, PM₁₀, O₃, NO₂, SO₂, CO from BeyondAQI&apos;s
               hyperlocal sensor network. Zero API smoothing. Zero delay.
             </p>
@@ -71,14 +89,27 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
               />
 
               {/* Label */}
-              <div className="mb-1 font-outfit text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] text-bqa-dim">
-                Outdoor AQI • Mumbai
+              <div
+                className={`mb-1 font-outfit text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] ${
+                  isLight ? "text-sky-800/70" : "text-bqa-dim"
+                }`}
+              >
+                Outdoor AQI · Mumbai
               </div>
 
-              {/* Big number left, buttons right */}
+              {/* Big number + POOR pill (left), buttons (right) */}
               <div className="flex items-start justify-between gap-3">
-                <div className="font-numeric text-[clamp(3.5rem,10vw,5.5rem)] font-bold leading-[1] tracking-normal text-bqa-poor drop-shadow-[0_0_40px_rgba(255,140,66,0.3)]">
-                  160
+                <div className="min-w-0">
+                  <div
+                    className={`font-numeric text-[clamp(3.5rem,10vw,5.5rem)] font-bold leading-[1] tracking-normal ${
+                      isLight ? "text-orange-600" : "text-bqa-poor drop-shadow-[0_0_40px_rgba(255,140,66,0.3)]"
+                    }`}
+                  >
+                    160
+                  </div>
+                  <AqiBadge variant="poor" className="mt-3 px-4 py-1.5 font-outfit tracking-[0.06em]">
+                    Poor
+                  </AqiBadge>
                 </div>
                 <div className="flex shrink-0 flex-col gap-2 pt-1">
                   <button
@@ -90,7 +121,11 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
                   </button>
                   <button
                     type="button"
-                    className="inline-flex items-center justify-center gap-2 rounded-[10px] border border-sky-400/10 bg-transparent px-5 py-2.5 text-[0.78rem] font-semibold text-bqa-muted backdrop-blur-sm transition-all hover:border-sky-400/20 hover:bg-bqa-slate hover:text-bqa-text min-w-[10.5rem]"
+                    className={`inline-flex items-center justify-center gap-2 rounded-[10px] border bg-transparent px-5 py-2.5 text-[0.78rem] font-semibold backdrop-blur-sm transition-all min-w-[10.5rem] ${
+                      isLight
+                        ? "border-sky-400/80 text-slate-800 hover:border-bqa-accent hover:bg-sky-50"
+                        : "border-bqa-accent/45 text-white hover:border-bqa-accent hover:bg-bqa-accent/10"
+                    }`}
                   >
                     <span
                       className="h-2 w-2 shrink-0 rounded-full bg-bqa-unhealthy shadow-[0_0_6px_#ff4d6d]"
@@ -101,15 +136,8 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
                 </div>
               </div>
 
-              {/* POOR badge */}
-              <div className="mt-3 inline-flex items-center rounded-full border border-orange-400/35 bg-orange-400/10 px-3 py-1">
-                <span className="text-[0.7rem] font-bold uppercase tracking-wide text-bqa-poor">
-                  Poor
-                </span>
-              </div>
-
               {/* PM2.5 / PM10 */}
-              <div className="my-4 grid grid-cols-2 gap-2.5">
+              <div className="mt-4 grid grid-cols-2 gap-2.5">
                 <div className="rounded-lg border-l-[3px] border-bqa-moderate bg-bqa-slate/60 p-3">
                   <div className="mb-0.5 text-[0.68rem] font-semibold tracking-wide text-bqa-dim">
                     PM2.5
@@ -167,7 +195,11 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
           {/* Right: weather card */}
           <div className="max-lg:order-2 md:max-lg:col-span-1 lg:order-none lg:flex lg:flex-col">
             <div className="flex flex-col flex-1 rounded-[20px] border border-sky-400/10 bg-bqa-navy2/80 p-5 backdrop-blur-xl sm:p-6">
-              <div className="mb-4 font-outfit text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] text-bqa-dim">
+              <div
+                className={`mb-4 font-outfit text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] ${
+                  isLight ? "text-sky-800/70" : "text-bqa-dim"
+                }`}
+              >
                 Weather Conditions
               </div>
 
@@ -196,7 +228,11 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
                   <div className="font-numeric text-4xl font-bold tracking-normal text-bqa-text">
                     30°C
                   </div>
-                  <div className="text-sm text-bqa-muted">Sunny · Clear Skies</div>
+                  <div
+                    className={`text-sm ${isLight ? "text-slate-600" : "text-bqa-muted"}`}
+                  >
+                    Sunny · Clear Skies
+                  </div>
                 </div>
               </div>
 
@@ -269,7 +305,9 @@ export function LandingHero({ onScrollToMap }: LandingHeroProps) {
                     </span>
                   </div>
                 </div>
-                <p className="text-[0.72rem] leading-snug text-bqa-dim">
+                <p
+                  className={`text-[0.72rem] leading-snug ${isLight ? "text-slate-600" : "text-bqa-dim"}`}
+                >
                   /24 hours above WHO PM 2.5 guideline today
                 </p>
               </div>

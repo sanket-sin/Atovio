@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo } from "react";
 import { SectionTitle } from "./SectionTitle";
 
@@ -121,8 +122,17 @@ export function TrendsAnalysisSection() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-sky-400/10 bg-bqa-navy2/70 p-6 backdrop-blur-md">
-            <div className="mb-4 flex items-center gap-2">
-              <span aria-hidden>📊</span>
+            <div className="mb-4 flex items-center gap-3">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-bqa-accent/15" aria-hidden>
+                <Image
+                  src="/images/pollutant-source-Icon.svg"
+                  alt=""
+                  width={18}
+                  height={18}
+                  className="object-contain"
+                  unoptimized
+                />
+              </span>
               <h3 className="text-lg font-bold text-white">
                 Pollutant Source Radar
               </h3>
@@ -167,8 +177,17 @@ export function TrendsAnalysisSection() {
           </div>
 
           <div className="rounded-2xl border border-sky-400/10 bg-bqa-navy2/70 p-6 backdrop-blur-md">
-            <div className="mb-1 flex items-center gap-2">
-              <span aria-hidden>🏅</span>
+            <div className="mb-1 flex items-center gap-3">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/15" aria-hidden>
+                <Image
+                  src="/images/badge-Icon.svg"
+                  alt=""
+                  width={18}
+                  height={18}
+                  className="object-contain"
+                  unoptimized
+                />
+              </span>
               <h3 className="text-lg font-bold text-white">
                 WHO Compliance Scorecard
               </h3>

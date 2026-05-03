@@ -13,11 +13,12 @@ function GearRowIcon({ index }: { index: number }) {
   if (index === 0) {
     return (
       <svg className={cls} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+        <ellipse cx="12" cy="14" rx="5" ry="3.25" strokeWidth={2} />
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+          d="M7 13.5L5 15.5M17 13.5L19 15.5"
         />
       </svg>
     );
@@ -41,6 +42,25 @@ function GearRowIcon({ index }: { index: number }) {
         strokeLinejoin="round"
         strokeWidth={2}
         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+  );
+}
+
+function OutdoorCrosshairIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="3" strokeWidth={2} />
+      <path
+        strokeLinecap="round"
+        strokeWidth={2}
+        d="M12 3v3M12 18v3M3 12h3M18 12h3"
       />
     </svg>
   );
@@ -126,7 +146,7 @@ export function HealthGuidanceSection() {
                 className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-[0.82rem] font-semibold transition-colors ${
                   aud === t.id
                     ? "border-bqa-accent bg-bqa-accent text-white"
-                    : "border-sky-400/10 bg-bqa-slate text-bqa-muted hover:bg-bqa-slate2 hover:text-bqa-text"
+                    : "border-sky-400/10 bg-bqa-slate text-sky-400/55 hover:bg-bqa-slate2 hover:text-sky-300/90"
                 }`}
               >
                 <TabIcon id={t.id} />
@@ -136,80 +156,47 @@ export function HealthGuidanceSection() {
           </div>
 
           <div className="grid grid-cols-1 gap-[18px] lg:grid-cols-2 xl:grid-cols-4">
-            {aud === "general" ? (
-              <div className="rounded-[14px] border border-sky-400/10 bg-bqa-slate p-5 transition-transform hover:-translate-y-0.5">
-                <h4 className="mb-4 text-[0.78rem] font-bold uppercase tracking-wide text-bqa-dim">
-                  Indoor vs Outdoor AQI
-                </h4>
-                <div className="space-y-4 border-b border-sky-400/10 pb-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2 text-[0.72rem] font-semibold uppercase tracking-wide text-emerald-400">
-                      <span aria-hidden>⌂</span>
-                      Indoors (with purifier)
-                    </div>
-                    <AqiBadge variant="good" className="shrink-0 text-[0.65rem]">
-                      Good
-                    </AqiBadge>
-                  </div>
-                  <div className="font-outfit text-5xl font-bold text-emerald-400">
-                    38
-                  </div>
-                </div>
-                <div className="space-y-4 pt-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2 text-[0.72rem] font-semibold uppercase tracking-wide text-bqa-poor">
-                      <span aria-hidden>◇</span>
-                      Outdoors (current)
-                    </div>
-                    <AqiBadge variant="poor" className="shrink-0 text-[0.65rem]">
-                      Poor
-                    </AqiBadge>
-                  </div>
-                  <div className="font-outfit text-5xl font-bold text-bqa-poor">
-                    160
-                  </div>
-                </div>
+            <div className="rounded-[14px] border border-sky-400/15 bg-bqa-slate p-5 shadow-[inset_0_0_0_1px_rgba(56,189,248,0.06)] transition-transform hover:-translate-y-0.5">
+              <h4 className="mb-4 text-[0.78rem] font-bold uppercase tracking-wide text-white">
+                Outdoor AQI
+              </h4>
+              <div className="mb-4 flex items-center gap-2 text-[0.72rem] font-semibold uppercase tracking-wide text-sky-300">
+                <OutdoorCrosshairIcon className="h-4 w-4 shrink-0 text-bqa-poor" />
+                Outdoors (current)
               </div>
-            ) : (
-              <div className="rounded-[14px] border border-sky-400/10 bg-bqa-slate p-5 transition-transform hover:-translate-y-0.5">
-                <h4 className="mb-3 text-[0.78rem] font-bold uppercase tracking-wide text-bqa-dim">
-                  {h.liveTitle}
-                </h4>
-                <div className="font-outfit text-5xl font-bold text-bqa-poor">
-                  160
-                </div>
-                <AqiBadge variant="poor" className="mt-2">
+              <div className="font-outfit text-5xl font-bold leading-none text-bqa-poor drop-shadow-[0_0_28px_rgba(255,140,66,0.35)]">
+                160
+              </div>
+              <div className="mt-4">
+                <AqiBadge variant="poor" className="text-[0.65rem]">
                   Poor
                 </AqiBadge>
-                <p className="mt-2.5 text-[0.87rem] leading-relaxed text-bqa-muted">
-                  {h.liveNote}
-                </p>
               </div>
-            )}
+            </div>
 
-            <div className="rounded-[14px] border border-rose-400/20 bg-rose-500/[0.05] p-5 transition-transform hover:-translate-y-0.5">
+            <div className="rounded-[14px] border border-rose-400/25 bg-rose-500/[0.06] p-5 shadow-[inset_0_0_32px_rgba(244,63,94,0.06)] transition-transform hover:-translate-y-0.5">
               <h4 className="mb-3 flex items-center gap-2 text-[0.78rem] font-bold uppercase tracking-wide text-rose-300">
                 <span className="text-amber-400" aria-hidden>
                   ⚠
                 </span>
                 {h.warnTitle.replace(/^⚠\s*/u, "")}
               </h4>
-              <p className="text-[0.87rem] leading-relaxed text-bqa-muted">
+              <p className="text-[0.87rem] leading-relaxed text-white/90">
                 {h.warnBody}
               </p>
             </div>
 
-            <div className="rounded-[14px] border border-sky-400/20 bg-sky-400/[0.05] p-5 transition-transform hover:-translate-y-0.5">
+            <div className="rounded-[14px] border border-sky-400/25 bg-sky-400/[0.06] p-5 shadow-[inset_0_0_32px_rgba(56,189,248,0.08)] transition-transform hover:-translate-y-0.5">
               <h4 className="mb-3 flex items-center gap-2 text-[0.78rem] font-bold uppercase tracking-wide text-bqa-accent2">
                 <span aria-hidden>ℹ</span>
                 {h.adviceTitle.replace(/^ℹ\s*/u, "")}
               </h4>
-              <p className="text-[0.87rem] leading-relaxed text-bqa-muted">
+              <p className="text-[0.87rem] leading-relaxed text-white/90">
                 {h.adviceBody}
               </p>
             </div>
 
-            <div className="rounded-[14px] border border-purple-400/20 bg-purple-400/[0.05] p-5 transition-transform hover:-translate-y-0.5">
+            <div className="rounded-[14px] border border-purple-400/25 bg-purple-400/[0.06] p-5 shadow-[inset_0_0_32px_rgba(192,132,252,0.08)] transition-transform hover:-translate-y-0.5">
               <h4 className="mb-3 flex items-center gap-2 text-[0.78rem] font-bold uppercase tracking-wide text-bqa-compare">
                 <svg
                   className="h-4 w-4 shrink-0 text-purple-300"
@@ -225,13 +212,13 @@ export function HealthGuidanceSection() {
                     d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
                   />
                 </svg>
-                {h.gearTitle.replace(/^🛡\s*/, "")}
+                {h.gearTitle.replace(/^🛡\uFE0F?\s*/, "")}
               </h4>
               <ul className="flex flex-col gap-2.5">
                 {h.gear.map((g, i) => (
                   <li
                     key={g}
-                    className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.03] px-2.5 py-2 text-[0.85rem] text-bqa-muted transition-all hover:border-purple-400/20 hover:bg-purple-400/[0.08]"
+                    className="flex items-center gap-2.5 rounded-lg border border-white/[0.06] bg-bqa-navy2/80 px-2.5 py-2 text-[0.85rem] text-white/85 transition-all hover:border-purple-400/25 hover:bg-purple-400/[0.08]"
                   >
                     <GearRowIcon index={i} />
                     {g}

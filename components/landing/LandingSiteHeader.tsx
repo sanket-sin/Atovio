@@ -211,7 +211,9 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
                       width={18}
                       height={18}
                       unoptimized
-                      className="opacity-90"
+                      className={
+                        isLight ? "opacity-90 brightness-0" : "opacity-90"
+                      }
                     />
                   )}
                 </span>
@@ -264,7 +266,9 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
                 width={18}
                 height={18}
                 unoptimized
-                className={`${isLight ? "opacity-60" : "opacity-90"}`}
+                className={
+                  isLight ? "opacity-90 brightness-0" : "opacity-90"
+                }
               />
             </button>
             <button
@@ -322,7 +326,9 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
                   width={18}
                   height={18}
                   unoptimized
-                  className="opacity-90"
+                  className={
+                    isLight ? "opacity-90 brightness-0" : "opacity-90"
+                  }
                 />
               )}
             </span>
@@ -385,7 +391,7 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
           </button>
         </div>
       </nav>
-      <LiveAQITicker rowPad={rowPad} />
+      <LiveAQITicker rowPad={rowPad} isLight={isLight} />
     </header>
   );
 }

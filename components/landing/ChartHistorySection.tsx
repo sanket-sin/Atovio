@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Chart } from "chart.js";
 import {
@@ -213,7 +214,16 @@ export function ChartHistorySection() {
           {/* Pollutant Source Radar */}
           <div className="rounded-[20px] border border-sky-400/10 bg-bqa-navy2/75 p-5 backdrop-blur-md sm:p-6">
             <div className="mb-1 flex items-center gap-3">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-bqa-accent/15 text-sm">📊</span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-bqa-accent/15">
+                <Image
+                  src="/images/pollutant-source-Icon.svg"
+                  alt=""
+                  width={18}
+                  height={18}
+                  className="object-contain"
+                  unoptimized
+                />
+              </span>
               <h3 className="font-outfit text-base font-bold text-white">Pollutant Source Radar</h3>
             </div>
             <svg viewBox="0 0 320 285" className="w-full">
@@ -261,7 +271,16 @@ export function ChartHistorySection() {
           {/* WHO Compliance Scorecard */}
           <div className="rounded-[20px] border border-sky-400/10 bg-bqa-navy2/75 p-5 backdrop-blur-md sm:p-6">
             <div className="mb-1 flex items-center gap-3">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-500/15 text-sm">🏛️</span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/15">
+                <Image
+                  src="/images/badge-Icon.svg"
+                  alt=""
+                  width={18}
+                  height={18}
+                  className="object-contain"
+                  unoptimized
+                />
+              </span>
               <h3 className="font-outfit text-base font-bold text-white">Who Compliance Scorecard</h3>
             </div>
             <p className="mb-4 font-outfit text-[0.8rem] text-bqa-dim">Last 30 days · Mumbai</p>

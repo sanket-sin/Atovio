@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useState } from "react";
 
 /* ── Clock ── */
@@ -95,8 +96,15 @@ export function AirQualityToolkitSection() {
           {/* ── Health Exposure Clock ── */}
           <div className="rounded-2xl border border-sky-400/10 bg-bqa-navy2/70 p-6 backdrop-blur-md">
             <div className="mb-5 flex items-center gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-400/15 text-[1.1rem] leading-none">
-                🕐
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-400/15">
+                <Image
+                  src="/images/watch-icon.svg"
+                  alt=""
+                  width={18}
+                  height={18}
+                  className="object-contain"
+                  unoptimized
+                />
               </span>
               <h3 className="font-outfit text-[1rem] font-bold text-white">Health Exposure Clock</h3>
             </div>
@@ -166,8 +174,15 @@ export function AirQualityToolkitSection() {
           <div className="rounded-2xl border border-sky-400/10 bg-bqa-navy2/70 p-6 backdrop-blur-md">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/15 text-[1.1rem] leading-none">
-                  📈
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/15">
+                  <Image
+                    src="/images/stats-arrow-icon.svg"
+                    alt=""
+                    width={18}
+                    height={18}
+                    className="object-contain"
+                    unoptimized
+                  />
                 </span>
                 <h3 className="font-outfit text-[1rem] font-bold text-white">72-Hours AQI Forecast</h3>
               </div>
@@ -264,8 +279,15 @@ export function AirQualityToolkitSection() {
           {/* ── Puff Score ── */}
           <div className="rounded-2xl border border-sky-400/10 bg-bqa-navy2/70 p-6 backdrop-blur-md">
             <div className="mb-5 flex items-center gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-500/15 text-[1.1rem] leading-none">
-                🚬
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-500/15">
+                <Image
+                  src="/images/cigaratte-icon.svg"
+                  alt=""
+                  width={18}
+                  height={18}
+                  className="object-contain"
+                  unoptimized
+                />
               </span>
               <h3 className="font-outfit text-[1rem] font-bold text-white">
                 Puff Score Lifetime Calculator

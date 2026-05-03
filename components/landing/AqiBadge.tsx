@@ -1,10 +1,10 @@
 const variants = {
-  good: "border-emerald-400/30 bg-emerald-400/10 text-bqa-good",
-  moderate: "border-amber-300/30 bg-amber-300/10 text-bqa-moderate",
-  poor: "border-orange-400/30 bg-orange-400/10 text-bqa-poor",
-  unhealthy: "border-rose-400/30 bg-rose-400/10 text-bqa-unhealthy",
-  severe: "border-purple-400/30 bg-purple-400/10 text-bqa-severe",
-  hazardous: "border-violet-500/30 bg-violet-500/10 text-bqa-hazardous",
+  good: "border-bqa-good bg-bqa-good/12 text-bqa-good",
+  moderate: "border-bqa-moderate bg-bqa-moderate/12 text-bqa-moderate",
+  poor: "border-bqa-poor bg-bqa-poor/12 text-bqa-poor",
+  unhealthy: "border-bqa-unhealthy bg-bqa-unhealthy/12 text-bqa-unhealthy",
+  severe: "border-bqa-severe bg-bqa-severe/12 text-bqa-severe",
+  hazardous: "border-bqa-hazardous bg-bqa-hazardous/12 text-bqa-hazardous",
 } as const;
 
 export type AqiBadgeVariant = keyof typeof variants;

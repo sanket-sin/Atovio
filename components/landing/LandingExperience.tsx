@@ -64,7 +64,7 @@ export function LandingExperience() {
       <LandingSiteHeader isLight={isLight} onToggleTheme={() => setIsLight((p) => !p)} />
 
       <main className="pt-0">
-        <LandingHero onScrollToMap={scrollToRealtimeMap} />
+        <LandingHero isLight={isLight} onScrollToMap={scrollToRealtimeMap} />
         <AirQualityToolkitSection />
         <ChartHistorySection />
         <RealtimeAqiMapSection />
