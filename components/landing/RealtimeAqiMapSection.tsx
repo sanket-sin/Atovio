@@ -17,9 +17,12 @@ const TIMES = [
   "NOW",
 ];
 
-export function RealtimeAqiMapSection() {
+export function RealtimeAqiMapSection({ isLight = false }: { isLight?: boolean }) {
   const [metric, setMetric] = useState<(typeof METRICS)[number]>("AQI");
   const [standard, setStandard] = useState<(typeof STANDARDS)[number]>("CPCB");
+
+  const cityTitle = isLight ? "text-bqa-text" : "text-white";
+  const barTrack = isLight ? "bg-slate-200/90" : "bg-bqa-navy";
 
   return (
     <section
@@ -119,34 +122,54 @@ export function RealtimeAqiMapSection() {
 
           {/* Most Polluted */}
           <div className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.07] p-5">
-            <p className="mb-3 font-outfit text-[0.65rem] font-bold uppercase tracking-widest text-rose-400">
+            <p
+              className={`mb-3 font-outfit text-[0.65rem] font-bold uppercase tracking-widest ${
+                isLight ? "text-rose-600" : "text-rose-400"
+              }`}
+            >
               Most Polluted City Today
             </p>
-            <h3 className="mb-2 font-outfit text-2xl font-bold text-white">Kharagpur</h3>
+            <h3 className={`mb-2 font-outfit text-2xl font-bold ${cityTitle}`}>Kharagpur</h3>
             <div className="flex items-baseline gap-3">
               <span className="font-outfit text-4xl font-bold text-bqa-unhealthy">182</span>
-              <span className="rounded-md bg-rose-500/20 px-2 py-0.5 font-outfit text-[0.75rem] font-semibold text-rose-300">
+              <span
+                className={`rounded-md px-2 py-0.5 font-outfit text-[0.75rem] font-semibold ${
+                  isLight
+                    ? "bg-rose-100 text-rose-900"
+                    : "bg-rose-500/20 text-rose-300"
+                }`}
+              >
                 Unhealthy
               </span>
             </div>
-            <div className="mt-5 h-1.5 w-full rounded-full bg-bqa-navy">
+            <div className={`mt-5 h-1.5 w-full rounded-full ${barTrack}`}>
               <div className="h-full rounded-full bg-bqa-unhealthy" style={{ width: "36.4%" }} />
             </div>
           </div>
 
           {/* Cleanest City */}
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] p-5">
-            <p className="mb-3 font-outfit text-[0.65rem] font-bold uppercase tracking-widest text-emerald-400">
+            <p
+              className={`mb-3 font-outfit text-[0.65rem] font-bold uppercase tracking-widest ${
+                isLight ? "text-emerald-600" : "text-emerald-400"
+              }`}
+            >
               Cleanest City Today
             </p>
-            <h3 className="mb-2 font-outfit text-2xl font-bold text-white">Srinagar</h3>
+            <h3 className={`mb-2 font-outfit text-2xl font-bold ${cityTitle}`}>Srinagar</h3>
             <div className="flex items-baseline gap-3">
               <span className="font-outfit text-4xl font-bold text-bqa-good">21</span>
-              <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 font-outfit text-[0.75rem] font-semibold text-emerald-300">
+              <span
+                className={`rounded-md px-2 py-0.5 font-outfit text-[0.75rem] font-semibold ${
+                  isLight
+                    ? "bg-emerald-100 text-emerald-900"
+                    : "bg-emerald-500/20 text-emerald-300"
+                }`}
+              >
                 Good
               </span>
             </div>
-            <div className="mt-5 h-1.5 w-full rounded-full bg-bqa-navy">
+            <div className={`mt-5 h-1.5 w-full rounded-full ${barTrack}`}>
               <div className="h-full rounded-full bg-bqa-good" style={{ width: "4.2%" }} />
             </div>
           </div>

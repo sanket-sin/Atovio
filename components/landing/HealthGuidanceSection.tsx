@@ -8,8 +8,8 @@ import {
   type AudienceId,
 } from "./health-content";
 
-function GearRowIcon({ index }: { index: number }) {
-  const cls = "h-4 w-4 shrink-0 text-purple-300";
+function GearRowIcon({ index, isLight }: { index: number; isLight: boolean }) {
+  const cls = `h-4 w-4 shrink-0 ${isLight ? "text-purple-600" : "text-purple-300"}`;
   if (index === 0) {
     return (
       <svg className={cls} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -116,9 +116,17 @@ function TabIcon({ id }: { id: AudienceId }) {
   }
 }
 
-export function HealthGuidanceSection() {
+export function HealthGuidanceSection({ isLight = false }: { isLight?: boolean }) {
   const [aud, setAud] = useState<AudienceId>("general");
   const h = HEALTH_BY_AUDIENCE[aud];
+
+  const bodyText = isLight ? "text-slate-600" : "text-white/90";
+  const outdoorLabel = isLight ? "text-slate-600" : "text-white";
+  const outdoorSub = isLight ? "text-slate-600" : "text-sky-300";
+
+  const tabInactive = isLight
+    ? "border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800"
+    : "border-sky-400/10 bg-bqa-slate text-sky-400/55 hover:bg-bqa-slate2 hover:text-sky-300/90";
 
   return (
     <section
@@ -146,7 +154,7 @@ export function HealthGuidanceSection() {
                 className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-[0.82rem] font-semibold transition-colors ${
                   aud === t.id
                     ? "border-bqa-accent bg-bqa-accent text-white"
-                    : "border-sky-400/10 bg-bqa-slate text-sky-400/55 hover:bg-bqa-slate2 hover:text-sky-300/90"
+                    : tabInactive
                 }`}
               >
                 <TabIcon id={t.id} />
@@ -157,14 +165,18 @@ export function HealthGuidanceSection() {
 
           <div className="grid grid-cols-1 gap-[18px] lg:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-[14px] border border-sky-400/15 bg-bqa-slate p-5 shadow-[inset_0_0_0_1px_rgba(56,189,248,0.06)] transition-transform hover:-translate-y-0.5">
-              <h4 className="mb-4 text-[0.78rem] font-bold uppercase tracking-wide text-white">
+              <h4 className={`mb-4 text-[0.78rem] font-bold uppercase tracking-wide ${outdoorLabel}`}>
                 Outdoor AQI
               </h4>
-              <div className="mb-4 flex items-center gap-2 text-[0.72rem] font-semibold uppercase tracking-wide text-sky-300">
+              <div className={`mb-4 flex items-center gap-2 text-[0.72rem] font-semibold uppercase tracking-wide ${outdoorSub}`}>
                 <OutdoorCrosshairIcon className="h-4 w-4 shrink-0 text-bqa-poor" />
                 Outdoors (current)
               </div>
-              <div className="font-outfit text-5xl font-bold leading-none text-bqa-poor drop-shadow-[0_0_28px_rgba(255,140,66,0.35)]">
+              <div
+                className={`font-outfit text-5xl font-bold leading-none text-bqa-poor ${
+                  isLight ? "" : "drop-shadow-[0_0_28px_rgba(255,140,66,0.35)]"
+                }`}
+              >
                 160
               </div>
               <div className="mt-4">
@@ -175,31 +187,43 @@ export function HealthGuidanceSection() {
             </div>
 
             <div className="rounded-[14px] border border-rose-400/25 bg-rose-500/[0.06] p-5 shadow-[inset_0_0_32px_rgba(244,63,94,0.06)] transition-transform hover:-translate-y-0.5">
-              <h4 className="mb-3 flex items-center gap-2 text-[0.78rem] font-bold uppercase tracking-wide text-rose-300">
-                <span className="text-amber-400" aria-hidden>
+              <h4
+                className={`mb-3 flex items-center gap-2 text-[0.78rem] font-bold uppercase tracking-wide ${
+                  isLight ? "text-rose-600" : "text-rose-300"
+                }`}
+              >
+                <span className={isLight ? "text-rose-500" : "text-amber-400"} aria-hidden>
                   ⚠
                 </span>
                 {h.warnTitle.replace(/^⚠\s*/u, "")}
               </h4>
-              <p className="text-[0.87rem] leading-relaxed text-white/90">
+              <p className={`text-[0.87rem] leading-relaxed ${bodyText}`}>
                 {h.warnBody}
               </p>
             </div>
 
             <div className="rounded-[14px] border border-sky-400/25 bg-sky-400/[0.06] p-5 shadow-[inset_0_0_32px_rgba(56,189,248,0.08)] transition-transform hover:-translate-y-0.5">
-              <h4 className="mb-3 flex items-center gap-2 text-[0.78rem] font-bold uppercase tracking-wide text-bqa-accent2">
+              <h4
+                className={`mb-3 flex items-center gap-2 text-[0.78rem] font-bold uppercase tracking-wide ${
+                  isLight ? "text-sky-600" : "text-bqa-accent2"
+                }`}
+              >
                 <span aria-hidden>ℹ</span>
                 {h.adviceTitle.replace(/^ℹ\s*/u, "")}
               </h4>
-              <p className="text-[0.87rem] leading-relaxed text-white/90">
+              <p className={`text-[0.87rem] leading-relaxed ${bodyText}`}>
                 {h.adviceBody}
               </p>
             </div>
 
             <div className="rounded-[14px] border border-purple-400/25 bg-purple-400/[0.06] p-5 shadow-[inset_0_0_32px_rgba(192,132,252,0.08)] transition-transform hover:-translate-y-0.5">
-              <h4 className="mb-3 flex items-center gap-2 text-[0.78rem] font-bold uppercase tracking-wide text-bqa-compare">
+              <h4
+                className={`mb-3 flex items-center gap-2 text-[0.78rem] font-bold uppercase tracking-wide ${
+                  isLight ? "text-purple-600" : "text-bqa-compare"
+                }`}
+              >
                 <svg
-                  className="h-4 w-4 shrink-0 text-purple-300"
+                  className={`h-4 w-4 shrink-0 ${isLight ? "text-purple-600" : "text-purple-300"}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -218,9 +242,13 @@ export function HealthGuidanceSection() {
                 {h.gear.map((g, i) => (
                   <li
                     key={g}
-                    className="flex items-center gap-2.5 rounded-lg border border-white/[0.06] bg-bqa-navy2/80 px-2.5 py-2 text-[0.85rem] text-white/85 transition-all hover:border-purple-400/25 hover:bg-purple-400/[0.08]"
+                    className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.85rem] transition-all ${
+                      isLight
+                        ? "border border-slate-200/90 bg-white text-purple-700 shadow-sm hover:border-purple-300/80 hover:bg-purple-50/80"
+                        : "border border-white/[0.06] bg-bqa-navy2/80 text-white/85 hover:border-purple-400/25 hover:bg-purple-400/[0.08]"
+                    }`}
                   >
-                    <GearRowIcon index={i} />
+                    <GearRowIcon index={i} isLight={isLight} />
                     {g}
                   </li>
                 ))}

@@ -67,11 +67,11 @@ export function LandingExperience() {
         <LandingHero isLight={isLight} onScrollToMap={scrollToRealtimeMap} />
         <AirQualityToolkitSection isLight={isLight} />
         <ChartHistorySection />
-        <RealtimeAqiMapSection />
+        <RealtimeAqiMapSection isLight={isLight} />
         <PollutantsSection />
-        <LeaderboardSection />
+        <LeaderboardSection isLight={isLight} />
         <IndiaAqiOverviewSection />
-        <HealthGuidanceSection />
+        <HealthGuidanceSection isLight={isLight} />
         <FaqSection />
         <SubscribeSection />
       </main>

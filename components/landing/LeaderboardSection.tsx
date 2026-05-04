@@ -39,7 +39,22 @@ function TrendIcon({ t }: { t: Row["trend"] }) {
   return <span className="text-lg font-extrabold text-bqa-dim">→</span>;
 }
 
-export function LeaderboardSection() {
+/** Light-mode AQI pill: pale tint + strong border/text (screenshot 2 reference). */
+function aqiBadgeSurface(status: string, darkClass: string, isLight: boolean): string {
+  const darkFull = `inline-flex rounded-lg border px-3.5 py-1 font-mono text-[0.95rem] font-extrabold ${darkClass}`;
+  if (!isLight) return darkFull;
+  const shell = "inline-flex rounded-lg border px-3.5 py-1 font-mono text-[0.95rem] font-extrabold";
+  if (status === "Severe") return `${shell} border-purple-400 bg-purple-50 text-purple-800`;
+  if (status === "Unhealthy") return `${shell} border-rose-500 bg-rose-50 text-rose-700`;
+  if (status === "Poor") return `${shell} border-orange-500 bg-orange-50 text-orange-800`;
+  return darkFull;
+}
+
+/** One shared template: Rank | City | AQI | Status | Trend | Puff (bar + value stay in the last cell — no md:contents split). */
+const ROW_GRID =
+  "grid grid-cols-[40px_minmax(0,1fr)_72px_88px_40px_minmax(120px,1fr)] items-center gap-x-2.5 gap-y-0 px-3 py-2.5 sm:grid-cols-[52px_minmax(0,1fr)_88px_100px_52px_minmax(130px,1fr)] sm:gap-x-4 sm:px-4 sm:py-3 md:grid-cols-[52px_minmax(0,1fr)_96px_110px_56px_1fr] md:gap-x-5 md:py-3.5";
+
+export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
@@ -47,6 +62,10 @@ export function LeaderboardSection() {
     if (!s) return ROWS;
     return ROWS.filter((r) => r.city.toLowerCase().includes(s));
   }, [q]);
+
+  const cardShell = isLight
+    ? "border border-slate-200 bg-white shadow-[0_2px_14px_rgba(15,23,42,0.06)] transition-colors hover:border-slate-300 hover:shadow-[0_4px_20px_rgba(15,23,42,0.08)]"
+    : "border border-sky-400/10 bg-bqa-navy2/70 backdrop-blur-sm transition-colors hover:border-sky-400/20 hover:bg-bqa-slate/70";
 
   return (
     <section
@@ -80,82 +99,107 @@ export function LeaderboardSection() {
           </div>
         </div>
 
-        <div className="hidden md:block">
-          <div className="grid grid-cols-[52px_1fr_96px_110px_80px_1fr] gap-5 px-4 pb-3 text-[0.62rem] font-mono uppercase tracking-widest text-bqa-dim">
-            <span>Rank</span>
-            <span>City</span>
-            <span>AQI</span>
-            <span>Status</span>
-            <span className="text-center">Trend</span>
-            <span>
-              Puff Score{" "}
-              <span className="cursor-help text-bqa-accent" title="Approximate cigarettes inhaled per day">
-                🚬
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:overflow-visible sm:px-0">
+          <div className="min-w-[680px] sm:min-w-0">
+            <div
+              className={`${ROW_GRID} pb-2.5 text-[0.62rem] font-mono uppercase tracking-widest ${
+                isLight ? "text-slate-400" : "text-bqa-dim"
+              }`}
+            >
+              <span>Rank</span>
+              <span>City</span>
+              <span>AQI</span>
+              <span>Status</span>
+              <span className="text-center">Trend</span>
+              <span>
+                Puff Score{" "}
+                <span className="cursor-help text-bqa-accent" title="Approximate cigarettes inhaled per day">
+                  🚬
+                </span>
               </span>
-            </span>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              {filtered.map((r) => (
+                <div
+                  key={r.city}
+                  className={`rounded-xl border-l-4 ${r.rowBorder} ${cardShell}`}
+                >
+                  <div className={ROW_GRID}>
+                    <span
+                      className={`shrink-0 font-mono text-base font-extrabold tabular-nums ${
+                        isLight ? "text-slate-500" : `text-bqa-dim ${r.rankClass}`
+                      }`}
+                    >
+                      {r.rank}
+                    </span>
+                    <span
+                      className={`min-w-0 truncate font-semibold ${
+                        isLight ? "font-bold text-slate-900" : "text-bqa-text"
+                      }`}
+                    >
+                      {r.city}
+                    </span>
+                    <span className={aqiBadgeSurface(r.status, r.aqiClass, isLight)}>{r.aqi}</span>
+                    <div className={`text-xs font-bold leading-none sm:text-sm ${r.statusColor}`}>
+                      {r.status}
+                    </div>
+                    <div className="flex justify-center">
+                      <TrendIcon t={r.trend} />
+                    </div>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <div
+                        className={`h-1.5 min-w-[48px] flex-1 rounded ${
+                          isLight ? "bg-slate-200" : "bg-bqa-slate2"
+                        }`}
+                      >
+                        <div
+                          className="h-full rounded bg-gradient-to-r from-bqa-accent2 to-bqa-accent"
+                          style={{ width: `${r.puffPct}%` }}
+                        />
+                      </div>
+                      <span
+                        className={`shrink-0 whitespace-nowrap font-mono text-xs font-bold sm:text-sm ${
+                          isLight ? "text-slate-900" : "text-bqa-text"
+                        }`}
+                      >
+                        {r.puffVal}
+                        <span
+                          className={`text-[0.65rem] font-medium ${isLight ? "text-slate-500" : "text-bqa-muted"}`}
+                        >
+                          {" "}
+                          cigs/day
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          {filtered.map((r) => (
-            <div
-              key={r.city}
-              className={`rounded-xl border border-sky-400/10 border-l-4 bg-bqa-navy2/70 p-4 backdrop-blur-sm transition-colors hover:border-sky-400/20 hover:bg-bqa-slate/70 md:grid md:grid-cols-[52px_1fr_96px_110px_80px_1fr] md:items-center md:gap-5 md:px-4 md:py-3.5 ${r.rowBorder}`}
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3 md:contents">
-                <div className="flex min-w-0 flex-1 items-baseline gap-2.5 md:contents">
-                  <span
-                    className={`shrink-0 font-mono text-base font-extrabold text-bqa-dim ${r.rankClass}`}
-                  >
-                    {r.rank}
-                  </span>
-                  <span className="min-w-0 truncate font-semibold text-bqa-text md:font-semibold">
-                    {r.city}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  className="shrink-0 rounded-lg bg-bqa-accent px-3 py-1.5 font-outfit text-[0.72rem] font-semibold text-white shadow-[0_4px_12px_rgba(61,158,255,0.25)] transition hover:brightness-110 md:hidden"
-                >
-                  View Detailed List
-                </button>
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-3 md:mt-0 md:contents md:gap-5">
-                <div className="md:contents">
-                  <span
-                    className={`inline-flex rounded-lg border px-3.5 py-1 font-mono text-[0.95rem] font-extrabold ${r.aqiClass}`}
-                  >
-                    {r.aqi}
-                  </span>
-                </div>
-                <div className={`text-sm font-bold ${r.statusColor}`}>{r.status}</div>
-                <div className="hidden justify-center md:flex">
-                  <TrendIcon t={r.trend} />
-                </div>
-                <div className="flex min-w-0 flex-1 basis-full items-center gap-2.5 sm:basis-auto md:contents">
-                  <div className="h-1.5 max-w-[140px] flex-1 rounded bg-bqa-slate2 md:max-w-[120px]">
-                    <div
-                      className="h-full rounded bg-gradient-to-r from-bqa-accent2 to-bqa-accent"
-                      style={{ width: `${r.puffPct}%` }}
-                    />
-                  </div>
-                  <span className="font-mono text-sm font-bold text-bqa-text">
-                    {r.puffVal}
-                    <span className="text-[0.65rem] font-medium text-bqa-muted"> cigs/day</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {filtered.length > 0 && (
+          <button
+            type="button"
+            className={`mt-3 w-full rounded-lg px-3 py-2 font-outfit text-[0.72rem] font-semibold transition sm:mt-4 md:hidden ${
+              isLight
+                ? "border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
+                : "bg-bqa-accent text-white shadow-[0_4px_12px_rgba(61,158,255,0.25)] hover:brightness-110"
+            }`}
+          >
+            View Detailed List
+          </button>
+        )}
 
         {filtered.length === 0 && (
           <p className="py-8 text-center text-bqa-muted">No cities match.</p>
         )}
 
         <div className="mt-4 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
-          <span className="font-mono text-[0.8rem] text-bqa-dim">
+          <span
+            className={`font-mono text-[0.8rem] ${isLight ? "text-slate-500" : "text-bqa-dim"}`}
+          >
             Showing 1–{filtered.length} of {ROWS.length} cities
           </span>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -163,8 +207,12 @@ export function LeaderboardSection() {
               <button
                 key={`${p}-${i}`}
                 type="button"
-                className={`flex h-[34px] min-w-[34px] items-center justify-center rounded-lg border border-sky-400/10 bg-bqa-slate font-mono text-sm font-semibold text-bqa-muted transition-colors hover:bg-bqa-slate2 hover:text-bqa-text ${
-                  p === "1" ? "border-bqa-accent bg-bqa-accent text-white" : ""
+                className={`flex h-[34px] min-w-[34px] items-center justify-center rounded-lg border font-mono text-sm font-semibold transition-colors ${
+                  p === "1"
+                    ? "border-bqa-accent bg-bqa-accent text-white hover:brightness-110"
+                    : isLight
+                      ? "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      : "border-sky-400/10 bg-bqa-slate text-bqa-muted hover:bg-bqa-slate2 hover:text-bqa-text"
                 }`}
               >
                 {p}
