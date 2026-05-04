@@ -95,17 +95,19 @@ export function RealtimeAqiMapSection() {
               >
                 <span className="ml-0.5 text-lg">▶</span>
               </button>
-              <div className="min-w-0 flex-1">
-                <div className="mb-1 flex justify-between font-mono text-[0.65rem] text-bqa-dim sm:text-xs">
+              <div className="min-w-0 flex-1 overflow-hidden">
+                <div className="mb-1 flex min-w-0 justify-between gap-1 overflow-x-auto pb-0.5 font-mono text-[0.58rem] leading-tight text-bqa-dim [-ms-overflow-style:none] [scrollbar-width:none] sm:text-xs [&::-webkit-scrollbar]:hidden">
                   {TIMES.map((t) => (
-                    <span key={t}>{t}</span>
+                    <span key={t} className="shrink-0">
+                      {t}
+                    </span>
                   ))}
                 </div>
                 <div className="h-1.5 rounded-full bg-bqa-slate2">
                   <div className="h-full w-[92%] rounded-full bg-gradient-to-r from-bqa-accent/50 to-bqa-accent" />
                 </div>
               </div>
-              <span className="shrink-0 text-right text-xs font-semibold text-bqa-accent2">
+              <span className="shrink-0 text-right text-[0.65rem] font-semibold text-bqa-accent2 sm:text-xs">
                 Now Live
               </span>
             </div>

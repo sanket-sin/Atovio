@@ -102,39 +102,49 @@ export function LeaderboardSection() {
               key={r.city}
               className={`rounded-xl border border-sky-400/10 border-l-4 bg-bqa-navy2/70 p-4 backdrop-blur-sm transition-colors hover:border-sky-400/20 hover:bg-bqa-slate/70 md:grid md:grid-cols-[52px_1fr_96px_110px_80px_1fr] md:items-center md:gap-5 md:px-4 md:py-3.5 ${r.rowBorder}`}
             >
-              <span
-                className={`font-mono text-base font-extrabold text-bqa-dim ${r.rankClass}`}
-              >
-                {r.rank}
-              </span>
-              <span className="font-semibold text-bqa-text">{r.city}</span>
-              <div>
-                <span
-                  className={`inline-flex rounded-lg border px-3.5 py-1 font-mono text-[0.95rem] font-extrabold ${r.aqiClass}`}
-                >
-                  {r.aqi}
-                </span>
-              </div>
-              <div className={`text-sm font-bold ${r.statusColor}`}>
-                {r.status}
-              </div>
-              <div className="flex justify-center">
-                <TrendIcon t={r.trend} />
-              </div>
-              <div className="flex items-center gap-2.5">
-                <div className="h-1.5 max-w-[120px] flex-1 rounded bg-bqa-slate2">
-                  <div
-                    className="h-full rounded bg-gradient-to-r from-bqa-accent2 to-bqa-accent"
-                    style={{ width: `${r.puffPct}%` }}
-                  />
-                </div>
-                <span className="font-mono text-sm font-bold text-bqa-text">
-                  {r.puffVal}
-                  <span className="text-[0.65rem] font-medium text-bqa-muted">
-                    {" "}
-                    cigs/day
+              <div className="flex flex-wrap items-start justify-between gap-3 md:contents">
+                <div className="flex min-w-0 flex-1 items-baseline gap-2.5 md:contents">
+                  <span
+                    className={`shrink-0 font-mono text-base font-extrabold text-bqa-dim ${r.rankClass}`}
+                  >
+                    {r.rank}
                   </span>
-                </span>
+                  <span className="min-w-0 truncate font-semibold text-bqa-text md:font-semibold">
+                    {r.city}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="shrink-0 rounded-lg bg-bqa-accent px-3 py-1.5 font-outfit text-[0.72rem] font-semibold text-white shadow-[0_4px_12px_rgba(61,158,255,0.25)] transition hover:brightness-110 md:hidden"
+                >
+                  View Detailed List
+                </button>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-3 md:mt-0 md:contents md:gap-5">
+                <div className="md:contents">
+                  <span
+                    className={`inline-flex rounded-lg border px-3.5 py-1 font-mono text-[0.95rem] font-extrabold ${r.aqiClass}`}
+                  >
+                    {r.aqi}
+                  </span>
+                </div>
+                <div className={`text-sm font-bold ${r.statusColor}`}>{r.status}</div>
+                <div className="hidden justify-center md:flex">
+                  <TrendIcon t={r.trend} />
+                </div>
+                <div className="flex min-w-0 flex-1 basis-full items-center gap-2.5 sm:basis-auto md:contents">
+                  <div className="h-1.5 max-w-[140px] flex-1 rounded bg-bqa-slate2 md:max-w-[120px]">
+                    <div
+                      className="h-full rounded bg-gradient-to-r from-bqa-accent2 to-bqa-accent"
+                      style={{ width: `${r.puffPct}%` }}
+                    />
+                  </div>
+                  <span className="font-mono text-sm font-bold text-bqa-text">
+                    {r.puffVal}
+                    <span className="text-[0.65rem] font-medium text-bqa-muted"> cigs/day</span>
+                  </span>
+                </div>
               </div>
             </div>
           ))}

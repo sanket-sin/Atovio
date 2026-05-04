@@ -41,8 +41,8 @@ export function IndiaAqiOverviewSection() {
     >
       <div className="mx-auto max-w-container px-4 sm:px-7">
         {/* Section heading with divider */}
-        <div className="mb-8 flex items-center gap-6">
-          <h2 className="shrink-0 font-outfit text-[2rem] font-bold leading-tight tracking-[-0.03em] text-bqa-text">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+          <h2 className="shrink-0 font-outfit text-[clamp(1.45rem,5vw,2rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text">
             India&apos;s Air Quality, Covered
           </h2>
           <div

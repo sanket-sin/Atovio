@@ -1,9 +1,13 @@
+"use client";
+
+import { useState } from "react";
 import { AqiBadge, type AqiBadgeVariant } from "./AqiBadge";
 import { SectionEyebrow } from "./SectionEyebrow";
 import { SectionTitle } from "./SectionTitle";
 
 type Pol = {
   accent: string;
+  tab: string;
   name: string;
   value: string;
   unit: string;
@@ -19,6 +23,7 @@ type Pol = {
 const POLS: Pol[] = [
   {
     accent: "#ffd24d",
+    tab: "PM2.5",
     name: "Particulate Matter – PM₂.₅",
     value: "46",
     unit: "µg/m³",
@@ -32,6 +37,7 @@ const POLS: Pol[] = [
   },
   {
     accent: "#ff4d6d",
+    tab: "PM10",
     name: "Particulate Matter – PM₁₀",
     value: "124",
     unit: "µg/m³",
@@ -46,6 +52,7 @@ const POLS: Pol[] = [
   },
   {
     accent: "#00e5aa",
+    tab: "CO",
     name: "Carbon Monoxide (CO)",
     value: "289",
     unit: "ppm",
@@ -59,6 +66,7 @@ const POLS: Pol[] = [
   },
   {
     accent: "#00e5aa",
+    tab: "SO₂",
     name: "Sulfur Dioxide (SO₂)",
     value: "5",
     unit: "ppm",
@@ -72,6 +80,7 @@ const POLS: Pol[] = [
   },
   {
     accent: "#00e5aa",
+    tab: "NO₂",
     name: "Nitrogen Dioxide (NO₂)",
     value: "18",
     unit: "ppm",
@@ -85,6 +94,7 @@ const POLS: Pol[] = [
   },
   {
     accent: "#00e5aa",
+    tab: "O₃",
     name: "Ozone (O₃)",
     value: "7",
     unit: "ppm",
@@ -106,9 +116,7 @@ function PollutantCard({ p }: { p: Pol }) {
         style={{ background: p.accent }}
         aria-hidden
       />
-      <div className="pl-2.5 text-[0.8rem] font-semibold text-bqa-muted">
-        {p.name}
-      </div>
+      <div className="pl-2.5 text-[0.8rem] font-semibold text-bqa-muted">{p.name}</div>
       <div className="pl-2.5 font-mono text-[1.8rem] font-bold text-bqa-text">
         {p.value}{" "}
         <span className="text-[0.75rem] font-normal text-bqa-dim">{p.unit}</span>
@@ -124,21 +132,26 @@ function PollutantCard({ p }: { p: Pol }) {
             style={{ left: p.thresholdLeft }}
           />
         </div>
-        <div className="flex justify-between text-[0.65rem] text-bqa-dim">
-          <span>{p.scale[0]}</span>
-          <span>{p.scale[1]}</span>
-          <span>{p.scale[2]}</span>
+        <div className="flex justify-between gap-2 text-[0.62rem] text-bqa-dim sm:text-[0.65rem]">
+          <span className="shrink-0">{p.scale[0]}</span>
+          <span className="min-w-0 text-center">{p.scale[1]}</span>
+          <span className="shrink-0">{p.scale[2]}</span>
         </div>
       </div>
       <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 pl-2.5">
         <AqiBadge variant={p.badge}>{p.badgeLabel}</AqiBadge>
-        <span className="text-[0.68rem] text-bqa-dim">{p.who}</span>
+        <span className="max-w-[min(100%,14rem)] text-right text-[0.65rem] text-bqa-dim sm:text-[0.68rem]">
+          {p.who}
+        </span>
       </div>
     </div>
   );
 }
 
 export function PollutantsSection() {
+  const [sel, setSel] = useState(0);
+  const active = POLS[sel] ?? POLS[0];
+
   return (
     <section
       id="sec-pollutants"
@@ -147,7 +160,29 @@ export function PollutantsSection() {
       <div className="mx-auto max-w-container px-4 sm:px-7">
         <SectionEyebrow>Signal Breakdown</SectionEyebrow>
         <SectionTitle>Raw Pollutant Readings</SectionTitle>
-        <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
+
+        {/* Mobile / tablet: pill tabs + single card */}
+        <div className="lg:hidden">
+          <div className="mb-4 flex gap-0 overflow-x-auto rounded-xl border border-sky-400/10 bg-bqa-navy2/50 p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {POLS.map((p, i) => (
+              <button
+                key={p.tab}
+                type="button"
+                onClick={() => setSel(i)}
+                className={`shrink-0 rounded-lg px-3.5 py-2 font-outfit text-[0.78rem] font-semibold transition-colors ${
+                  sel === i
+                    ? "bg-bqa-accent text-white shadow-sm"
+                    : "text-bqa-muted hover:bg-white/[0.04] hover:text-bqa-text"
+                }`}
+              >
+                {p.tab}
+              </button>
+            ))}
+          </div>
+          <PollutantCard p={active} />
+        </div>
+
+        <div className="hidden grid-cols-1 gap-[18px] lg:grid lg:grid-cols-3">
           {POLS.map((p) => (
             <PollutantCard key={p.name} p={p} />
           ))}

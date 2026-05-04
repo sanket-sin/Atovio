@@ -20,7 +20,7 @@ export function SubscribeSection() {
               Join 50,000+ Indians who receive BeyondAQI&apos;s morning air
               quality briefing — hyperlocal, sensor-verified, zero fluff.
             </p>
-            <div className="mt-6 flex flex-wrap gap-4">
+            <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3 sm:gap-4">
               {[
                 "Daily 7am briefing",
                 "Spike alerts in real-time",

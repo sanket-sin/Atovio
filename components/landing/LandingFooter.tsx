@@ -6,7 +6,7 @@ export function LandingFooter() {
       <div className="mx-auto max-w-container px-4 sm:px-7">
         <div className="mb-10 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr] lg:gap-12">
           <div>
-            <div className="mb-3.5 text-lg font-bold text-white">
+            <div className="footer-brand-text mb-3.5 text-lg font-bold text-bqa-text">
               Beyond<span className="text-bqa-accent2">AQI</span>
             </div>
             <p className="max-w-[280px] text-[0.85rem] leading-relaxed text-bqa-muted">

@@ -145,3 +145,13 @@
 .landing-theme .news-ticker-track:hover {
   animation-play-state: paused;
 }
+
+/* Toolkit accordions — chevron rotates when open */
+#sec-toolkit details[open] summary .toolkit-details-chevron {
+  transform: rotate(180deg);
+}
+
+/* Air Quality History accordions */
+#sec-chart details[open] summary .history-details-chevron {
+  transform: rotate(180deg);
+}

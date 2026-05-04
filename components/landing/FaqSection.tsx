@@ -35,7 +35,7 @@ export function FaqSection() {
       className="sec-fx border-t border-sky-400/10 py-12 sm:py-14"
     >
       <div className="mx-auto max-w-container px-4 sm:px-7">
-        <SectionTitle className="mb-10 text-center">
+        <SectionTitle className="mb-8 text-left sm:mb-10">
           Frequently Asked Questions
         </SectionTitle>
 

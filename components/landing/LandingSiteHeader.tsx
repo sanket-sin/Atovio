@@ -102,6 +102,8 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
   const searchInputClass = isLight
     ? "h-10 w-full rounded-[6px] border border-gray-300 bg-gray-100 py-2 pl-10 pr-4 text-[0.78rem] text-gray-800 outline-none transition-colors placeholder:text-gray-400 focus:border-bqa-accent focus:bg-white sm:pl-11 sm:pr-4"
     : "h-10 w-full rounded-[6px] border border-white/[0.1] bg-[#0a101a] py-2 pl-10 pr-4 text-[0.78rem] text-slate-200 outline-none transition-colors placeholder:text-slate-400 focus:border-white/[0.18] focus:bg-[#0d1420] sm:pl-11 sm:pr-4";
+  const searchPlaceholder =
+    "Search city…";
   const searchIconWrapClass =
     "pointer-events-none absolute left-3.5 top-1/2 flex h-[18px] w-[18px] -translate-y-1/2 items-center justify-center sm:left-4";
 
@@ -167,13 +169,14 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
               height={43}
               priority
               unoptimized
-              className="site-logo h-8 w-auto sm:h-9"
+              className="site-logo h-7 w-auto sm:h-9 md:h-9"
             />
           </Link>
 
-          <div className="hidden min-h-[3rem] min-w-0 flex-1 items-center justify-center md:flex md:px-2 lg:px-4">
-            <div className="flex max-w-full items-center gap-7 lg:gap-9 xl:gap-10 2xl:gap-12 lg:translate-x-[2%] xl:translate-x-[3%]">
-              <nav className="flex shrink-0 items-center gap-5 lg:gap-6">
+          {/* Single search + desktop nav (one input for ref / dropdown) */}
+          <div className="flex min-h-[2.5rem] min-w-0 flex-1 items-center gap-3 md:min-h-[3rem] md:justify-center md:px-2 lg:px-4">
+            <div className="flex max-w-full flex-1 items-center gap-5 md:gap-7 lg:gap-9 xl:gap-10 2xl:gap-12 lg:translate-x-[2%] xl:translate-x-[3%]">
+              <nav className="hidden shrink-0 items-center gap-5 md:flex lg:gap-6">
                 {NAV.map((item) =>
                   item.href.startsWith("#") && item.href !== "#" ? (
                     <Link
@@ -199,8 +202,7 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
                 )}
               </nav>
 
-              {/* Search with dropdown */}
-              <div className="relative ml-[3rem] w-[min(20.5rem,40vw)] shrink-0 sm:w-[21.5rem] md:w-[23rem] lg:w-[24.5rem] xl:w-[26.5rem]">
+              <div className="relative min-w-0 flex-1 md:ml-[3rem] md:w-[min(20.5rem,40vw)] md:flex-none md:shrink-0 lg:w-[24.5rem] xl:w-[26.5rem]">
                 <span className={searchIconWrapClass} aria-hidden>
                   {loading ? (
                     <span className="h-[15px] w-[15px] animate-spin rounded-full border-2 border-white/20 border-t-bqa-accent" />
@@ -224,7 +226,7 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => results.length > 0 && setDropdownOpen(true)}
                   onKeyDown={(e) => e.key === "Escape" && setDropdownOpen(false)}
-                  placeholder="Search city, area, pincode..."
+                  placeholder={searchPlaceholder}
                   className={searchInputClass}
                   aria-label="Search city, area, or pincode"
                   autoComplete="off"
@@ -254,23 +256,7 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
             />
           </button>
 
-          <div className="ml-auto flex items-center gap-2 md:hidden">
-            <button
-              type="button"
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${isLight ? "border-gray-300 bg-gray-100 text-gray-600" : "border-white/[0.08] bg-[#0a101a] text-slate-400"}`}
-              aria-label="Search city, area, or pincode"
-            >
-              <Image
-                src="/images/search-icon.svg"
-                alt=""
-                width={18}
-                height={18}
-                unoptimized
-                className={
-                  isLight ? "opacity-90 brightness-0" : "opacity-90"
-                }
-              />
-            </button>
+          <div className="ml-auto flex shrink-0 items-center md:hidden">
             <button
               type="button"
               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${isLight ? "border-gray-300 text-gray-700" : "border-white/[0.1] text-white"}`}
@@ -314,71 +300,10 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
             )}
           </div>
 
-          {/* Mobile search */}
-          <div className="relative w-full">
-            <span className={searchIconWrapClass} aria-hidden>
-              {loading ? (
-                <span className="h-[15px] w-[15px] animate-spin rounded-full border-2 border-white/20 border-t-bqa-accent" />
-              ) : (
-                <Image
-                  src="/images/search-icon.svg"
-                  alt=""
-                  width={18}
-                  height={18}
-                  unoptimized
-                  className={
-                    isLight ? "opacity-90 brightness-0" : "opacity-90"
-                  }
-                />
-              )}
-            </span>
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Escape" && setDropdownOpen(false)}
-              placeholder="Search city, area, pincode..."
-              className={searchInputClass}
-              aria-label="Search city, area, or pincode"
-              autoComplete="off"
-              enterKeyHint="search"
-            />
-            {dropdownOpen && results.length > 0 && (
-              <div
-                ref={dropdownRef}
-                className={`absolute left-0 top-full z-[300] mt-1.5 w-full overflow-hidden rounded-[10px] border shadow-[0_16px_48px_rgba(0,0,0,0.6)] ${isLight ? "border-gray-200 bg-white" : "border-white/[0.08] bg-[#0a101a]"}`}
-              >
-                <ul>
-                  {results.map((r, i) => (
-                    <li key={r.url ?? i}>
-                      <button
-                        type="button"
-                        onClick={() => handleResultClick(r)}
-                        className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors ${isLight ? "hover:bg-blue-50" : "hover:bg-white/[0.05]"}`}
-                      >
-                        <div className="min-w-0">
-                          <div className={`truncate text-[0.82rem] font-medium ${isLight ? "text-gray-900" : "text-slate-200"}`}>
-                            {r.name ?? r.city}
-                          </div>
-                          {(r.state || r.country) && (
-                            <div className={`truncate text-[0.7rem] ${isLight ? "text-gray-500" : "text-slate-500"}`}>
-                              {[r.state, r.country].filter(Boolean).join(", ")}
-                            </div>
-                          )}
-                        </div>
-                        <AqiChip aqi={r.aqi} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-
           <button
             type="button"
             onClick={onToggleTheme}
-            className="flex items-center justify-center gap-2.5 rounded-full border border-white/[0.12] py-2.5 text-[0.78rem] font-medium text-slate-200"
+            className={`flex items-center justify-center gap-2.5 rounded-full border py-2.5 text-[0.78rem] font-medium ${isLight ? "border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200" : "border-white/[0.12] text-slate-200 hover:bg-white/[0.05]"}`}
           >
             {isLight ? "Dark Mode" : "Light Mode"}
             <Image

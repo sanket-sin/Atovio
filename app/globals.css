@@ -163,6 +163,11 @@ body {
   color: rgb(10 24 46) !important;
 }
 
+/* ── Light mode: footer surfaces ── */
+.light-theme footer {
+  background: rgb(255 255 255) !important;
+}
+
 /* ── Light mode: dark hardcoded button/input backgrounds ── */
 .light-theme .dark-btn-bg {
   background: rgb(226 235 245) !important;
