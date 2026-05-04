@@ -254,7 +254,7 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
               unoptimized
               className="shrink-0"
             />
-          </button>
+          </button> 
 
           <div className="ml-auto flex shrink-0 items-center md:hidden">
             <button
