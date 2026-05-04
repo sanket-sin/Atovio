@@ -65,7 +65,7 @@ export function LandingExperience() {
 
       <main className="pt-0">
         <LandingHero isLight={isLight} onScrollToMap={scrollToRealtimeMap} />
-        <AirQualityToolkitSection />
+        <AirQualityToolkitSection isLight={isLight} />
         <ChartHistorySection />
         <RealtimeAqiMapSection />
         <PollutantsSection />

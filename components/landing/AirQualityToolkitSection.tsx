@@ -110,12 +110,11 @@ const AREA_D =
 
 const OUTFIT = "var(--font-outfit), system-ui, sans-serif";
 
-function ClockFace() {
-  /** ~1 AM segment center — floating marker (matches reference pin) */
-  const markerR = 54;
-  const markerAngle = ((1.5 / 24) * 360 - 90) * (Math.PI / 180);
-  const markerX = CX + markerR * Math.cos(markerAngle);
-  const markerY = CY + markerR * Math.sin(markerAngle);
+function ClockFace({ isLight }: { isLight: boolean }) {
+  const holeFill = isLight ? "#f0f4f8" : "#0b111e";
+  const centerNumFill = isLight ? "#0f172a" : "#ffffff";
+  const subFill = isLight ? "#64748b" : "#9ca3af";
+  const ringLabelFill = isLight ? "#94a3b8" : "#9ca3af";
 
   return (
     <div className="relative mx-auto w-full max-w-[min(100%,220px)] shrink-0">
@@ -123,13 +122,13 @@ function ClockFace() {
         {SEG_COLORS.map((color, h) => (
           <path key={h} d={segPath(h)} fill={color} />
         ))}
-        <circle cx={CX} cy={CY} r={RI - 1} fill="#0b111e" />
+        <circle cx={CX} cy={CY} r={RI - 1} fill={holeFill} />
         <text
           x={CX}
           y={CY - 5}
           textAnchor="middle"
           dominantBaseline="middle"
-          fill="#ffffff"
+          fill={centerNumFill}
           fontSize="15"
           fontWeight="bold"
           style={{ fontFamily: OUTFIT }}
@@ -141,7 +140,7 @@ function ClockFace() {
           y={CY + 9}
           textAnchor="middle"
           dominantBaseline="middle"
-          fill="#9ca3af"
+          fill={subFill}
           fontSize="5.2"
           style={{ fontFamily: OUTFIT }}
         >
@@ -156,7 +155,7 @@ function ClockFace() {
               y={y}
               textAnchor="middle"
               dominantBaseline="middle"
-              fill="#9ca3af"
+              fill={ringLabelFill}
               fontSize="5"
               letterSpacing="0.02em"
               style={{ fontFamily: OUTFIT }}
@@ -165,38 +164,17 @@ function ClockFace() {
             </text>
           );
         })}
-
-        {/* Pin — dark bubble, tail toward ring (~1 AM), white badge */}
-        <g transform={`translate(${markerX.toFixed(2)}, ${markerY.toFixed(2)})`}>
-          <path
-            d="M -21 -34 L 21 -34 Q 23 -34 23 -32 L 23 -17 Q 23 -15 21 -15 L 7 -15 L 0 -6 L -7 -15 L -21 -15 Q -23 -15 -23 -17 L -23 -32 Q -23 -34 -21 -34 Z"
-            fill="#111827"
-            stroke="#475569"
-            strokeWidth="0.5"
-          />
-          <circle cx={0} cy={-25} r={6.5} fill="#ffffff" />
-          <text
-            x={0}
-            y={-23.5}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fill="#0f172a"
-            fontSize="4.5"
-            fontWeight="bold"
-            style={{ fontFamily: OUTFIT }}
-          >
-            atovio
-          </text>
-        </g>
       </svg>
     </div>
   );
 }
 
-function ClockLegendColumn({ compact }: { compact?: boolean }) {
+function ClockLegendColumn({ compact, isLight }: { compact?: boolean; isLight?: boolean }) {
+  const legendMuted = isLight ? "text-slate-500" : "text-[#9ca3af]";
+
   return (
     <div
-      className={`flex shrink-0 flex-col justify-center gap-4 font-outfit text-[0.75rem] leading-tight text-[#9ca3af] ${compact ? "text-left" : ""}`}
+      className={`flex shrink-0 flex-col justify-center gap-4 font-outfit text-[0.75rem] leading-tight ${legendMuted} ${compact ? "text-left" : ""}`}
     >
       <span className="flex items-center gap-2.5">
         <span className="h-2 w-2 shrink-0 rounded-full bg-[#4ade80]" />
@@ -210,9 +188,11 @@ function ClockLegendColumn({ compact }: { compact?: boolean }) {
   );
 }
 
-function ClockRecommendations() {
+function ClockRecommendations({ isLight }: { isLight: boolean }) {
+  const labelClass = isLight ? "text-bqa-muted" : "text-white";
+
   return (
-    <div className="mt-6 border-t border-white/10 pt-5">
+    <div className={`mt-6 border-t pt-5 ${isLight ? "border-slate-200" : "border-white/10"}`}>
       <div className="flex items-start gap-3">
         <span className="mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-[#4ade80]">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -226,7 +206,7 @@ function ClockRecommendations() {
           </svg>
         </span>
         <p className="font-outfit text-[0.82rem] leading-snug">
-          <span className="text-white">Best outdoors: </span>
+          <span className={labelClass}>Best outdoors: </span>
           <span className="font-semibold text-[#4ade80]">5am–7am (AQI ~52)</span>
         </p>
       </div>
@@ -242,7 +222,7 @@ function ClockRecommendations() {
           </svg>
         </span>
         <p className="font-outfit text-[0.82rem] leading-snug">
-          <span className="text-white">Avoid outdoors: </span>
+          <span className={labelClass}>Avoid outdoors: </span>
           <span className="font-semibold text-[#f87171]">8am–12pm (AQI ~185)</span>
         </p>
       </div>
@@ -421,12 +401,20 @@ function ChevronDown({ className = "" }: { className?: string }) {
   );
 }
 
-/** Matches reference: navy card, green icon frame, clock + legend row, summary footer */
-function HealthExposureClockCard() {
+/** Dark: inset navy card + dark clock hole. Light: white card, mint icon tile, pale clock center (ref screenshot 2). */
+function HealthExposureClockCard({ isLight }: { isLight: boolean }) {
+  const shell = isLight
+    ? "rounded-2xl border border-sky-400/10 bg-bqa-navy2/70 p-5 shadow-[0_2px_24px_rgba(15,23,42,0.07)] backdrop-blur-md sm:p-6"
+    : "rounded-2xl border border-white/[0.07] bg-[#0b111e] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6";
+
+  const iconTile = isLight
+    ? "border-emerald-300/90 bg-[#e8f5e9]"
+    : "border-emerald-400/85 bg-[#060a14]";
+
   return (
-    <div className="rounded-2xl border border-white/[0.07] bg-[#0b111e] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6">
+    <div className={shell}>
       <div className="mb-5 flex items-center gap-3 sm:mb-6">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-400/85 bg-[#060a14]">
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${iconTile}`}>
           <Image
             src="/images/watch-icon.svg"
             alt=""
@@ -436,22 +424,26 @@ function HealthExposureClockCard() {
             unoptimized
           />
         </span>
-        <h3 className="font-outfit text-[1rem] font-bold tracking-tight text-white">Health Exposure Clock</h3>
+        <h3
+          className={`font-outfit text-[1rem] font-bold tracking-tight ${isLight ? "text-bqa-text" : "text-white"}`}
+        >
+          Health Exposure Clock
+        </h3>
       </div>
 
       <div className="flex flex-row items-center justify-between gap-4 sm:gap-6">
         <div className="flex min-w-0 flex-1 justify-center sm:justify-start">
-          <ClockFace />
+          <ClockFace isLight={isLight} />
         </div>
-        <ClockLegendColumn compact />
+        <ClockLegendColumn compact isLight={isLight} />
       </div>
 
-      <ClockRecommendations />
+      <ClockRecommendations isLight={isLight} />
     </div>
   );
 }
 
-export function AirQualityToolkitSection() {
+export function AirQualityToolkitSection({ isLight = false }: { isLight?: boolean }) {
   const [age, setAge] = useState("32");
   const [years, setYears] = useState("10");
 
@@ -466,7 +458,7 @@ export function AirQualityToolkitSection() {
 
         {/* Mobile / tablet: clock expanded + accordions */}
         <div className="flex flex-col gap-4 lg:hidden">
-          <HealthExposureClockCard />
+          <HealthExposureClockCard isLight={isLight} />
 
           <details className={`${cardShell} overflow-hidden open:shadow-[0_8px_30px_rgba(0,0,0,0.25)]`}>
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 [&::-webkit-details-marker]:hidden">
@@ -527,7 +519,7 @@ export function AirQualityToolkitSection() {
 
         {/* Desktop: three-column grid */}
         <div className="hidden grid-cols-1 gap-6 lg:grid lg:grid-cols-3">
-          <HealthExposureClockCard />
+          <HealthExposureClockCard isLight={isLight} />
 
           <div className={`${cardShell} p-6`}>
             <div className="mb-4 flex items-center justify-between">
