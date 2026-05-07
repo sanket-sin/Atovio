@@ -16,6 +16,16 @@ const DEFAULT_HERO: HeroCitySnapshot = {
   pm10: 124,
   pm25BadgeVariant: "moderate",
   pm10BadgeVariant: "unhealthy",
+  updatedAt: "2026-05-06T03:30:00+00:00",
+  weather: {
+    temperature: 30,
+    temperatureUnit: "CELSIUS",
+    weatherType: "Sunny",
+    weatherStatus: "Clear Skies",
+    humidity: 58,
+    windSpeed: 6,
+    windSpeedUnit: "KILOMETERS_PER_HOUR",
+  },
 };
 
 function headlineNumberTone(
@@ -44,11 +54,44 @@ function variantLabel(v: AqiBadgeVariant): string {
   return v.charAt(0).toUpperCase() + v.slice(1);
 }
 
+function formatOneDecimal(n?: number): string {
+  if (n == null || !Number.isFinite(n)) return "--";
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+}
+
+function temperatureUnitSymbol(unit?: string): string {
+  return unit?.toUpperCase() === "FAHRENHEIT" ? "°F" : "°C";
+}
+
+function windSpeedUnitLabel(unit?: string): string {
+  const u = unit?.toUpperCase();
+  if (u === "MILES_PER_HOUR") return "mph";
+  if (u === "METERS_PER_SECOND") return "m/s";
+  return "km/h";
+}
+
+function formatUpdatedAt(timestamp?: string): string {
+  if (!timestamp) return "09:00 IST";
+  const d = new Date(timestamp);
+  if (Number.isNaN(d.getTime())) return "09:00 IST";
+  return new Intl.DateTimeFormat("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Kolkata",
+    timeZoneName: "short",
+  }).format(d);
+}
+
 type LandingHeroProps = {
   isLight?: boolean;
   onScrollToMap: () => void;
   /** When set (after picking a city from search), hero reflects API city AQI. */
   citySnapshot?: HeroCitySnapshot | null;
+  isLocatingLocation?: boolean;
+  locationUnavailable?: boolean;
+  /** Fixed consent strip is visible — add top padding so hero clears header + banner. */
+  locationConsentBannerVisible?: boolean;
 };
 
 /** Phone + magnifying glass with “AQI” — matches product tab artwork */
@@ -167,6 +210,9 @@ export function LandingHero({
   isLight = false,
   onScrollToMap,
   citySnapshot = null,
+  isLocatingLocation = false,
+  locationUnavailable = false,
+  locationConsentBannerVisible = false,
 }: LandingHeroProps) {
   const whoRingGradId = useId().replace(/:/g, "");
   const ringR = 42;
@@ -176,9 +222,73 @@ export function LandingHero({
 
   const [heroTab, setHeroTab] = useState<"aqi" | "weather">("aqi");
 
+  const needsManualCity = locationUnavailable && !citySnapshot;
+  const isDetectingCity = isLocatingLocation && !citySnapshot;
+  const awaitingConsent =
+    !citySnapshot && !isLocatingLocation && !locationUnavailable;
   const d = citySnapshot ?? DEFAULT_HERO;
-  const markerPct = Math.min(100, Math.max(0, (d.aqi / 500) * 100));
-  const numTone = headlineNumberTone(d.badgeVariant, isLight);
+  const showPlaceholder = isDetectingCity || needsManualCity || awaitingConsent;
+  const cityNameDisplay = isDetectingCity
+    ? "Detecting your city"
+    : needsManualCity
+    ? "Search your city"
+    : awaitingConsent
+    ? "Your area"
+    : d.cityName;
+  const aqiDisplay = showPlaceholder ? "--" : String(d.aqi);
+  const statusDisplay = isDetectingCity
+    ? "Loading"
+    : needsManualCity
+    ? "Select city"
+    : awaitingConsent
+    ? "Enable location"
+    : d.statusLabel;
+  const badgeVariant = (showPlaceholder ? "moderate" : d.badgeVariant) as AqiBadgeVariant;
+  const pm25Display = showPlaceholder ? "--" : String(d.pm25);
+  const pm10Display = showPlaceholder ? "--" : String(d.pm10);
+  const pm25Variant = (showPlaceholder ? "moderate" : d.pm25BadgeVariant) as AqiBadgeVariant;
+  const pm10Variant = (showPlaceholder ? "moderate" : d.pm10BadgeVariant) as AqiBadgeVariant;
+  const markerPct = showPlaceholder
+    ? 0
+    : Math.min(100, Math.max(0, (d.aqi / 500) * 100));
+  const numTone = headlineNumberTone(badgeVariant, isLight);
+  const tempUnit = temperatureUnitSymbol(d.weather?.temperatureUnit);
+  const temperatureDisplay = showPlaceholder
+    ? "--"
+    : `${formatOneDecimal(d.weather?.temperature)}${tempUnit}`;
+  const weatherSummary = [d.weather?.weatherType, d.weather?.weatherStatus]
+    .filter(Boolean)
+    .join(" · ");
+  const weatherSummaryDisplay = isDetectingCity
+    ? "Finding local conditions"
+    : needsManualCity
+    ? "Enable location or search a city"
+    : awaitingConsent
+    ? "Use the banner above, then allow your browser"
+    : weatherSummary || "--";
+  const windDisplay =
+    d.weather?.windSpeed == null
+      ? "--"
+      : `${formatOneDecimal(d.weather.windSpeed)} ${windSpeedUnitLabel(
+          d.weather.windSpeedUnit
+        )}`;
+  const humidityDisplay =
+    d.weather?.humidity == null ? "--" : `${formatOneDecimal(d.weather.humidity)}%`;
+  const weatherRows = [
+    ["TEMP", temperatureDisplay],
+    ["WIND", showPlaceholder ? "--" : windDisplay],
+    ["HUMIDITY", showPlaceholder ? "--" : humidityDisplay],
+    [
+      "WEATHER",
+      isDetectingCity
+        ? "Detecting"
+        : needsManualCity
+        ? "Search city"
+        : awaitingConsent
+        ? "Pending"
+        : d.weather?.weatherStatus ?? d.weather?.weatherType ?? "--",
+    ],
+  ] as const;
 
   const headlineBlock = (
     <>
@@ -193,13 +303,19 @@ export function LandingHero({
           className="h-1.5 w-1.5 animate-blink rounded-full bg-bqa-unhealthy shadow-[0_0_8px_#ff4d6d]"
           aria-hidden
         />
-        Live · Updated 09:00 IST
+        {isDetectingCity
+          ? "Live · Detecting location"
+          : needsManualCity
+          ? "Live · Search a city"
+          : awaitingConsent
+          ? "Live · Location needed"
+          : `Live · Updated ${formatUpdatedAt(d.updatedAt)}`}
       </div>
       <h1 className="mb-3.5 font-outfit text-[clamp(1.65rem,5.5vw,2.5rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:text-5xl lg:text-[48px] lg:leading-[52.8px]">
-        {d.cityName} Air Quality
+        {cityNameDisplay} Air Quality
         <br />
         Index —{" "}
-        <em className={`not-italic font-numeric tracking-normal ${numTone}`}>{d.aqi}</em>
+        <em className={`not-italic font-numeric tracking-normal ${numTone}`}>{aqiDisplay}</em>
       </h1>
       <p
         className={`mb-0 max-w-[380px] text-[0.92rem] leading-relaxed sm:text-[0.95rem] ${
@@ -231,10 +347,14 @@ export function LandingHero({
     return `${rounded} border-t-[3px] border-transparent bg-[#050a14] text-white/55 hover:bg-[#0a1220] hover:text-white/85`;
   }
 
+  const heroTopPad = locationConsentBannerVisible
+    ? "pt-[12rem] sm:pt-[11rem] md:pt-[10.75rem]"
+    : "pt-[7rem] sm:pt-[8rem] md:pt-[7.75rem]";
+
   return (
     <section
       id="sec-hero"
-      className="relative flex min-h-[100dvh] items-center overflow-hidden border-b border-sky-400/10 pt-[7rem] sm:pt-[8rem] md:pt-[7.75rem]"
+      className={`relative flex min-h-[100dvh] items-center overflow-hidden border-b border-sky-400/10 ${heroTopPad}`}
     >
       <div
         className="absolute inset-0 z-0 scale-105 animate-hero-drift bg-cover bg-[center_20%]"
@@ -301,7 +421,7 @@ export function LandingHero({
                         isLight ? "text-sky-700/75" : "text-bqa-dim"
                       }`}
                     >
-                      Outdoor AQI · {d.cityName}
+                      Outdoor AQI · {cityNameDisplay}
                     </p>
                     <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
                       <span
@@ -311,13 +431,13 @@ export function LandingHero({
                             : `${numTone} drop-shadow-[0_0_40px_rgba(255,140,66,0.28)]`
                         }`}
                       >
-                        {d.aqi}
+                        {aqiDisplay}
                       </span>
                       <AqiBadge
-                        variant={d.badgeVariant as AqiBadgeVariant}
+                        variant={badgeVariant}
                         className="px-2.5 py-0.5 text-[0.62rem] tracking-[0.08em] sm:px-3 sm:py-1 sm:text-[0.68rem]"
                       >
-                        {d.statusLabel}
+                        {statusDisplay}
                       </AqiBadge>
                     </div>
                   </div>
@@ -342,13 +462,13 @@ export function LandingHero({
                           isLight ? "text-slate-800" : "text-bqa-text"
                         }`}
                       >
-                        {d.pm25}{" "}
+                        {pm25Display}{" "}
                         <span className={`text-[0.7rem] font-normal ${isLight ? "text-slate-500" : "text-bqa-dim"}`}>
                           µg/m³
                         </span>
                       </div>
-                      <AqiBadge variant={d.pm25BadgeVariant as AqiBadgeVariant} className="mt-2">
-                        {variantLabel(d.pm25BadgeVariant as AqiBadgeVariant)}
+                      <AqiBadge variant={pm25Variant} className="mt-2">
+                        {variantLabel(pm25Variant)}
                       </AqiBadge>
                     </div>
                     <div
@@ -370,13 +490,13 @@ export function LandingHero({
                           isLight ? "text-slate-800" : "text-bqa-text"
                         }`}
                       >
-                        {d.pm10}{" "}
+                        {pm10Display}{" "}
                         <span className={`text-[0.7rem] font-normal ${isLight ? "text-slate-500" : "text-bqa-dim"}`}>
                           µg/m³
                         </span>
                       </div>
-                      <AqiBadge variant={d.pm10BadgeVariant as AqiBadgeVariant} className="mt-2">
-                        {variantLabel(d.pm10BadgeVariant as AqiBadgeVariant)}
+                      <AqiBadge variant={pm10Variant} className="mt-2">
+                        {variantLabel(pm10Variant)}
                       </AqiBadge>
                     </div>
                   </div>
@@ -396,7 +516,7 @@ export function LandingHero({
                             isLight ? "bg-white text-[#0f172a] ring-1 ring-slate-200" : "bg-white text-[#0a0a1a]"
                           }`}
                         >
-                          {d.aqi}
+                          {aqiDisplay}
                         </span>
                       </div>
                     </div>
@@ -452,21 +572,14 @@ export function LandingHero({
                       <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                     </svg>
                     <div>
-                      <div className="font-numeric text-4xl font-bold tracking-normal text-bqa-text">30°C</div>
+                      <div className="font-numeric text-4xl font-bold tracking-normal text-bqa-text">{temperatureDisplay}</div>
                       <div className={`text-sm ${isLight ? "text-slate-600" : "text-bqa-muted"}`}>
-                        Sunny · Clear Skies
+                        {weatherSummaryDisplay}
                       </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2.5">
-                    {(
-                      [
-                        ["FEELS LIKE", "30.3°C"],
-                        ["WIND", "6 km/h SE"],
-                        ["HUMIDITY", "58%"],
-                        ["WIND DISP.", "Improving"],
-                      ] as const
-                    ).map(([k, v]) => (
+                    {weatherRows.map(([k, v]) => (
                       <div
                         key={k}
                         className={`rounded-lg px-3 py-2.5 ${
@@ -512,7 +625,7 @@ export function LandingHero({
                   isLight ? "text-sky-800/70" : "text-bqa-dim"
                 }`}
               >
-                Outdoor AQI · {d.cityName}
+                Outdoor AQI · {cityNameDisplay}
               </div>
 
               <div className="flex items-start justify-between gap-3">
@@ -522,13 +635,13 @@ export function LandingHero({
                       isLight ? numTone : `${numTone} drop-shadow-[0_0_40px_rgba(255,140,66,0.3)]`
                     }`}
                   >
-                    {d.aqi}
+                    {aqiDisplay}
                   </div>
                   <AqiBadge
-                    variant={d.badgeVariant as AqiBadgeVariant}
+                    variant={badgeVariant}
                     className="mt-3 px-4 py-1.5 font-outfit tracking-[0.06em]"
                   >
-                    {d.statusLabel}
+                    {statusDisplay}
                   </AqiBadge>
                 </div>
                 <div className="flex shrink-0 flex-col gap-2 pt-1">
@@ -560,19 +673,19 @@ export function LandingHero({
                 <div className="rounded-lg border-l-[3px] border-bqa-moderate bg-bqa-slate/60 p-3">
                   <div className="mb-0.5 text-[0.68rem] font-semibold tracking-wide text-bqa-dim">PM2.5</div>
                   <div className="font-numeric text-xl font-bold tracking-normal text-bqa-text">
-                    {d.pm25} <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
+                    {pm25Display} <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
                   </div>
-                  <AqiBadge variant={d.pm25BadgeVariant as AqiBadgeVariant} className="mt-1.5">
-                    {variantLabel(d.pm25BadgeVariant as AqiBadgeVariant)}
+                  <AqiBadge variant={pm25Variant} className="mt-1.5">
+                    {variantLabel(pm25Variant)}
                   </AqiBadge>
                 </div>
                 <div className="rounded-lg border-l-[3px] border-bqa-unhealthy bg-bqa-slate/60 p-3">
                   <div className="mb-0.5 text-[0.68rem] font-semibold tracking-wide text-bqa-dim">PM10</div>
                   <div className="font-numeric text-xl font-bold tracking-normal text-bqa-text">
-                    {d.pm10} <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
+                    {pm10Display} <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
                   </div>
-                  <AqiBadge variant={d.pm10BadgeVariant as AqiBadgeVariant} className="mt-1.5">
-                    {variantLabel(d.pm10BadgeVariant as AqiBadgeVariant)}
+                  <AqiBadge variant={pm10Variant} className="mt-1.5">
+                    {variantLabel(pm10Variant)}
                   </AqiBadge>
                 </div>
               </div>
@@ -584,7 +697,7 @@ export function LandingHero({
                     style={{ left: `${markerPct}%` }}
                   >
                     <span className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-white px-1.5 py-0.5 font-numeric text-[0.65rem] font-bold tracking-normal text-[#0a0a1a]">
-                      {d.aqi}
+                      {aqiDisplay}
                     </span>
                   </div>
                 </div>
@@ -631,22 +744,15 @@ export function LandingHero({
                   <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                 </svg>
                 <div>
-                  <div className="font-numeric text-4xl font-bold tracking-normal text-bqa-text">30°C</div>
+                  <div className="font-numeric text-4xl font-bold tracking-normal text-bqa-text">{temperatureDisplay}</div>
                   <div className={`text-sm ${isLight ? "text-slate-600" : "text-bqa-muted"}`}>
-                    Sunny · Clear Skies
+                    {weatherSummaryDisplay}
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
-                {(
-                  [
-                    ["FEELS LIKE", "30.3°C"],
-                    ["WIND", "6 km/h SE"],
-                    ["HUMIDITY", "58%"],
-                    ["WIND DISP.", "Improving"],
-                  ] as const
-                ).map(([k, v]) => (
+                {weatherRows.map(([k, v]) => (
                   <div key={k} className="rounded-lg bg-bqa-slate px-3 py-2.5">
                     <div className="mb-0.5 text-[0.65rem] font-semibold tracking-wide text-bqa-dim">{k}</div>
                     <div className="font-numeric text-[0.95rem] font-semibold tracking-normal text-bqa-text">{v}</div>

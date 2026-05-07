@@ -20,6 +20,16 @@ export type HeroCitySnapshot = {
   pm10: number;
   pm25BadgeVariant: HeroAqiBadgeVariant;
   pm10BadgeVariant: HeroAqiBadgeVariant;
+  updatedAt?: string;
+  weather?: {
+    temperature?: number;
+    temperatureUnit?: string;
+    weatherType?: string;
+    weatherStatus?: string;
+    humidity?: number;
+    windSpeed?: number;
+    windSpeedUnit?: string;
+  };
 };
 
 type CityAqiApiResponse = {
@@ -29,6 +39,7 @@ type CityAqiApiResponse = {
   data: {
     aqi: number;
     aqi_status: string;
+    timestamp?: string;
     location: {
       city: string;
       state: string;
@@ -38,12 +49,24 @@ type CityAqiApiResponse = {
       pm2_5: number;
       pm10: number;
     };
+    basic_weather?: {
+      temperature?: number;
+      temperature_unit?: string;
+      weather_type?: string;
+      weather_status?: string;
+      humidity?: number;
+      wind_speed?: number;
+      wind_speed_unit?: string;
+    };
   };
 };
 
 function slugSegmentToPathSegment(segment: string): string {
   return segment
+    .trim()
+    .replace(/\s+/g, "-")
     .split("-")
+    .filter(Boolean)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join("-");
 }
@@ -119,6 +142,18 @@ export function cityApiToHeroSnapshot(res: CityAqiApiResponse): HeroCitySnapshot
     pm10,
     pm25BadgeVariant: pm25ToBadgeVariant(pm25),
     pm10BadgeVariant: pm10ToBadgeVariant(pm10),
+    updatedAt: d.timestamp,
+    weather: d.basic_weather
+      ? {
+          temperature: d.basic_weather.temperature,
+          temperatureUnit: d.basic_weather.temperature_unit,
+          weatherType: d.basic_weather.weather_type,
+          weatherStatus: d.basic_weather.weather_status,
+          humidity: d.basic_weather.humidity,
+          windSpeed: d.basic_weather.wind_speed,
+          windSpeedUnit: d.basic_weather.wind_speed_unit,
+        }
+      : undefined,
   };
 }
 
@@ -142,4 +177,16 @@ export async function fetchCityAqiBySlug(slug: string): Promise<HeroCitySnapshot
     }
   );
   return cityApiToHeroSnapshot(data);
+}
+
+export async function fetchCityAqiByLocationParts({
+  country,
+  state,
+  city,
+}: {
+  country: string;
+  state: string;
+  city: string;
+}): Promise<HeroCitySnapshot> {
+  return fetchCityAqiBySlug(`${country}/${state}/${city}`);
 }
