@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
+import { getPm10Ugm3Level, getPm25Ugm3Level } from "@/lib/air-quality/aqi-levels";
 import { AqiBadge, type AqiBadgeVariant } from "./AqiBadge";
 import { SectionEyebrow } from "./SectionEyebrow";
 import { SectionTitle } from "./SectionTitle";
@@ -20,93 +22,149 @@ type Pol = {
   who: string;
 };
 
-const POLS: Pol[] = [
-  {
+type PollutantKey = "pm2_5" | "pm10" | "co" | "so2" | "no2" | "o3";
+
+const POLLUTANT_META: Record<
+  PollutantKey,
+  Omit<Pol, "value" | "fillWidth" | "fillClass" | "thresholdLeft" | "badge" | "badgeLabel"> & {
+    unit: string;
+    safeLimit: number;
+    maxScale: number;
+    fallbackValue: number;
+  }
+> = {
+  pm2_5: {
     accent: "#ffd24d",
     tab: "PM2.5",
     name: "Particulate Matter – PM₂.₅",
-    value: "46",
     unit: "µg/m³",
-    fillWidth: "37%",
-    fillClass: "bg-gradient-to-r from-bqa-good to-bqa-moderate",
-    thresholdLeft: "30%",
+    safeLimit: 15,
+    maxScale: 125,
+    fallbackValue: 46,
     scale: ["0", "Safe: 15 µg/m³", "125"],
-    badge: "moderate",
-    badgeLabel: "Moderate",
     who: "WHO SAFE LIMIT: 15 µg/m³",
   },
-  {
+  pm10: {
     accent: "#ff4d6d",
     tab: "PM10",
     name: "Particulate Matter – PM₁₀",
-    value: "124",
     unit: "µg/m³",
-    fillWidth: "49%",
-    fillClass:
-      "bg-gradient-to-r from-bqa-good via-bqa-moderate via-bqa-poor to-bqa-unhealthy",
-    thresholdLeft: "25%",
+    safeLimit: 45,
+    maxScale: 250,
+    fallbackValue: 124,
     scale: ["0", "Safe: 45 µg/m³", "250"],
-    badge: "unhealthy",
-    badgeLabel: "Unhealthy",
     who: "WHO SAFE LIMIT: 45 µg/m³",
   },
-  {
+  co: {
     accent: "#00e5aa",
     tab: "CO",
     name: "Carbon Monoxide (CO)",
-    value: "289",
     unit: "ppm",
-    fillWidth: "14%",
-    fillClass: "bg-bqa-good",
-    thresholdLeft: "40%",
+    safeLimit: 700,
+    maxScale: 2000,
+    fallbackValue: 289,
     scale: ["0", "Safe: 700 ppm", "2000"],
-    badge: "good",
-    badgeLabel: "Good",
     who: "WHO SAFE LIMIT: 700 ppm",
   },
-  {
+  so2: {
     accent: "#00e5aa",
     tab: "SO₂",
     name: "Sulfur Dioxide (SO₂)",
-    value: "5",
-    unit: "ppm",
-    fillWidth: "10%",
-    fillClass: "bg-bqa-good",
-    thresholdLeft: "40%",
-    scale: ["0", "Safe: 20 ppm", "50"],
-    badge: "good",
-    badgeLabel: "Good",
-    who: "WHO SAFE LIMIT: 20 ppm",
+    unit: "ppb",
+    safeLimit: 20,
+    maxScale: 50,
+    fallbackValue: 5,
+    scale: ["0", "Safe: 20 ppb", "50"],
+    who: "WHO SAFE LIMIT: 20 ppb",
   },
-  {
+  no2: {
     accent: "#00e5aa",
     tab: "NO₂",
     name: "Nitrogen Dioxide (NO₂)",
-    value: "18",
-    unit: "ppm",
-    fillWidth: "9%",
-    fillClass: "bg-bqa-good",
-    thresholdLeft: "20%",
-    scale: ["0", "Safe: 40 ppm", "200"],
-    badge: "good",
-    badgeLabel: "Good",
-    who: "WHO SAFE LIMIT: 40 ppm",
+    unit: "ppb",
+    safeLimit: 40,
+    maxScale: 200,
+    fallbackValue: 18,
+    scale: ["0", "Safe: 40 ppb", "200"],
+    who: "WHO SAFE LIMIT: 40 ppb",
   },
-  {
+  o3: {
     accent: "#00e5aa",
     tab: "O₃",
     name: "Ozone (O₃)",
-    value: "7",
     unit: "ppm",
-    fillWidth: "7%",
-    fillClass: "bg-bqa-good",
-    thresholdLeft: "30%",
+    safeLimit: 60,
+    maxScale: 200,
+    fallbackValue: 7,
     scale: ["0", "Safe: 60 ppm", "200"],
-    badge: "good",
-    badgeLabel: "Good",
     who: "WHO SAFE LIMIT: 60 ppm",
   },
-];
+};
+
+const POLLUTANT_ORDER: PollutantKey[] = ["pm2_5", "pm10", "co", "so2", "no2", "o3"];
+
+const FILL_CLASS_BY_VARIANT: Record<AqiBadgeVariant, string> = {
+  good: "bg-bqa-good",
+  moderate: "bg-bqa-moderate",
+  poor: "bg-bqa-poor",
+  unhealthy: "bg-bqa-unhealthy",
+  severe: "bg-bqa-severe",
+  hazardous: "bg-bqa-hazardous",
+};
+
+function formatValue(value: number): string {
+  if (!Number.isFinite(value)) return "--";
+  return Number.isInteger(value) ? String(value) : value.toFixed(2);
+}
+
+function labelFromVariant(v: AqiBadgeVariant): string {
+  return v.charAt(0).toUpperCase() + v.slice(1);
+}
+
+function gasBadgeVariant(value: number, safeLimit: number): AqiBadgeVariant {
+  if (value <= safeLimit) return "good";
+  if (value <= safeLimit * 1.5) return "moderate";
+  if (value <= safeLimit * 2.5) return "poor";
+  if (value <= safeLimit * 4) return "unhealthy";
+  if (value <= safeLimit * 6) return "severe";
+  return "hazardous";
+}
+
+function buildPollutants(snapshot?: HeroCitySnapshot | null): Pol[] {
+  const values = snapshot?.pollutants;
+
+  return POLLUTANT_ORDER.map((key) => {
+    const meta = POLLUTANT_META[key];
+    const rawValue = values?.[key] ?? meta.fallbackValue;
+    const numeric = Number.isFinite(rawValue) ? Number(rawValue) : meta.fallbackValue;
+    const fillPct = Math.max(2, Math.min(100, (numeric / meta.maxScale) * 100));
+    const thresholdLeft = `${Math.min(100, (meta.safeLimit / meta.maxScale) * 100)}%`;
+    let badge: AqiBadgeVariant;
+
+    if (key === "pm2_5") {
+      badge = getPm25Ugm3Level(numeric).variant;
+    } else if (key === "pm10") {
+      badge = getPm10Ugm3Level(numeric).variant;
+    } else {
+      badge = gasBadgeVariant(numeric, meta.safeLimit);
+    }
+
+    return {
+      accent: meta.accent,
+      tab: meta.tab,
+      name: meta.name,
+      value: formatValue(numeric),
+      unit: meta.unit,
+      fillWidth: `${fillPct}%`,
+      fillClass: FILL_CLASS_BY_VARIANT[badge],
+      thresholdLeft,
+      scale: meta.scale,
+      badge,
+      badgeLabel: labelFromVariant(badge),
+      who: meta.who,
+    };
+  });
+}
 
 function PollutantCard({ p }: { p: Pol }) {
   return (
@@ -148,9 +206,10 @@ function PollutantCard({ p }: { p: Pol }) {
   );
 }
 
-export function PollutantsSection() {
+export function PollutantsSection({ citySnapshot = null }: { citySnapshot?: HeroCitySnapshot | null }) {
+  const pollutants = buildPollutants(citySnapshot);
   const [sel, setSel] = useState(0);
-  const active = POLS[sel] ?? POLS[0];
+  const active = pollutants[sel] ?? pollutants[0];
 
   return (
     <section
@@ -164,7 +223,7 @@ export function PollutantsSection() {
         {/* Mobile / tablet: pill tabs + single card */}
         <div className="lg:hidden">
           <div className="mb-4 flex gap-0 overflow-x-auto rounded-xl border border-sky-400/10 bg-bqa-navy2/50 p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {POLS.map((p, i) => (
+            {pollutants.map((p, i) => (
               <button
                 key={p.tab}
                 type="button"
@@ -183,7 +242,7 @@ export function PollutantsSection() {
         </div>
 
         <div className="hidden grid-cols-1 gap-[18px] lg:grid lg:grid-cols-3">
-          {POLS.map((p) => (
+          {pollutants.map((p) => (
             <PollutantCard key={p.name} p={p} />
           ))}
         </div>

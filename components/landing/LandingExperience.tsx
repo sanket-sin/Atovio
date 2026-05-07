@@ -185,7 +185,7 @@ export function LandingExperience() {
         <AirQualityToolkitSection isLight={isLight} citySnapshot={heroCity} />
         <ChartHistorySection citySnapshot={heroCity} />
         <RealtimeAqiMapSection isLight={isLight} />
-        <PollutantsSection />
+        <PollutantsSection citySnapshot={heroCity} />
         <LeaderboardSection isLight={isLight} />
         <IndiaAqiOverviewSection />
         <HealthGuidanceSection isLight={isLight} />
