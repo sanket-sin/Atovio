@@ -1,13 +1,54 @@
 "use client";
 
 import { useId, useState } from "react";
-import { AqiBadge } from "./AqiBadge";
+import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
+import { AqiBadge, type AqiBadgeVariant } from "./AqiBadge";
 
 const HERO_BG = "/images/hero-bg.png";
+
+const DEFAULT_HERO: HeroCitySnapshot = {
+  cityName: "Mumbai",
+  stateName: "Maharashtra",
+  aqi: 160,
+  statusLabel: "Poor",
+  badgeVariant: "poor",
+  pm25: 46,
+  pm10: 124,
+  pm25BadgeVariant: "moderate",
+  pm10BadgeVariant: "unhealthy",
+};
+
+function headlineNumberTone(
+  v: HeroCitySnapshot["badgeVariant"],
+  isLight: boolean
+): string {
+  switch (v) {
+    case "good":
+      return isLight ? "text-emerald-600" : "text-bqa-good";
+    case "moderate":
+      return isLight ? "text-amber-600" : "text-bqa-moderate";
+    case "poor":
+      return isLight ? "text-orange-600" : "text-bqa-poor";
+    case "unhealthy":
+      return isLight ? "text-red-600" : "text-bqa-unhealthy";
+    case "severe":
+      return isLight ? "text-fuchsia-700" : "text-bqa-severe";
+    case "hazardous":
+      return isLight ? "text-purple-900" : "text-bqa-hazardous";
+    default:
+      return isLight ? "text-orange-600" : "text-bqa-poor";
+  }
+}
+
+function variantLabel(v: AqiBadgeVariant): string {
+  return v.charAt(0).toUpperCase() + v.slice(1);
+}
 
 type LandingHeroProps = {
   isLight?: boolean;
   onScrollToMap: () => void;
+  /** When set (after picking a city from search), hero reflects API city AQI. */
+  citySnapshot?: HeroCitySnapshot | null;
 };
 
 /** Phone + magnifying glass with “AQI” — matches product tab artwork */
@@ -122,7 +163,11 @@ function WhoHoursRing({
   );
 }
 
-export function LandingHero({ isLight = false, onScrollToMap }: LandingHeroProps) {
+export function LandingHero({
+  isLight = false,
+  onScrollToMap,
+  citySnapshot = null,
+}: LandingHeroProps) {
   const whoRingGradId = useId().replace(/:/g, "");
   const ringR = 42;
   const ringC = 2 * Math.PI * ringR;
@@ -130,6 +175,10 @@ export function LandingHero({ isLight = false, onScrollToMap }: LandingHeroProps
   const whoDash = (whoHours / 24) * ringC;
 
   const [heroTab, setHeroTab] = useState<"aqi" | "weather">("aqi");
+
+  const d = citySnapshot ?? DEFAULT_HERO;
+  const markerPct = Math.min(100, Math.max(0, (d.aqi / 500) * 100));
+  const numTone = headlineNumberTone(d.badgeVariant, isLight);
 
   const headlineBlock = (
     <>
@@ -147,16 +196,10 @@ export function LandingHero({ isLight = false, onScrollToMap }: LandingHeroProps
         Live · Updated 09:00 IST
       </div>
       <h1 className="mb-3.5 font-outfit text-[clamp(1.65rem,5.5vw,2.5rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:text-5xl lg:text-[48px] lg:leading-[52.8px]">
-        Mumbai Air Quality
+        {d.cityName} Air Quality
         <br />
         Index —{" "}
-        <em
-          className={`not-italic font-numeric tracking-normal ${
-            isLight ? "text-orange-600" : "text-bqa-poor"
-          }`}
-        >
-          160
-        </em>
+        <em className={`not-italic font-numeric tracking-normal ${numTone}`}>{d.aqi}</em>
       </h1>
       <p
         className={`mb-0 max-w-[380px] text-[0.92rem] leading-relaxed sm:text-[0.95rem] ${
@@ -211,7 +254,7 @@ export function LandingHero({ isLight = false, onScrollToMap }: LandingHeroProps
         aria-hidden
       />
 
-      <div className="relative z-[2] mx-auto w-full max-w-container px-4 sm:px-6 lg:px-7">
+      <div className="relative z-[2] mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         {/* Narrow screens: headline + tabbed dashboard */}
         <div className="pb-10 pt-4 lg:hidden">
           <div className="mb-6">{headlineBlock}</div>
@@ -258,18 +301,23 @@ export function LandingHero({ isLight = false, onScrollToMap }: LandingHeroProps
                         isLight ? "text-sky-700/75" : "text-bqa-dim"
                       }`}
                     >
-                      Outdoor AQI · Mumbai
+                      Outdoor AQI · {d.cityName}
                     </p>
                     <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
                       <span
                         className={`font-numeric text-[clamp(2rem,11vw,3.25rem)] font-bold leading-none tracking-tight ${
-                          isLight ? "text-orange-600" : "text-bqa-poor drop-shadow-[0_0_40px_rgba(255,140,66,0.28)]"
+                          isLight
+                            ? numTone
+                            : `${numTone} drop-shadow-[0_0_40px_rgba(255,140,66,0.28)]`
                         }`}
                       >
-                        160
+                        {d.aqi}
                       </span>
-                      <AqiBadge variant="poor" className="px-2.5 py-0.5 text-[0.62rem] tracking-[0.08em] sm:px-3 sm:py-1 sm:text-[0.68rem]">
-                        Poor
+                      <AqiBadge
+                        variant={d.badgeVariant as AqiBadgeVariant}
+                        className="px-2.5 py-0.5 text-[0.62rem] tracking-[0.08em] sm:px-3 sm:py-1 sm:text-[0.68rem]"
+                      >
+                        {d.statusLabel}
                       </AqiBadge>
                     </div>
                   </div>
@@ -294,13 +342,13 @@ export function LandingHero({ isLight = false, onScrollToMap }: LandingHeroProps
                           isLight ? "text-slate-800" : "text-bqa-text"
                         }`}
                       >
-                        46{" "}
+                        {d.pm25}{" "}
                         <span className={`text-[0.7rem] font-normal ${isLight ? "text-slate-500" : "text-bqa-dim"}`}>
                           µg/m³
                         </span>
                       </div>
-                      <AqiBadge variant="moderate" className="mt-2">
-                        Moderate
+                      <AqiBadge variant={d.pm25BadgeVariant as AqiBadgeVariant} className="mt-2">
+                        {variantLabel(d.pm25BadgeVariant as AqiBadgeVariant)}
                       </AqiBadge>
                     </div>
                     <div
@@ -322,13 +370,13 @@ export function LandingHero({ isLight = false, onScrollToMap }: LandingHeroProps
                           isLight ? "text-slate-800" : "text-bqa-text"
                         }`}
                       >
-                        124{" "}
+                        {d.pm10}{" "}
                         <span className={`text-[0.7rem] font-normal ${isLight ? "text-slate-500" : "text-bqa-dim"}`}>
                           µg/m³
                         </span>
                       </div>
-                      <AqiBadge variant="unhealthy" className="mt-2">
-                        Unhealthy
+                      <AqiBadge variant={d.pm10BadgeVariant as AqiBadgeVariant} className="mt-2">
+                        {variantLabel(d.pm10BadgeVariant as AqiBadgeVariant)}
                       </AqiBadge>
                     </div>
                   </div>
@@ -341,14 +389,14 @@ export function LandingHero({ isLight = false, onScrollToMap }: LandingHeroProps
                     >
                       <div
                         className="absolute -top-1.5 h-6 w-0.5 -translate-x-1/2 rounded-sm bg-white shadow-[0_0_12px_rgba(255,255,255,0.85)]"
-                        style={{ left: "32%" }}
+                        style={{ left: `${markerPct}%` }}
                       >
                         <span
                           className={`absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded px-1.5 py-0.5 font-numeric text-[0.65rem] font-bold tracking-normal shadow-sm ${
                             isLight ? "bg-white text-[#0f172a] ring-1 ring-slate-200" : "bg-white text-[#0a0a1a]"
                           }`}
                         >
-                          160
+                          {d.aqi}
                         </span>
                       </div>
                     </div>
@@ -464,20 +512,23 @@ export function LandingHero({ isLight = false, onScrollToMap }: LandingHeroProps
                   isLight ? "text-sky-800/70" : "text-bqa-dim"
                 }`}
               >
-                Outdoor AQI · Mumbai
+                Outdoor AQI · {d.cityName}
               </div>
 
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div
                     className={`font-numeric text-[clamp(3.5rem,10vw,5.5rem)] font-bold leading-[1] tracking-normal ${
-                      isLight ? "text-orange-600" : "text-bqa-poor drop-shadow-[0_0_40px_rgba(255,140,66,0.3)]"
+                      isLight ? numTone : `${numTone} drop-shadow-[0_0_40px_rgba(255,140,66,0.3)]`
                     }`}
                   >
-                    160
+                    {d.aqi}
                   </div>
-                  <AqiBadge variant="poor" className="mt-3 px-4 py-1.5 font-outfit tracking-[0.06em]">
-                    Poor
+                  <AqiBadge
+                    variant={d.badgeVariant as AqiBadgeVariant}
+                    className="mt-3 px-4 py-1.5 font-outfit tracking-[0.06em]"
+                  >
+                    {d.statusLabel}
                   </AqiBadge>
                 </div>
                 <div className="flex shrink-0 flex-col gap-2 pt-1">
@@ -509,19 +560,19 @@ export function LandingHero({ isLight = false, onScrollToMap }: LandingHeroProps
                 <div className="rounded-lg border-l-[3px] border-bqa-moderate bg-bqa-slate/60 p-3">
                   <div className="mb-0.5 text-[0.68rem] font-semibold tracking-wide text-bqa-dim">PM2.5</div>
                   <div className="font-numeric text-xl font-bold tracking-normal text-bqa-text">
-                    46 <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
+                    {d.pm25} <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
                   </div>
-                  <AqiBadge variant="moderate" className="mt-1.5">
-                    Moderate
+                  <AqiBadge variant={d.pm25BadgeVariant as AqiBadgeVariant} className="mt-1.5">
+                    {variantLabel(d.pm25BadgeVariant as AqiBadgeVariant)}
                   </AqiBadge>
                 </div>
                 <div className="rounded-lg border-l-[3px] border-bqa-unhealthy bg-bqa-slate/60 p-3">
                   <div className="mb-0.5 text-[0.68rem] font-semibold tracking-wide text-bqa-dim">PM10</div>
                   <div className="font-numeric text-xl font-bold tracking-normal text-bqa-text">
-                    124 <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
+                    {d.pm10} <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
                   </div>
-                  <AqiBadge variant="unhealthy" className="mt-1.5">
-                    Unhealthy
+                  <AqiBadge variant={d.pm10BadgeVariant as AqiBadgeVariant} className="mt-1.5">
+                    {variantLabel(d.pm10BadgeVariant as AqiBadgeVariant)}
                   </AqiBadge>
                 </div>
               </div>
@@ -530,10 +581,10 @@ export function LandingHero({ isLight = false, onScrollToMap }: LandingHeroProps
                 <div className="relative mb-1.5 h-2.5 rounded-md bg-gradient-to-r from-bqa-good via-bqa-moderate via-bqa-poor via-bqa-unhealthy via-bqa-severe to-bqa-hazardous shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]">
                   <div
                     className="absolute -top-1.5 h-6 w-0.5 -translate-x-1/2 rounded-sm bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]"
-                    style={{ left: "32%" }}
+                    style={{ left: `${markerPct}%` }}
                   >
                     <span className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-white px-1.5 py-0.5 font-numeric text-[0.65rem] font-bold tracking-normal text-[#0a0a1a]">
-                      160
+                      {d.aqi}
                     </span>
                   </div>
                 </div>

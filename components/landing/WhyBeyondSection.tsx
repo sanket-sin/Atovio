@@ -68,7 +68,7 @@ export function WhyBeyondSection() {
 
   return (
     <section id="sec-why" className="sec-fx py-14 sm:py-[72px]">
-      <div className="mx-auto max-w-container px-4 sm:px-7">
+      <div className="mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         <SectionEyebrow className="mb-2">Why BeyondAQI</SectionEyebrow>
         <div className="mb-9 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
           <SectionTitle className="mb-0 sm:max-w-[min(100%,520px)]">

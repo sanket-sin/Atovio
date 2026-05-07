@@ -1,19 +1,60 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+import { fetchMostPollutedCities } from "@/lib/api/aqi-most-polluted";
+
 /**
- * Screenshot 1: city names light gray; AQI red/deep orange (160, 143), orange (116–118, 102), yellow (94, 88, 74).
+ * Remount key so the CSS marquee restarts after layout-affecting changes.
+ * `translateX(-50%)` is measured against the track width; if width changes (fallback → API,
+ * or fonts finishing loading) without a remount, motion looks wrong until the next reflow (e.g. scroll).
  */
-const LIVE_CITIES = [
-  { city: "Delhi", aqi: 160, color: "text-red-500" },
-  { city: "Mumbai", aqi: 160, color: "text-red-500" },
-  { city: "Chennai", aqi: 94, color: "text-amber-300" },
-  { city: "Bengaluru", aqi: 116, color: "text-orange-400" },
-  { city: "Hyderabad", aqi: 88, color: "text-amber-300" },
-  { city: "Kolkata", aqi: 74, color: "text-amber-300" },
-  { city: "Pune", aqi: 102, color: "text-orange-400" },
-  { city: "Gurugram", aqi: 118, color: "text-orange-400" },
-  { city: "Ahmedabad", aqi: 143, color: "text-orange-600" },
+function useMarqueeRemountKey(itemCount: number, source: "live" | "fallback") {
+  const [fontEpoch, setFontEpoch] = useState(0);
+
+  useEffect(() => {
+    if (typeof document === "undefined" || !document.fonts?.ready) return;
+    let cancelled = false;
+    document.fonts.ready.then(() => {
+      if (!cancelled) setFontEpoch((n) => n + 1);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return `${itemCount}-${source}-${fontEpoch}`;
+}
+
+/** Fallback when the API is unavailable (matches prior static ticker styling). */
+const FALLBACK_CITIES: { rank: number; city: string; aqi: number; color: string }[] = [
+  { rank: 1, city: "Delhi", aqi: 160, color: "text-red-500" },
+  { rank: 2, city: "Mumbai", aqi: 160, color: "text-red-500" },
+  { rank: 3, city: "Chennai", aqi: 94, color: "text-amber-300" },
+  { rank: 4, city: "Bengaluru", aqi: 116, color: "text-orange-400" },
+  { rank: 5, city: "Hyderabad", aqi: 88, color: "text-amber-300" },
+  { rank: 6, city: "Kolkata", aqi: 74, color: "text-amber-300" },
+  { rank: 7, city: "Pune", aqi: 102, color: "text-orange-400" },
+  { rank: 8, city: "Gurugram", aqi: 118, color: "text-orange-400" },
+  { rank: 9, city: "Ahmedabad", aqi: 143, color: "text-orange-600" },
 ];
+
+/** Maps API `aqi_scale` (1–6) to readable ticker colors (aligned with `AqiBadge` bands). */
+function aqiScaleToTickerColor(scale: number): string {
+  switch (scale) {
+    case 1:
+      return "text-bqa-good";
+    case 2:
+      return "text-bqa-moderate";
+    case 3:
+      return "text-bqa-poor";
+    case 4:
+      return "text-bqa-unhealthy";
+    case 5:
+      return "text-bqa-severe";
+    default:
+      return "text-bqa-hazardous";
+  }
+}
 
 type LiveAQITickerProps = {
   rowPad?: string;
@@ -21,10 +62,45 @@ type LiveAQITickerProps = {
 };
 
 export function LiveAQITicker({
-  rowPad = "px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12",
+  rowPad = "px-4 sm:px-6 lg:px-8 xl:px-10",
   isLight = false,
 }: LiveAQITickerProps) {
-  const items = [...LIVE_CITIES, ...LIVE_CITIES];
+  const [liveRows, setLiveRows] = useState<
+    { rank: number; city: string; aqi: number; color: string }[] | null
+  >(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const cities = await fetchMostPollutedCities();
+        if (cancelled || cities.length === 0) return;
+        setLiveRows(
+          cities.map((c) => ({
+            rank: c.rank,
+            city: c.city,
+            aqi: c.aqi,
+            color: aqiScaleToTickerColor(c.aqi_scale),
+          }))
+        );
+      } catch {
+        /* keep null → FALLBACK_CITIES */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const items = useMemo(() => {
+    const rows = liveRows ?? FALLBACK_CITIES;
+    return [...rows, ...rows];
+  }, [liveRows]);
+
+  const marqueeKey = useMarqueeRemountKey(
+    items.length,
+    liveRows ? "live" : "fallback"
+  );
 
   const barClass = isLight
     ? "border-b border-black/[0.07] bg-white"
@@ -53,10 +129,13 @@ export function LiveAQITicker({
         <div
           className={`min-h-[1.25rem] min-w-0 flex-1 self-center overflow-hidden pl-3 sm:pl-4 ${tickerBorderClass}`}
         >
-          <div className="flex w-max animate-ticker gap-0 pr-8">
+          <div
+            key={marqueeKey}
+            className="flex w-max animate-ticker gap-0 pr-8 will-change-transform"
+          >
             {items.map((c, i) => (
               <span
-                key={`${c.city}-${i}`}
+                key={`${c.rank}-${i}`}
                 className="inline-flex items-baseline whitespace-nowrap font-mono text-[0.78rem] sm:text-[0.8rem]"
               >
                 <span className={cityClass}>{c.city}</span>

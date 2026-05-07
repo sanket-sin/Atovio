@@ -29,7 +29,7 @@ export function RealtimeAqiMapSection({ isLight = false }: { isLight?: boolean }
       id="sec-realtime-map"
       className="sec-fx border-t border-sky-400/10 py-12 sm:py-16"
     >
-      <div className="mx-auto max-w-container px-4 sm:px-7">
+      <div className="mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         <SectionTitle className="mb-6">Real-Time AQI Map</SectionTitle>
 
         <div className="overflow-hidden rounded-3xl border border-sky-400/10 bg-[#0a0c10] shadow-xl">

@@ -6,7 +6,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { registerServiceWorker } from "@/lib/pwa/service-worker-register";
+import {
+  registerServiceWorker,
+  unregisterServiceWorker,
+} from "@/lib/pwa/service-worker-register";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -23,10 +26,19 @@ export function ServiceWorkerProvider({
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   useEffect(() => {
-    // Register service worker
+    const loopback =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname === "[::1]";
+
+    // Disable SW on localhost and in dev — prevents intercepting /api, /_next, and HMR.
+    if (process.env.NODE_ENV === "development" || loopback) {
+      unregisterServiceWorker();
+      return;
+    }
+
     registerServiceWorker();
 
-    // Handle beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -38,7 +50,6 @@ export function ServiceWorkerProvider({
       handleBeforeInstallPrompt
     );
 
-    // Check if app is already installed
     if (window.matchMedia("(display-mode: standalone)").matches) {
       console.log("App is running in standalone mode");
     }

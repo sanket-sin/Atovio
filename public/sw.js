@@ -3,8 +3,8 @@
  * Handles offline functionality and caching
  */
 
-const CACHE_NAME = "atovio-beyondaqi-v1";
-const RUNTIME_CACHE = "atovio-beyondaqi-runtime-v1";
+const CACHE_NAME = "atovio-beyondaqi-v3";
+const RUNTIME_CACHE = "atovio-beyondaqi-runtime-v3";
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
@@ -15,15 +15,18 @@ const PRECACHE_ASSETS = [
   "/manifest.json",
 ];
 
-// Install event - cache assets
+// Install event - cache assets (non-fatal if a single URL fails)
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => {
-        return cache.addAll(PRECACHE_ASSETS);
-      })
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.all(
+        PRECACHE_ASSETS.map((url) =>
+          cache.add(url).catch(() => {
+            /* offline or missing route — continue install */
+          })
+        )
+      ).then(() => self.skipWaiting())
+    )
   );
 });
 
@@ -56,6 +59,17 @@ self.addEventListener("fetch", (event) => {
 
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
+  const url = new URL(event.request.url);
+
+  // Do not intercept Next.js assets or local API proxy — avoids dev/HMR breakage,
+  // duplicate fetch rows (initiator sw.js), and stale auth responses.
+  if (
+    url.pathname.startsWith("/api") ||
+    url.pathname.startsWith("/_next")
+  ) {
     return;
   }
 

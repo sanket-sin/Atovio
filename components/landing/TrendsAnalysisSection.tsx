@@ -52,7 +52,7 @@ export function TrendsAnalysisSection() {
       id="sec-trends"
       className="sec-fx border-t border-sky-400/10 py-12 sm:py-16"
     >
-      <div className="mx-auto max-w-container px-4 sm:px-7">
+      <div className="mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         <SectionTitle className="mb-8">Trends &amp; Analysis</SectionTitle>
 
         <div className="mb-6 overflow-hidden rounded-2xl border border-sky-400/10 bg-bqa-navy2/70 p-5 backdrop-blur-md sm:p-6">

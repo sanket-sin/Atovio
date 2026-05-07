@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { MostPollutedCityRow } from "@/lib/api/aqi-most-polluted";
+import { fetchMostPollutedLeaderboard } from "@/lib/api/aqi-most-polluted";
 import { SectionEyebrow } from "./SectionEyebrow";
 import { SectionTitle } from "./SectionTitle";
 
@@ -18,18 +20,80 @@ type Row = {
   rowBorder: string;
 };
 
-const ROWS: Row[] = [
-  { rank: "1.", rankClass: "text-amber-400", city: "Gurugram", aqi: "319", aqiClass: "border-purple-400/40 bg-purple-400/10 text-bqa-severe", status: "Severe", statusColor: "text-bqa-severe", trend: "up", puffPct: 72, puffVal: "7.2", rowBorder: "border-l-purple-500" },
-  { rank: "2.", rankClass: "text-slate-400", city: "Ahmedabad", aqi: "296", aqiClass: "border-rose-400/40 bg-rose-400/10 text-bqa-unhealthy", status: "Unhealthy", statusColor: "text-bqa-unhealthy", trend: "up", puffPct: 25, puffVal: "2.5", rowBorder: "border-l-rose-500" },
-  { rank: "3.", rankClass: "text-amber-700", city: "Hardoi", aqi: "291", aqiClass: "border-rose-400/40 bg-rose-400/10 text-bqa-unhealthy", status: "Unhealthy", statusColor: "text-bqa-unhealthy", trend: "flat", puffPct: 45, puffVal: "4.5", rowBorder: "border-l-rose-500" },
-  { rank: "4.", rankClass: "", city: "Bahadurgarh", aqi: "275", aqiClass: "border-rose-400/40 bg-rose-400/10 text-bqa-unhealthy", status: "Unhealthy", statusColor: "text-bqa-unhealthy", trend: "down", puffPct: 27, puffVal: "2.7", rowBorder: "border-l-rose-500" },
-  { rank: "5.", rankClass: "", city: "Lucknow", aqi: "212", aqiClass: "border-rose-400/40 bg-rose-400/10 text-bqa-unhealthy", status: "Unhealthy", statusColor: "text-bqa-unhealthy", trend: "flat", puffPct: 34, puffVal: "3.4", rowBorder: "border-l-rose-500" },
-  { rank: "6.", rankClass: "", city: "Faridabad", aqi: "200", aqiClass: "border-orange-400/40 bg-orange-400/10 text-bqa-poor", status: "Poor", statusColor: "text-bqa-poor", trend: "up", puffPct: 41, puffVal: "4.1", rowBorder: "border-l-orange-500" },
-  { rank: "7.", rankClass: "", city: "Greater Noida", aqi: "198", aqiClass: "border-orange-400/40 bg-orange-400/10 text-bqa-poor", status: "Poor", statusColor: "text-bqa-poor", trend: "down", puffPct: 12, puffVal: "1.2", rowBorder: "border-l-orange-500" },
-  { rank: "8.", rankClass: "", city: "Chhapra", aqi: "194", aqiClass: "border-orange-400/40 bg-orange-400/10 text-bqa-poor", status: "Poor", statusColor: "text-bqa-poor", trend: "flat", puffPct: 16, puffVal: "1.6", rowBorder: "border-l-orange-500" },
-  { rank: "9.", rankClass: "", city: "Noida", aqi: "178", aqiClass: "border-orange-400/40 bg-orange-400/10 text-bqa-poor", status: "Poor", statusColor: "text-bqa-poor", trend: "down", puffPct: 33, puffVal: "3.3", rowBorder: "border-l-orange-500" },
-  { rank: "10.", rankClass: "", city: "Bulandshahr", aqi: "171", aqiClass: "border-orange-400/40 bg-orange-400/10 text-bqa-poor", status: "Poor", statusColor: "text-bqa-poor", trend: "flat", puffPct: 15, puffVal: "1.5", rowBorder: "border-l-orange-500" },
-];
+/** Puff bar scale: scores from API are typically under ~5 cigs/day for per-city rows. */
+const PUFF_SCORE_BAR_CAP = 5;
+
+function rankLabel(rank: number): { rank: string; rankClass: string } {
+  const label = `${rank}.`;
+  if (rank === 1) return { rank: label, rankClass: "text-amber-400" };
+  if (rank === 2) return { rank: label, rankClass: "text-slate-400" };
+  if (rank === 3) return { rank: label, rankClass: "text-amber-700" };
+  return { rank: label, rankClass: "" };
+}
+
+function statusToRowStyles(statusRaw: string): Pick<Row, "aqiClass" | "statusColor" | "rowBorder"> {
+  const k = statusRaw.trim().toLowerCase();
+  if (k.includes("hazard"))
+    return {
+      aqiClass: "border-fuchsia-400/40 bg-fuchsia-400/10 text-bqa-hazardous",
+      statusColor: "text-bqa-hazardous",
+      rowBorder: "border-l-fuchsia-500",
+    };
+  if (k.includes("severe"))
+    return {
+      aqiClass: "border-purple-400/40 bg-purple-400/10 text-bqa-severe",
+      statusColor: "text-bqa-severe",
+      rowBorder: "border-l-purple-500",
+    };
+  if (k.includes("unhealthy"))
+    return {
+      aqiClass: "border-rose-400/40 bg-rose-400/10 text-bqa-unhealthy",
+      statusColor: "text-bqa-unhealthy",
+      rowBorder: "border-l-rose-500",
+    };
+  if (k.includes("poor"))
+    return {
+      aqiClass: "border-orange-400/40 bg-orange-400/10 text-bqa-poor",
+      statusColor: "text-bqa-poor",
+      rowBorder: "border-l-orange-500",
+    };
+  if (k.includes("moderate") || k.includes("satisfactory"))
+    return {
+      aqiClass: "border-amber-400/40 bg-amber-400/10 text-bqa-moderate",
+      statusColor: "text-bqa-moderate",
+      rowBorder: "border-l-amber-500",
+    };
+  if (k.includes("good"))
+    return {
+      aqiClass: "border-emerald-400/40 bg-emerald-400/10 text-bqa-good",
+      statusColor: "text-bqa-good",
+      rowBorder: "border-l-emerald-500",
+    };
+  return {
+    aqiClass: "border-sky-400/40 bg-sky-400/10 text-bqa-muted",
+    statusColor: "text-bqa-text",
+    rowBorder: "border-l-sky-500",
+  };
+}
+
+function apiCityToRow(c: MostPollutedCityRow): Row {
+  const rl = rankLabel(c.rank);
+  const styles = statusToRowStyles(c.aqi_status);
+  const puffPct = Math.min(
+    100,
+    Math.round((Math.min(c.puff_score, PUFF_SCORE_BAR_CAP) / PUFF_SCORE_BAR_CAP) * 100)
+  );
+  return {
+    ...rl,
+    ...styles,
+    city: c.city,
+    aqi: String(Math.round(c.aqi)),
+    status: c.aqi_status,
+    trend: "flat",
+    puffPct,
+    puffVal: c.puff_score.toFixed(1),
+  };
+}
 
 function TrendIcon({ t }: { t: Row["trend"] }) {
   if (t === "up")
@@ -44,9 +108,14 @@ function aqiBadgeSurface(status: string, darkClass: string, isLight: boolean): s
   const darkFull = `inline-flex rounded-lg border px-3.5 py-1 font-mono text-[0.95rem] font-extrabold ${darkClass}`;
   if (!isLight) return darkFull;
   const shell = "inline-flex rounded-lg border px-3.5 py-1 font-mono text-[0.95rem] font-extrabold";
-  if (status === "Severe") return `${shell} border-purple-400 bg-purple-50 text-purple-800`;
-  if (status === "Unhealthy") return `${shell} border-rose-500 bg-rose-50 text-rose-700`;
-  if (status === "Poor") return `${shell} border-orange-500 bg-orange-50 text-orange-800`;
+  const k = status.trim().toLowerCase();
+  if (k.includes("hazard")) return `${shell} border-fuchsia-500 bg-fuchsia-50 text-fuchsia-900`;
+  if (k.includes("severe")) return `${shell} border-purple-400 bg-purple-50 text-purple-800`;
+  if (k.includes("unhealthy")) return `${shell} border-rose-500 bg-rose-50 text-rose-700`;
+  if (k.includes("poor")) return `${shell} border-orange-500 bg-orange-50 text-orange-800`;
+  if (k.includes("moderate") || k.includes("satisfactory"))
+    return `${shell} border-amber-500 bg-amber-50 text-amber-900`;
+  if (k.includes("good")) return `${shell} border-emerald-500 bg-emerald-50 text-emerald-900`;
   return darkFull;
 }
 
@@ -56,12 +125,57 @@ const ROW_GRID =
 
 export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const [rows, setRows] = useState<Row[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [rowPerPage, setRowPerPage] = useState(50);
+  const [totalPages, setTotalPages] = useState(1);
+  const [retryTick, setRetryTick] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { cities, pagination } = await fetchMostPollutedLeaderboard({ page });
+        if (cancelled) return;
+        setRows(cities.map(apiCityToRow));
+        setTotal(pagination.total);
+        setRowPerPage(pagination.rowPerPage);
+        setTotalPages(Math.max(1, pagination.totalPages));
+      } catch (e) {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "Could not load leaderboard.");
+          setRows([]);
+          setTotal(0);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [page, retryTick]);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return ROWS;
-    return ROWS.filter((r) => r.city.toLowerCase().includes(s));
-  }, [q]);
+    if (!s) return rows;
+    return rows.filter((r) => r.city.toLowerCase().includes(s));
+  }, [rows, q]);
+
+  const rangeStart = total === 0 ? 0 : (page - 1) * rowPerPage + 1;
+  const rangeEnd = total === 0 ? 0 : Math.min(page * rowPerPage, total);
+
+  const pageButtonNums = useMemo(() => {
+    const t = totalPages;
+    if (t <= 12) return Array.from({ length: t }, (_, i) => i + 1);
+    const nums = new Set<number>([1, t, page, page - 1, page + 1].filter((n) => n >= 1 && n <= t));
+    return [...nums].sort((a, b) => a - b);
+  }, [page, totalPages]);
 
   const cardShell = isLight
     ? "border border-slate-200 bg-white shadow-[0_2px_14px_rgba(15,23,42,0.06)] transition-colors hover:border-slate-300 hover:shadow-[0_4px_20px_rgba(15,23,42,0.08)]"
@@ -72,7 +186,7 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
       id="sec-leaderboard"
       className="sec-fx border-t border-sky-400/10 py-12 sm:py-14"
     >
-      <div className="mx-auto max-w-container px-4 sm:px-7">
+      <div className="mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="mb-5 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
           <div>
             <SectionEyebrow>Pollution Index · India</SectionEyebrow>
@@ -83,18 +197,22 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search here......"
-              className="w-full rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-mono text-sm text-bqa-text outline-none focus:border-sky-400/30 sm:w-52"
+              disabled={loading || !!error}
+              className="w-full rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-mono text-sm text-bqa-text outline-none focus:border-sky-400/30 disabled:opacity-50 sm:w-52"
             />
-            <select className="rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 text-sm text-bqa-text">
+            <select
+              disabled
+              className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 text-sm text-bqa-muted opacity-70"
+              title="Coming soon"
+            >
               <option>All India</option>
-              <option>Maharashtra</option>
-              <option>Delhi NCR</option>
-              <option>UP</option>
             </select>
-            <select className="rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 text-sm text-bqa-text">
+            <select
+              disabled
+              className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 text-sm text-bqa-muted opacity-70"
+              title="Sorted by most polluted (API)"
+            >
               <option>Most Polluted</option>
-              <option>Cleanest First</option>
-              <option>Puff Score</option>
             </select>
           </div>
         </div>
@@ -119,67 +237,92 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
               </span>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              {filtered.map((r) => (
-                <div
-                  key={r.city}
-                  className={`rounded-xl border-l-4 ${r.rowBorder} ${cardShell}`}
+            {loading && (
+              <p className={`py-10 text-center font-mono text-sm ${isLight ? "text-slate-500" : "text-bqa-muted"}`}>
+                Loading leaderboard…
+              </p>
+            )}
+
+            {!loading && error && (
+              <div className="py-10 text-center">
+                <p className={`mb-3 text-sm ${isLight ? "text-rose-700" : "text-rose-300"}`}>{error}</p>
+                <button
+                  type="button"
+                  onClick={() => setRetryTick((t) => t + 1)}
+                  className={`rounded-lg px-4 py-2 font-mono text-sm font-semibold ${
+                    isLight
+                      ? "border border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
+                      : "border border-sky-400/20 bg-bqa-slate text-bqa-text hover:bg-bqa-slate2"
+                  }`}
                 >
-                  <div className={ROW_GRID}>
-                    <span
-                      className={`shrink-0 font-mono text-base font-extrabold tabular-nums ${
-                        isLight ? "text-slate-500" : `text-bqa-dim ${r.rankClass}`
-                      }`}
-                    >
-                      {r.rank}
-                    </span>
-                    <span
-                      className={`min-w-0 truncate font-semibold ${
-                        isLight ? "font-bold text-slate-900" : "text-bqa-text"
-                      }`}
-                    >
-                      {r.city}
-                    </span>
-                    <span className={aqiBadgeSurface(r.status, r.aqiClass, isLight)}>{r.aqi}</span>
-                    <div className={`text-xs font-bold leading-none sm:text-sm ${r.statusColor}`}>
-                      {r.status}
-                    </div>
-                    <div className="flex justify-center">
-                      <TrendIcon t={r.trend} />
-                    </div>
-                    <div className="flex min-w-0 items-center gap-2">
-                      <div
-                        className={`h-1.5 min-w-[48px] flex-1 rounded ${
-                          isLight ? "bg-slate-200" : "bg-bqa-slate2"
-                        }`}
-                      >
-                        <div
-                          className="h-full rounded bg-gradient-to-r from-bqa-accent2 to-bqa-accent"
-                          style={{ width: `${r.puffPct}%` }}
-                        />
-                      </div>
+                  Retry
+                </button>
+              </div>
+            )}
+
+            {!loading && !error && (
+              <div className="flex flex-col gap-1.5">
+                {filtered.map((r) => (
+                  <div
+                    key={`${r.rank}-${r.city}`}
+                    className={`rounded-xl border-l-4 ${r.rowBorder} ${cardShell}`}
+                  >
+                    <div className={ROW_GRID}>
                       <span
-                        className={`shrink-0 whitespace-nowrap font-mono text-xs font-bold sm:text-sm ${
-                          isLight ? "text-slate-900" : "text-bqa-text"
+                        className={`shrink-0 font-mono text-base font-extrabold tabular-nums ${
+                          isLight ? "text-slate-500" : `text-bqa-dim ${r.rankClass}`
                         }`}
                       >
-                        {r.puffVal}
-                        <span
-                          className={`text-[0.65rem] font-medium ${isLight ? "text-slate-500" : "text-bqa-muted"}`}
-                        >
-                          {" "}
-                          cigs/day
-                        </span>
+                        {r.rank}
                       </span>
+                      <span
+                        className={`min-w-0 truncate font-semibold ${
+                          isLight ? "font-bold text-slate-900" : "text-bqa-text"
+                        }`}
+                      >
+                        {r.city}
+                      </span>
+                      <span className={aqiBadgeSurface(r.status, r.aqiClass, isLight)}>{r.aqi}</span>
+                      <div className={`text-xs font-bold leading-none sm:text-sm ${r.statusColor}`}>
+                        {r.status}
+                      </div>
+                      <div className="flex justify-center">
+                        <TrendIcon t={r.trend} />
+                      </div>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <div
+                          className={`h-1.5 min-w-[48px] flex-1 rounded ${
+                            isLight ? "bg-slate-200" : "bg-bqa-slate2"
+                          }`}
+                        >
+                          <div
+                            className="h-full rounded bg-gradient-to-r from-bqa-accent2 to-bqa-accent"
+                            style={{ width: `${r.puffPct}%` }}
+                          />
+                        </div>
+                        <span
+                          className={`shrink-0 whitespace-nowrap font-mono text-xs font-bold sm:text-sm ${
+                            isLight ? "text-slate-900" : "text-bqa-text"
+                          }`}
+                        >
+                          {r.puffVal}
+                          <span
+                            className={`text-[0.65rem] font-medium ${isLight ? "text-slate-500" : "text-bqa-muted"}`}
+                          >
+                            {" "}
+                            cigs/day
+                          </span>
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {filtered.length > 0 && (
+        {!loading && !error && filtered.length > 0 && (
           <button
             type="button"
             className={`mt-3 w-full rounded-lg px-3 py-2 font-outfit text-[0.72rem] font-semibold transition sm:mt-4 md:hidden ${
@@ -192,34 +335,73 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
           </button>
         )}
 
-        {filtered.length === 0 && (
+        {!loading && !error && filtered.length === 0 && rows.length > 0 && (
           <p className="py-8 text-center text-bqa-muted">No cities match.</p>
         )}
 
-        <div className="mt-4 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
-          <span
-            className={`font-mono text-[0.8rem] ${isLight ? "text-slate-500" : "text-bqa-dim"}`}
-          >
-            Showing 1–{filtered.length} of {ROWS.length} cities
-          </span>
-          <div className="flex flex-wrap items-center gap-1.5">
-            {["‹", "1", "2", "3", "···", "17", "›"].map((p, i) => (
+        {!loading && !error && (
+          <div className="mt-4 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
+            <span
+              className={`font-mono text-[0.8rem] ${isLight ? "text-slate-500" : "text-bqa-dim"}`}
+            >
+              {q.trim()
+                ? `Showing ${filtered.length} match${filtered.length === 1 ? "" : "es"} on this page (${rangeStart}–${rangeEnd} of ${total})`
+                : `Showing ${rangeStart}–${rangeEnd} of ${total} cities`}
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5">
               <button
-                key={`${p}-${i}`}
                 type="button"
-                className={`flex h-[34px] min-w-[34px] items-center justify-center rounded-lg border font-mono text-sm font-semibold transition-colors ${
-                  p === "1"
-                    ? "border-bqa-accent bg-bqa-accent text-white hover:brightness-110"
-                    : isLight
-                      ? "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                      : "border-sky-400/10 bg-bqa-slate text-bqa-muted hover:bg-bqa-slate2 hover:text-bqa-text"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className={`flex h-[34px] min-w-[34px] items-center justify-center rounded-lg border font-mono text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                  isLight
+                    ? "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    : "border-sky-400/10 bg-bqa-slate text-bqa-muted hover:bg-bqa-slate2 hover:text-bqa-text"
                 }`}
               >
-                {p}
+                ‹
               </button>
-            ))}
+              {pageButtonNums.map((pNum, idx) => {
+                const prevNum = pageButtonNums[idx - 1];
+                const showGap = idx > 0 && prevNum !== undefined && pNum - prevNum > 1;
+                return (
+                  <span key={pNum} className="flex items-center gap-1.5">
+                    {showGap && (
+                      <span className={`px-0.5 font-mono text-sm ${isLight ? "text-slate-400" : "text-bqa-dim"}`}>
+                        ···
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setPage(pNum)}
+                      className={`flex h-[34px] min-w-[34px] items-center justify-center rounded-lg border font-mono text-sm font-semibold transition-colors ${
+                        pNum === page
+                          ? "border-bqa-accent bg-bqa-accent text-white hover:brightness-110"
+                          : isLight
+                            ? "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            : "border-sky-400/10 bg-bqa-slate text-bqa-muted hover:bg-bqa-slate2 hover:text-bqa-text"
+                      }`}
+                    >
+                      {pNum}
+                    </button>
+                  </span>
+                );
+              })}
+              <button
+                type="button"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className={`flex h-[34px] min-w-[34px] items-center justify-center rounded-lg border font-mono text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                  isLight
+                    ? "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    : "border-sky-400/10 bg-bqa-slate text-bqa-muted hover:bg-bqa-slate2 hover:text-bqa-text"
+                }`}
+              >
+                ›
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

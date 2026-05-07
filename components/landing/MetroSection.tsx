@@ -104,7 +104,7 @@ export function MetroSection() {
         }}
         aria-hidden
       />
-      <div className="relative z-[2] mx-auto max-w-container px-4 sm:px-7">
+      <div className="relative z-[2] mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         <SectionEyebrow>Network Status</SectionEyebrow>
         <SectionTitle className="mb-2">
           Metro City Signal Feed{" "}

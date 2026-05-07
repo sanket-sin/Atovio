@@ -45,7 +45,8 @@ const config: Config = {
         numeric: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       maxWidth: {
-        container: "1200px",
+        /** Full-bleed layout: section wrappers use max-w-container + horizontal padding */
+        container: "100%",
       },
       keyframes: {
         ticker: {
@@ -70,7 +71,7 @@ const config: Config = {
         },
       },
       animation: {
-        ticker: "ticker 28s linear infinite",
+        ticker: "ticker 80s linear infinite",
         "sensor-pulse": "sensor-pulse var(--dur, 3s) ease-in-out infinite var(--delay, 0s)",
         "ring-expand": "ring-expand var(--dur, 4s) ease-out infinite var(--delay, 0s)",
         blink: "blink 1.5s ease-in-out infinite",

@@ -157,7 +157,7 @@ export function PollutantsSection() {
       id="sec-pollutants"
       className="sec-fx border-t border-sky-400/10 py-12 sm:py-14"
     >
-      <div className="mx-auto max-w-container px-4 sm:px-7">
+      <div className="mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         <SectionEyebrow>Signal Breakdown</SectionEyebrow>
         <SectionTitle>Raw Pollutant Readings</SectionTitle>
 

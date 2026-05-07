@@ -133,7 +133,7 @@ export function HealthGuidanceSection({ isLight = false }: { isLight?: boolean }
       id="sec-health"
       className="sec-fx border-t border-sky-400/10 py-12 sm:py-14"
     >
-      <div className="mx-auto max-w-container px-4 sm:px-7">
+      <div className="mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
           <h2 className="shrink-0 font-outfit text-[1.65rem] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:text-[2rem]">
             Adaptive Health Guidance

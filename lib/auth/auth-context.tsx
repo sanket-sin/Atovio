@@ -6,8 +6,12 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { User, login, register, logout as authLogout, getCurrentUser } from "./auth-service";
-import { isAuthenticated } from "./token-manager";
+import { isAuthenticated, clearAuthToken } from "./token-manager";
+
+/** Only these routes need a `/api/auth/me` call on load (not the marketing homepage). */
+const ROUTES_WITH_SESSION_BOOTSTRAP = ["/dashboard"];
 
 interface AuthContextType {
   user: User | null;
@@ -24,23 +28,40 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
 
   useEffect(() => {
-    initializeAuth();
-  }, []);
+    const needsSessionBootstrap = ROUTES_WITH_SESSION_BOOTSTRAP.some((p) =>
+      pathname?.startsWith(p)
+    );
 
-  const initializeAuth = async () => {
-    try {
-      if (isAuthenticated()) {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
-      }
-    } catch (error) {
-      console.error("Error initializing auth:", error);
-    } finally {
+    if (!needsSessionBootstrap) {
       setLoading(false);
+      return;
     }
-  };
+
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      try {
+        if (isAuthenticated()) {
+          try {
+            const currentUser = await getCurrentUser();
+            if (!cancelled) setUser(currentUser);
+          } catch {
+            if (!cancelled) clearAuthToken();
+          }
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   const handleLogin = async (email: string, password: string) => {
     try {

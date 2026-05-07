@@ -357,7 +357,7 @@ export function ChartHistorySection() {
 
   return (
     <section id="sec-chart" className="sec-fx border-t border-sky-400/10 py-12 sm:py-14">
-      <div className="mx-auto max-w-container px-4 sm:px-7">
+      <div className="mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         <SectionTitle className="mb-6 text-left">Air Quality History</SectionTitle>
 
         {/* Main trend card — layout: header row → controls row → chart → 2×3 legend */}

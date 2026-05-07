@@ -4,6 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
+import {
+  fetchCityAqiBySlug,
+  normalizeBeyondAqiSlug,
+  type HeroCitySnapshot,
+} from "@/lib/api/aqi-city";
 import { searchAqi, type AqiSearchResult } from "@/lib/api/aqi-search";
 import { LiveAQITicker } from "./LiveAQITicker";
 
@@ -40,23 +45,51 @@ function AqiChip({ aqi }: { aqi?: number }) {
   );
 }
 
-export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean; onToggleTheme: () => void }) {
+export function LandingSiteHeader({
+  isLight,
+  onToggleTheme,
+  onCityDataLoaded,
+}: {
+  isLight: boolean;
+  onToggleTheme: () => void;
+  onCityDataLoaded?: (snapshot: HeroCitySnapshot) => void;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<AqiSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [cityFetchLoading, setCityFetchLoading] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const debouncedQuery = useDebounce(searchQuery, 500);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  /** After picking a dropdown row we set the input to the row label; skip `/api/aqi/search` for that fill until the user edits the query (otherwise every selection retriggers search instead of only GET `/api/aqi/India/…`). */
+  const frozenSearchLabelRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!debouncedQuery.trim()) {
+      frozenSearchLabelRef.current = null;
       setResults([]);
       setDropdownOpen(false);
       return;
     }
+
+    if (
+      frozenSearchLabelRef.current !== null &&
+      debouncedQuery === frozenSearchLabelRef.current
+    ) {
+      setLoading(false);
+      return;
+    }
+
+    if (
+      frozenSearchLabelRef.current !== null &&
+      debouncedQuery !== frozenSearchLabelRef.current
+    ) {
+      frozenSearchLabelRef.current = null;
+    }
+
     let cancelled = false;
     setLoading(true);
     searchAqi(debouncedQuery)
@@ -66,7 +99,10 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
           setDropdownOpen(true);
         }
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        if (process.env.NODE_ENV === "development") {
+          console.warn("[BeyondAQI search] request failed:", err);
+        }
         if (!cancelled) setResults([]);
       })
       .finally(() => {
@@ -92,13 +128,61 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  function handleResultClick(result: AqiSearchResult) {
-    setSearchQuery(result.city ?? result.name);
+  function citySlugFromResult(result: AqiSearchResult): string | undefined {
+    const fromSlug = result.slug?.trim();
+    if (fromSlug) return fromSlug;
+    const u = result.url?.trim();
+    if (u && !/^https?:\/\//i.test(u) && u.includes("/")) return u;
+    return undefined;
+  }
+
+  async function handleResultClick(result: AqiSearchResult) {
+    const label = result.city ?? result.name;
+    frozenSearchLabelRef.current = label;
+    setSearchQuery(label);
     setDropdownOpen(false);
+    const slug = citySlugFromResult(result);
+    const type = result.type?.toLowerCase() ?? "";
+    const normalizedSlug = slug ? normalizeBeyondAqiSlug(slug) : "";
+    const segments = normalizedSlug.split("/").filter(Boolean).length;
+    /** Same request as curl GET …/api/aqi/India/Rajasthan/Jaipur — search `slug` → Country/State/City; skip countries. */
+    const shouldFetchCityAqi =
+      !!normalizedSlug &&
+      segments >= 3 &&
+      type === "city";
+
+    if (!shouldFetchCityAqi) {
+      if (process.env.NODE_ENV === "development") {
+        if (!slug)
+          console.debug("[BeyondAQI] skipped city AQI — no slug/url path:", result);
+        else if (type !== "city")
+          console.debug("[BeyondAQI] skipped city AQI — not a city row (type:", type + "):", result.name);
+        else if (segments < 3)
+          console.debug(
+            "[BeyondAQI] skipped city AQI — need Country/State/City (3 path segments); got",
+            segments,
+            "after normalize:",
+            normalizedSlug,
+            result
+          );
+      }
+      return;
+    }
+    setCityFetchLoading(true);
+    try {
+      const snapshot = await fetchCityAqiBySlug(normalizedSlug);
+      onCityDataLoaded?.(snapshot);
+    } catch (err: unknown) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn("[BeyondAQI] city AQI GET failed (same as curl /api/aqi/India/…/…):", err);
+      }
+    } finally {
+      setCityFetchLoading(false);
+    }
   }
 
   const navLinkClass = `text-sm font-medium transition-colors ${isLight ? "text-gray-800 hover:text-gray-600" : "text-white hover:text-white/90"}`;
-  const rowPad = "px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12";
+  const rowPad = "px-4 sm:px-6 lg:px-8 xl:px-10";
   const searchInputClass = isLight
     ? "h-10 w-full rounded-[6px] border border-gray-300 bg-gray-100 py-2 pl-10 pr-4 text-[0.78rem] text-gray-800 outline-none transition-colors placeholder:text-gray-400 focus:border-bqa-accent focus:bg-white sm:pl-11 sm:pr-4"
     : "h-10 w-full rounded-[6px] border border-white/[0.1] bg-[#0a101a] py-2 pl-10 pr-4 text-[0.78rem] text-slate-200 outline-none transition-colors placeholder:text-slate-400 focus:border-white/[0.18] focus:bg-[#0d1420] sm:pl-11 sm:pr-4";
@@ -108,12 +192,12 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
     "pointer-events-none absolute left-3.5 top-1/2 flex h-[18px] w-[18px] -translate-y-1/2 items-center justify-center sm:left-4";
 
   const SearchDropdown = () =>
-    dropdownOpen && (results.length > 0 || loading) ? (
+    dropdownOpen && (results.length > 0 || loading || cityFetchLoading) ? (
       <div
         ref={dropdownRef}
         className={`search-dropdown absolute left-0 top-full z-[300] mt-1.5 w-full overflow-hidden rounded-[10px] border shadow-[0_16px_48px_rgba(0,0,0,0.6)] ${isLight ? "border-gray-200 bg-white" : "border-white/[0.08] bg-[#0a101a]"}`}
       >
-        {loading && results.length === 0 ? (
+        {(loading || cityFetchLoading) && results.length === 0 ? (
           <div className={`flex items-center justify-center gap-2 px-4 py-3 text-[0.78rem] ${isLight ? "text-gray-500" : "text-slate-400"}`}>
             <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/20 border-t-bqa-accent" />
             Searching…
@@ -121,7 +205,7 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
         ) : (
           <ul>
             {results.map((r, i) => (
-              <li key={r.url ?? i}>
+              <li key={r.slug ?? r.url ?? `${r.name}-${i}`}>
                 <button
                   type="button"
                   onClick={() => handleResultClick(r)}
@@ -204,7 +288,7 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
 
               <div className="relative min-w-0 flex-1 md:ml-[3rem] md:w-[min(20.5rem,40vw)] md:flex-none md:shrink-0 lg:w-[24.5rem] xl:w-[26.5rem]">
                 <span className={searchIconWrapClass} aria-hidden>
-                  {loading ? (
+                  {loading || cityFetchLoading ? (
                     <span className="h-[15px] w-[15px] animate-spin rounded-full border-2 border-white/20 border-t-bqa-accent" />
                   ) : (
                     <Image
@@ -223,7 +307,16 @@ export function LandingSiteHeader({ isLight, onToggleTheme }: { isLight: boolean
                   ref={inputRef}
                   type="search"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (
+                      frozenSearchLabelRef.current !== null &&
+                      v !== frozenSearchLabelRef.current
+                    ) {
+                      frozenSearchLabelRef.current = null;
+                    }
+                    setSearchQuery(v);
+                  }}
                   onFocus={() => results.length > 0 && setDropdownOpen(true)}
                   onKeyDown={(e) => e.key === "Escape" && setDropdownOpen(false)}
                   placeholder={searchPlaceholder}

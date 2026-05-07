@@ -3,7 +3,21 @@
  * Registers the service worker for PWA functionality
  */
 
+function isLoopbackHost(hostname: string): boolean {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]"
+  );
+}
+
 export function registerServiceWorker(): void {
+  if (process.env.NODE_ENV !== "production") {
+    return;
+  }
+  if (typeof window !== "undefined" && isLoopbackHost(window.location.hostname)) {
+    return;
+  }
   if (typeof window !== "undefined" && "serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
@@ -45,9 +59,12 @@ export function registerServiceWorker(): void {
 }
 
 export function unregisterServiceWorker(): void {
-  if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-    navigator.serviceWorker.ready.then((registration) => {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+    return;
+  }
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((registration) => {
       registration.unregister();
     });
-  }
+  });
 }

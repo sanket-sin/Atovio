@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
 import { DM_Serif_Display, JetBrains_Mono, Outfit, Sora } from "next/font/google";
 import { AirQualityToolkitSection } from "./AirQualityToolkitSection";
 import { ChartHistorySection } from "./ChartHistorySection";
@@ -49,6 +50,7 @@ function scrollToRealtimeMap() {
 
 export function LandingExperience() {
   const [isLight, setIsLight] = useState(false);
+  const [heroCity, setHeroCity] = useState<HeroCitySnapshot | null>(null);
 
   return (
     <div
@@ -61,10 +63,18 @@ export function LandingExperience() {
         aria-hidden
       />
 
-      <LandingSiteHeader isLight={isLight} onToggleTheme={() => setIsLight((p) => !p)} />
+      <LandingSiteHeader
+        isLight={isLight}
+        onToggleTheme={() => setIsLight((p) => !p)}
+        onCityDataLoaded={setHeroCity}
+      />
 
       <main className="pt-0">
-        <LandingHero isLight={isLight} onScrollToMap={scrollToRealtimeMap} />
+        <LandingHero
+          isLight={isLight}
+          onScrollToMap={scrollToRealtimeMap}
+          citySnapshot={heroCity}
+        />
         <AirQualityToolkitSection isLight={isLight} />
         <ChartHistorySection />
         <RealtimeAqiMapSection isLight={isLight} />

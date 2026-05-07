@@ -6,7 +6,7 @@ export function SubscribeSection() {
       id="sec-subscribe"
       className="sec-fx border-t border-sky-400/10 py-12 sm:py-[72px]"
     >
-      <div className="mx-auto max-w-container px-4 sm:px-7">
+      <div className="mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="grid grid-cols-1 items-center gap-10 rounded-[20px] border border-sky-400/10 bg-bqa-navy2/80 p-8 backdrop-blur-md sm:gap-12 sm:p-12 lg:grid-cols-[1.2fr_1fr]">
           <div>
             <SectionEyebrow className="sr-only">Newsletter</SectionEyebrow>
