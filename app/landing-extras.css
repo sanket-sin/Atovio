@@ -108,6 +108,11 @@
   background: radial-gradient(circle at 50% 0%, rgba(61, 158, 255, 0.06) 0%, transparent 50%);
 }
 
+/* Smoke plumes from the “Puff Score” cigarette extend upward; don’t clip them. */
+.landing-theme #sec-leaderboard.sec-fx {
+  overflow: visible;
+}
+
 .landing-theme #sec-health {
   background: radial-gradient(circle at 50% 50%, rgba(255, 77, 109, 0.04) 0%, transparent 50%);
 }

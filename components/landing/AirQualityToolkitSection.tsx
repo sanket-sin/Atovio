@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useId, useState } from "react";
 import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
+import { AnimatedCigarette } from "./AnimatedCigarette";
 import {
   fetchAqiHistorical24Hour,
   formatClockHourRange12h,
@@ -579,7 +580,7 @@ export function AirQualityToolkitSection({
 
           <details className={`${cardShell} overflow-hidden open:shadow-[0_8px_30px_rgba(0,0,0,0.25)]`}>
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 [&::-webkit-details-marker]:hidden">
-              <div className="flex min-w-0 items-center gap-3">
+              <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-purple-500/40 bg-[#0c1424]">
                   <Image
                     src="/images/cigaratte-icon.svg"
@@ -590,11 +591,14 @@ export function AirQualityToolkitSection({
                     unoptimized
                   />
                 </span>
-                <span className="truncate font-outfit text-[0.95rem] font-bold text-white">
-                  Puff Score Lifetime Calculator
-                </span>
+                <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+                  <span className="min-w-0 shrink truncate font-outfit text-[0.95rem] font-bold text-white">
+                    Puff Score Lifetime Calculator
+                  </span>
+                  <AnimatedCigarette compact isLight={isLight} className="ml-0 shrink-0" />
+                </div>
               </div>
-              <ChevronDown className="toolkit-details-chevron" />
+              <ChevronDown className="toolkit-details-chevron shrink-0" />
             </summary>
             <div className="border-t border-sky-400/10 px-5 pb-5 pt-4">
               <PuffForm age={age} setAge={setAge} years={years} setYears={setYears} />
@@ -635,8 +639,8 @@ export function AirQualityToolkitSection({
             <ForecastChartBlock />
           </div>
 
-          <div className={`${cardShell} p-6`}>
-            <div className="mb-5 flex items-center gap-3">
+          <div className={`${cardShell} relative overflow-visible p-6`}>
+            <div className="mb-5 flex items-center gap-2 sm:gap-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-500/15">
                 <Image
                   src="/images/cigaratte-icon.svg"
@@ -647,7 +651,17 @@ export function AirQualityToolkitSection({
                   unoptimized
                 />
               </span>
-              <h3 className="font-outfit text-[1rem] font-bold text-white">Puff Score Lifetime Calculator</h3>
+              <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+                <h3 className="min-w-0 shrink truncate font-outfit text-[1rem] font-bold text-white">
+                  Puff Score Lifetime Calculator
+                </h3>
+                <AnimatedCigarette
+                  compact
+                  isLight={isLight}
+                  className="ml-0 shrink-0"
+                  title="Approximate cigarettes inhaled per day (lifetime exposure model)"
+                />
+              </div>
             </div>
             <PuffForm age={age} setAge={setAge} years={years} setYears={setYears} />
           </div>

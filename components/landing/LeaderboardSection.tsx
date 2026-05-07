@@ -9,6 +9,7 @@ import {
   aqiVariantToLightBadgeShell,
   getAqiLevel,
 } from "@/lib/air-quality/aqi-levels";
+import { AnimatedCigarette } from "./AnimatedCigarette";
 import { SectionEyebrow } from "./SectionEyebrow";
 import { SectionTitle } from "./SectionTitle";
 
@@ -152,18 +153,18 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search here......"
               disabled={loading || !!error}
-              className="w-full rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-mono text-sm text-bqa-text outline-none focus:border-sky-400/30 disabled:opacity-50 sm:w-52"
+              className="w-full rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-outfit text-sm text-bqa-text outline-none focus:border-sky-400/30 disabled:opacity-50 sm:w-52"
             />
             <select
               disabled
-              className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 text-sm text-bqa-muted opacity-70"
+              className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-outfit text-sm text-bqa-muted opacity-70"
               title="Coming soon"
             >
               <option>All India</option>
             </select>
             <select
               disabled
-              className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 text-sm text-bqa-muted opacity-70"
+              className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-outfit text-sm text-bqa-muted opacity-70"
               title="Sorted by most polluted (API)"
             >
               <option>Most Polluted</option>
@@ -174,7 +175,7 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
         <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:overflow-visible sm:px-0">
           <div className="min-w-[680px] sm:min-w-0">
             <div
-              className={`${ROW_GRID} pb-2.5 text-[0.62rem] font-mono uppercase tracking-widest ${
+              className={`${ROW_GRID} pb-2.5 font-outfit text-[0.78rem] font-semibold uppercase tracking-widest sm:text-[0.85rem] ${
                 isLight ? "text-slate-400" : "text-bqa-dim"
               }`}
             >
@@ -183,11 +184,9 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
               <span className="text-center">AQI</span>
               <span>Status</span>
               <span className="text-center">Trend</span>
-              <span>
-                Puff Score{" "}
-                <span className="cursor-help text-bqa-accent" title="Approximate cigarettes inhaled per day">
-                  🚬
-                </span>
+              <span className="inline-flex flex-wrap items-center gap-x-1">
+                Puff Score
+                <AnimatedCigarette isLight={isLight} className="cursor-help text-bqa-accent" />
               </span>
             </div>
 
