@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Chart } from "chart.js";
 import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
 import {
@@ -134,6 +134,18 @@ function radarPolygonFromSnapshot(snapshot: HeroCitySnapshot | null): {
   return { points, vertices };
 }
 
+function radarRawValues(snapshot: HeroCitySnapshot | null): Array<number | null> {
+  const pol = snapshot?.pollutants;
+  return [
+    pol?.pm2_5 ?? snapshot?.pm25 ?? null,
+    pol?.pm10 ?? snapshot?.pm10 ?? null,
+    pol?.o3 ?? null,
+    pol?.co ?? null,
+    pol?.so2 ?? null,
+    pol?.no2 ?? null,
+  ];
+}
+
 const RADAR_LABELS: {
   x: number;
   y: number;
@@ -150,11 +162,34 @@ const RADAR_LABELS: {
 
 function PollutantRadarBody({ citySnapshot }: { citySnapshot: HeroCitySnapshot | null }) {
   const { points, vertices } = radarPolygonFromSnapshot(citySnapshot);
+  const values = radarRawValues(citySnapshot);
   const hasLive = Boolean(citySnapshot);
+  const tooltipId = useId().replace(/:/g, "");
+  const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
+  const tooltipAxis = hoveredAxis ?? 0;
+  const tooltipPoint = vertices[tooltipAxis];
+  const tooltipValue = values[tooltipAxis];
+  const tooltipText = tooltipValue == null ? "No live value" : `${tooltipValue.toFixed(1)}`;
+  const tooltipX = Math.max(64, Math.min(256, tooltipPoint.x));
+  const tooltipY = Math.max(28, tooltipPoint.y - 20);
 
   return (
     <>
       <svg viewBox="0 0 320 285" className="mx-auto w-full max-w-[32rem]" aria-label="Pollutant mix radar chart">
+        <defs>
+          <linearGradient id={`radar-tooltip-bg-${tooltipId}`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#12274a" stopOpacity="0.97" />
+            <stop offset="100%" stopColor="#09142b" stopOpacity="0.97" />
+          </linearGradient>
+          <linearGradient id={`radar-tooltip-stroke-${tooltipId}`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#40a9ff" stopOpacity="0.72" />
+            <stop offset="100%" stopColor="#b07bff" stopOpacity="0.56" />
+          </linearGradient>
+          <filter id={`radar-tooltip-shadow-${tooltipId}`} x="-40%" y="-80%" width="180%" height="240%">
+            <feDropShadow dx="0" dy="6" stdDeviation="5" floodColor="#000000" floodOpacity="0.38" />
+          </filter>
+        </defs>
+
         {[
           "160,70 237.9,115 237.9,205 160,250 82.1,205 82.1,115",
           "160,92.5 218.5,126.3 218.5,193.8 160,227.5 101.5,193.8 101.5,126.3",
@@ -179,8 +214,83 @@ function PollutantRadarBody({ citySnapshot }: { citySnapshot: HeroCitySnapshot |
         />
 
         {vertices.map((pt, i) => (
-          <circle key={i} cx={pt.x.toFixed(1)} cy={pt.y.toFixed(1)} r="3.5" fill="#3d9eff" />
+          <g key={RADAR_AXIS_ORDER[i]}>
+            <circle
+              cx={pt.x.toFixed(1)}
+              cy={pt.y.toFixed(1)}
+              r="9"
+              fill="transparent"
+              role="button"
+              tabIndex={0}
+              aria-label={`${RADAR_LABELS[i].text} value`}
+              onMouseEnter={() => setHoveredAxis(i)}
+              onMouseLeave={() => setHoveredAxis((prev) => (prev === i ? null : prev))}
+              onFocus={() => setHoveredAxis(i)}
+              onBlur={() => setHoveredAxis((prev) => (prev === i ? null : prev))}
+            />
+            <circle
+              cx={pt.x.toFixed(1)}
+              cy={pt.y.toFixed(1)}
+              r={hoveredAxis === i ? "4.7" : "3.5"}
+              fill="#3d9eff"
+              className="transition-all"
+              pointerEvents="none"
+            />
+          </g>
         ))}
+
+        {hoveredAxis !== null && (
+          <g pointerEvents="none">
+            <path
+              d={`M ${tooltipX - 6} ${tooltipY + 8} L ${tooltipX + 6} ${tooltipY + 8} L ${tooltipX} ${tooltipY + 14} Z`}
+              fill={`url(#radar-tooltip-bg-${tooltipId})`}
+              stroke={`url(#radar-tooltip-stroke-${tooltipId})`}
+              strokeWidth="0.55"
+              opacity="0.95"
+            />
+            <rect
+              x={tooltipX - 42}
+              y={tooltipY - 18}
+              width="84"
+              height="28"
+              rx="7"
+              fill={`url(#radar-tooltip-bg-${tooltipId})`}
+              stroke={`url(#radar-tooltip-stroke-${tooltipId})`}
+              strokeWidth="0.8"
+              filter={`url(#radar-tooltip-shadow-${tooltipId})`}
+            />
+            <rect
+              x={tooltipX - 41}
+              y={tooltipY - 17}
+              width="82"
+              height="5"
+              rx="5"
+              fill="rgba(255,255,255,0.07)"
+            />
+            <text
+              x={tooltipX}
+              y={tooltipY - 8}
+              textAnchor="middle"
+              fill="#9ec3ea"
+              fontSize="7.6"
+              letterSpacing="0.2"
+              style={{ fontFamily: "var(--font-outfit), system-ui" }}
+            >
+              {RADAR_LABELS[tooltipAxis].text}
+            </text>
+            <text
+              x={tooltipX}
+              y={tooltipY + 2}
+              textAnchor="middle"
+              fill="#ffffff"
+              fontSize="9.8"
+              fontWeight="700"
+              style={{ fontFamily: "var(--font-outfit), system-ui" }}
+            >
+              {tooltipText}
+            </text>
+          </g>
+        )}
 
         {RADAR_LABELS.map((lab) => (
           <text
