@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type { MostPollutedCityRow } from "@/lib/api/aqi-most-polluted";
 import { fetchMostPollutedLeaderboard } from "@/lib/api/aqi-most-polluted";
+import type { AqiLevelVariant } from "@/lib/air-quality/aqi-levels";
+import {
+  aqiVariantToLeaderboardRowChrome,
+  aqiVariantToLightBadgeShell,
+  getAqiLevel,
+} from "@/lib/air-quality/aqi-levels";
 import { SectionEyebrow } from "./SectionEyebrow";
 import { SectionTitle } from "./SectionTitle";
 
@@ -18,6 +24,7 @@ type Row = {
   puffPct: number;
   puffVal: string;
   rowBorder: string;
+  levelVariant: AqiLevelVariant;
 };
 
 /** Puff bar scale: scores from API are typically under ~5 cigs/day for per-city rows. */
@@ -31,54 +38,10 @@ function rankLabel(rank: number): { rank: string; rankClass: string } {
   return { rank: label, rankClass: "" };
 }
 
-function statusToRowStyles(statusRaw: string): Pick<Row, "aqiClass" | "statusColor" | "rowBorder"> {
-  const k = statusRaw.trim().toLowerCase();
-  if (k.includes("hazard"))
-    return {
-      aqiClass: "border-fuchsia-400/40 bg-fuchsia-400/10 text-bqa-hazardous",
-      statusColor: "text-bqa-hazardous",
-      rowBorder: "border-l-fuchsia-500",
-    };
-  if (k.includes("severe"))
-    return {
-      aqiClass: "border-purple-400/40 bg-purple-400/10 text-bqa-severe",
-      statusColor: "text-bqa-severe",
-      rowBorder: "border-l-purple-500",
-    };
-  if (k.includes("unhealthy"))
-    return {
-      aqiClass: "border-rose-400/40 bg-rose-400/10 text-bqa-unhealthy",
-      statusColor: "text-bqa-unhealthy",
-      rowBorder: "border-l-rose-500",
-    };
-  if (k.includes("poor"))
-    return {
-      aqiClass: "border-orange-400/40 bg-orange-400/10 text-bqa-poor",
-      statusColor: "text-bqa-poor",
-      rowBorder: "border-l-orange-500",
-    };
-  if (k.includes("moderate") || k.includes("satisfactory"))
-    return {
-      aqiClass: "border-amber-400/40 bg-amber-400/10 text-bqa-moderate",
-      statusColor: "text-bqa-moderate",
-      rowBorder: "border-l-amber-500",
-    };
-  if (k.includes("good"))
-    return {
-      aqiClass: "border-emerald-400/40 bg-emerald-400/10 text-bqa-good",
-      statusColor: "text-bqa-good",
-      rowBorder: "border-l-emerald-500",
-    };
-  return {
-    aqiClass: "border-sky-400/40 bg-sky-400/10 text-bqa-muted",
-    statusColor: "text-bqa-text",
-    rowBorder: "border-l-sky-500",
-  };
-}
-
 function apiCityToRow(c: MostPollutedCityRow): Row {
   const rl = rankLabel(c.rank);
-  const styles = statusToRowStyles(c.aqi_status);
+  const level = getAqiLevel(c.aqi);
+  const styles = aqiVariantToLeaderboardRowChrome(level.variant);
   const puffPct = Math.min(
     100,
     Math.round((Math.min(c.puff_score, PUFF_SCORE_BAR_CAP) / PUFF_SCORE_BAR_CAP) * 100)
@@ -86,9 +49,10 @@ function apiCityToRow(c: MostPollutedCityRow): Row {
   return {
     ...rl,
     ...styles,
+    levelVariant: level.variant,
     city: c.city,
     aqi: String(Math.round(c.aqi)),
-    status: c.aqi_status,
+    status: level.labelUppercase,
     trend: "flat",
     puffPct,
     puffVal: c.puff_score.toFixed(1),
@@ -103,20 +67,10 @@ function TrendIcon({ t }: { t: Row["trend"] }) {
   return <span className="text-lg font-extrabold text-bqa-dim">→</span>;
 }
 
-/** Light-mode AQI pill: pale tint + strong border/text (screenshot 2 reference). */
-function aqiBadgeSurface(status: string, darkClass: string, isLight: boolean): string {
+function aqiBadgeSurface(variant: AqiLevelVariant, darkClass: string, isLight: boolean): string {
   const darkFull = `inline-flex rounded-lg border px-3.5 py-1 font-mono text-[0.95rem] font-extrabold ${darkClass}`;
   if (!isLight) return darkFull;
-  const shell = "inline-flex rounded-lg border px-3.5 py-1 font-mono text-[0.95rem] font-extrabold";
-  const k = status.trim().toLowerCase();
-  if (k.includes("hazard")) return `${shell} border-fuchsia-500 bg-fuchsia-50 text-fuchsia-900`;
-  if (k.includes("severe")) return `${shell} border-purple-400 bg-purple-50 text-purple-800`;
-  if (k.includes("unhealthy")) return `${shell} border-rose-500 bg-rose-50 text-rose-700`;
-  if (k.includes("poor")) return `${shell} border-orange-500 bg-orange-50 text-orange-800`;
-  if (k.includes("moderate") || k.includes("satisfactory"))
-    return `${shell} border-amber-500 bg-amber-50 text-amber-900`;
-  if (k.includes("good")) return `${shell} border-emerald-500 bg-emerald-50 text-emerald-900`;
-  return darkFull;
+  return aqiVariantToLightBadgeShell(variant);
 }
 
 /** One shared template: Rank | City | AQI | Status | Trend | Puff (bar + value stay in the last cell — no md:contents split). */
@@ -282,7 +236,7 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
                       >
                         {r.city}
                       </span>
-                      <span className={aqiBadgeSurface(r.status, r.aqiClass, isLight)}>{r.aqi}</span>
+                      <span className={aqiBadgeSurface(r.levelVariant, r.aqiClass, isLight)}>{r.aqi}</span>
                       <div className={`text-xs font-bold leading-none sm:text-sm ${r.statusColor}`}>
                         {r.status}
                       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { fetchMostPollutedCities } from "@/lib/api/aqi-most-polluted";
+import { aqiScaleToTextClass, getAqiLevel } from "@/lib/air-quality/aqi-levels";
 
 /**
  * Remount key so the CSS marquee restarts after layout-affecting changes.
@@ -27,33 +28,20 @@ function useMarqueeRemountKey(itemCount: number, source: "live" | "fallback") {
 
 /** Fallback when the API is unavailable (matches prior static ticker styling). */
 const FALLBACK_CITIES: { rank: number; city: string; aqi: number; color: string }[] = [
-  { rank: 1, city: "Delhi", aqi: 160, color: "text-red-500" },
-  { rank: 2, city: "Mumbai", aqi: 160, color: "text-red-500" },
-  { rank: 3, city: "Chennai", aqi: 94, color: "text-amber-300" },
-  { rank: 4, city: "Bengaluru", aqi: 116, color: "text-orange-400" },
-  { rank: 5, city: "Hyderabad", aqi: 88, color: "text-amber-300" },
-  { rank: 6, city: "Kolkata", aqi: 74, color: "text-amber-300" },
-  { rank: 7, city: "Pune", aqi: 102, color: "text-orange-400" },
-  { rank: 8, city: "Gurugram", aqi: 118, color: "text-orange-400" },
-  { rank: 9, city: "Ahmedabad", aqi: 143, color: "text-orange-600" },
+  { rank: 1, city: "Delhi", aqi: 160, color: getAqiLevel(160).textClass },
+  { rank: 2, city: "Mumbai", aqi: 160, color: getAqiLevel(160).textClass },
+  { rank: 3, city: "Chennai", aqi: 94, color: getAqiLevel(94).textClass },
+  { rank: 4, city: "Bengaluru", aqi: 116, color: getAqiLevel(116).textClass },
+  { rank: 5, city: "Hyderabad", aqi: 88, color: getAqiLevel(88).textClass },
+  { rank: 6, city: "Kolkata", aqi: 74, color: getAqiLevel(74).textClass },
+  { rank: 7, city: "Pune", aqi: 102, color: getAqiLevel(102).textClass },
+  { rank: 8, city: "Gurugram", aqi: 118, color: getAqiLevel(118).textClass },
+  { rank: 9, city: "Ahmedabad", aqi: 143, color: getAqiLevel(143).textClass },
 ];
 
 /** Maps API `aqi_scale` (1–6) to readable ticker colors (aligned with `AqiBadge` bands). */
 function aqiScaleToTickerColor(scale: number): string {
-  switch (scale) {
-    case 1:
-      return "text-bqa-good";
-    case 2:
-      return "text-bqa-moderate";
-    case 3:
-      return "text-bqa-poor";
-    case 4:
-      return "text-bqa-unhealthy";
-    case 5:
-      return "text-bqa-severe";
-    default:
-      return "text-bqa-hazardous";
-  }
+  return aqiScaleToTextClass(scale);
 }
 
 type LiveAQITickerProps = {

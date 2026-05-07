@@ -70,6 +70,11 @@ export type MostPollutedLeaderboardResult = {
   pagination: MostPollutedPagination;
 };
 
+export type MostAndLeastPollutedResult = {
+  most: MostPollutedCityRow | null;
+  least: MostPollutedCityRow | null;
+};
+
 /**
  * Same endpoint as {@link fetchMostPollutedCities} but returns `pagination` for list UI.
  */
@@ -92,4 +97,35 @@ export async function fetchMostPollutedCities(
 ): Promise<MostPollutedCityRow[]> {
   const d = await getMostPollutedResponse(options);
   return d.cities ?? [];
+}
+
+/**
+ * Returns both extremes for the "Most Polluted" and "Cleanest" cards.
+ * We read page 1 (top ranks) and the last page (tail ranks) to avoid fetching all pages.
+ */
+export async function fetchMostAndLeastPollutedCities(): Promise<MostAndLeastPollutedResult> {
+  const firstPage = await getMostPollutedResponse({ page: 1 });
+  const firstRows = firstPage.cities ?? [];
+
+  if (firstRows.length === 0) {
+    return { most: null, least: null };
+  }
+
+  const totalPages = Math.max(1, firstPage.pagination?.totalPages ?? 1);
+  const lastRows =
+    totalPages > 1
+      ? (await getMostPollutedResponse({ page: totalPages })).cities ?? []
+      : [];
+
+  const candidateRows = [...firstRows, ...lastRows];
+
+  let most: MostPollutedCityRow | null = null;
+  let least: MostPollutedCityRow | null = null;
+
+  for (const row of candidateRows) {
+    if (!most || row.aqi > most.aqi) most = row;
+    if (!least || row.aqi < least.aqi) least = row;
+  }
+
+  return { most, least };
 }

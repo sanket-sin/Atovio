@@ -1,14 +1,10 @@
 import axios from "axios";
+import type { AqiLevelVariant } from "@/lib/air-quality/aqi-levels";
+import { getAqiLevel, getPm10Ugm3Level, getPm25Ugm3Level } from "@/lib/air-quality/aqi-levels";
 import { BEYONDAQI_API_BASE, beyondaqiRequestHeaders } from "@/lib/config/beyondaqi-api";
 
-/** Matches `AqiBadge` variants — kept here so `lib/api` does not import from `components`. */
-export type HeroAqiBadgeVariant =
-  | "good"
-  | "moderate"
-  | "poor"
-  | "unhealthy"
-  | "severe"
-  | "hazardous";
+/** Matches `AqiBadge` variants — same literals as `AqiLevelVariant` in `lib/air-quality/aqi-levels`. */
+export type HeroAqiBadgeVariant = AqiLevelVariant;
 
 /** Six-axis radar + extras from `data.pollutants` (units per BeyondAQI). */
 export type HeroPollutants = {
@@ -129,23 +125,13 @@ export function statusTextToBadgeVariant(status: string): HeroAqiBadgeVariant {
   return "moderate";
 }
 
-/** CPCB-like bucket for PM2.5 µg/m³ (rolling approximations for badge styling). */
+/** CPCB-like bucket for PM2.5 µg/m³ — see `lib/air-quality/aqi-levels` for breakpoints. */
 export function pm25ToBadgeVariant(ug: number): HeroAqiBadgeVariant {
-  if (ug <= 30) return "good";
-  if (ug <= 60) return "moderate";
-  if (ug <= 90) return "poor";
-  if (ug <= 120) return "unhealthy";
-  if (ug <= 250) return "severe";
-  return "hazardous";
+  return getPm25Ugm3Level(ug).variant;
 }
 
 export function pm10ToBadgeVariant(ug: number): HeroAqiBadgeVariant {
-  if (ug <= 50) return "good";
-  if (ug <= 100) return "moderate";
-  if (ug <= 250) return "poor";
-  if (ug <= 350) return "unhealthy";
-  if (ug <= 430) return "severe";
-  return "hazardous";
+  return getPm10Ugm3Level(ug).variant;
 }
 
 function pollutantNumber(v: unknown, fallback: number): number {
@@ -167,8 +153,8 @@ export function cityApiToHeroSnapshot(res: CityAqiApiResponse): HeroCitySnapshot
     stateName: d.location.state,
     countryName: d.location.country,
     aqi: d.aqi,
-    statusLabel: d.aqi_status,
-    badgeVariant: statusTextToBadgeVariant(d.aqi_status),
+    statusLabel: getAqiLevel(d.aqi).labelUppercase,
+    badgeVariant: getAqiLevel(d.aqi).variant,
     pm25,
     pm10,
     pm25BadgeVariant: pm25ToBadgeVariant(pm25),

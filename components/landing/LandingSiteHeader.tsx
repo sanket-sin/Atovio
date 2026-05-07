@@ -10,6 +10,7 @@ import {
   type HeroCitySnapshot,
 } from "@/lib/api/aqi-city";
 import { searchAqi, type AqiSearchResult } from "@/lib/api/aqi-search";
+import { aqiLevelToTextClass, getAqiLevel } from "@/lib/air-quality/aqi-levels";
 import { LiveAQITicker } from "./LiveAQITicker";
 
 const NAV = [
@@ -26,18 +27,7 @@ function scrollToRealtimeMap() {
 
 function AqiChip({ aqi }: { aqi?: number }) {
   if (aqi == null) return null;
-  const color =
-    aqi <= 50
-      ? "text-bqa-good"
-      : aqi <= 100
-      ? "text-bqa-moderate"
-      : aqi <= 150
-      ? "text-bqa-poor"
-      : aqi <= 200
-      ? "text-bqa-unhealthy"
-      : aqi <= 300
-      ? "text-bqa-severe"
-      : "text-bqa-hazardous";
+  const color = aqiLevelToTextClass(getAqiLevel(aqi).variant);
   return (
     <span className={`font-numeric text-[0.75rem] font-bold ${color}`}>
       {aqi}

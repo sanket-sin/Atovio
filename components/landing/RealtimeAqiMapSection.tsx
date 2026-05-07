@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { MostPollutedCityRow } from "@/lib/api/aqi-most-polluted";
+import { fetchMostAndLeastPollutedCities } from "@/lib/api/aqi-most-polluted";
+import { getAqiLevel } from "@/lib/air-quality/aqi-levels";
 import { SectionTitle } from "./SectionTitle";
 
 const METRICS = ["AQI", "PM10", "PM2.5", "Temp", "Humidity", "Wind"] as const;
@@ -17,12 +20,70 @@ const TIMES = [
   "NOW",
 ];
 
+const FALLBACK_MOST = {
+  city: "Kharagpur",
+  aqi: 182,
+  status: "Unhealthy",
+};
+
+const FALLBACK_LEAST = {
+  city: "Srinagar",
+  aqi: 21,
+  status: "Good",
+};
+
+function toCardData(
+  row: MostPollutedCityRow | null,
+  fallback: { city: string; aqi: number; status: string }
+) {
+  if (!row) {
+    return {
+      city: fallback.city,
+      aqi: fallback.aqi,
+      status: fallback.status,
+      barPct: `${Math.max(2, (fallback.aqi / 500) * 100)}%`,
+      aqiClass: getAqiLevel(fallback.aqi).textClass,
+    };
+  }
+
+  const roundedAqi = Math.round(row.aqi);
+  const level = getAqiLevel(roundedAqi);
+  return {
+    city: row.city,
+    aqi: roundedAqi,
+    status: level.label,
+    barPct: `${Math.max(2, (roundedAqi / 500) * 100)}%`,
+    aqiClass: level.textClass,
+  };
+}
+
 export function RealtimeAqiMapSection({ isLight = false }: { isLight?: boolean }) {
   const [metric, setMetric] = useState<(typeof METRICS)[number]>("AQI");
   const [standard, setStandard] = useState<(typeof STANDARDS)[number]>("CPCB");
+  const [extremes, setExtremes] = useState<{
+    most: MostPollutedCityRow | null;
+    least: MostPollutedCityRow | null;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await fetchMostAndLeastPollutedCities();
+        if (!cancelled) setExtremes(data);
+      } catch {
+        /* keep fallback values */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const cityTitle = isLight ? "text-bqa-text" : "text-white";
   const barTrack = isLight ? "bg-slate-200/90" : "bg-bqa-navy";
+  const mostCity = toCardData(extremes?.most ?? null, FALLBACK_MOST);
+  const leastCity = toCardData(extremes?.least ?? null, FALLBACK_LEAST);
 
   return (
     <section
@@ -129,9 +190,9 @@ export function RealtimeAqiMapSection({ isLight = false }: { isLight?: boolean }
             >
               Most Polluted City Today
             </p>
-            <h3 className={`mb-2 font-outfit text-2xl font-bold ${cityTitle}`}>Kharagpur</h3>
+            <h3 className={`mb-2 font-outfit text-2xl font-bold ${cityTitle}`}>{mostCity.city}</h3>
             <div className="flex items-baseline gap-3">
-              <span className="font-outfit text-4xl font-bold text-bqa-unhealthy">182</span>
+              <span className={`font-outfit text-4xl font-bold ${mostCity.aqiClass}`}>{mostCity.aqi}</span>
               <span
                 className={`rounded-md px-2 py-0.5 font-outfit text-[0.75rem] font-semibold ${
                   isLight
@@ -139,11 +200,11 @@ export function RealtimeAqiMapSection({ isLight = false }: { isLight?: boolean }
                     : "bg-rose-500/20 text-rose-300"
                 }`}
               >
-                Unhealthy
+                {mostCity.status}
               </span>
             </div>
             <div className={`mt-5 h-1.5 w-full rounded-full ${barTrack}`}>
-              <div className="h-full rounded-full bg-bqa-unhealthy" style={{ width: "36.4%" }} />
+              <div className="h-full rounded-full bg-bqa-unhealthy" style={{ width: mostCity.barPct }} />
             </div>
           </div>
 
@@ -156,9 +217,9 @@ export function RealtimeAqiMapSection({ isLight = false }: { isLight?: boolean }
             >
               Cleanest City Today
             </p>
-            <h3 className={`mb-2 font-outfit text-2xl font-bold ${cityTitle}`}>Srinagar</h3>
+            <h3 className={`mb-2 font-outfit text-2xl font-bold ${cityTitle}`}>{leastCity.city}</h3>
             <div className="flex items-baseline gap-3">
-              <span className="font-outfit text-4xl font-bold text-bqa-good">21</span>
+              <span className={`font-outfit text-4xl font-bold ${leastCity.aqiClass}`}>{leastCity.aqi}</span>
               <span
                 className={`rounded-md px-2 py-0.5 font-outfit text-[0.75rem] font-semibold ${
                   isLight
@@ -166,11 +227,11 @@ export function RealtimeAqiMapSection({ isLight = false }: { isLight?: boolean }
                     : "bg-emerald-500/20 text-emerald-300"
                 }`}
               >
-                Good
+                {leastCity.status}
               </span>
             </div>
             <div className={`mt-5 h-1.5 w-full rounded-full ${barTrack}`}>
-              <div className="h-full rounded-full bg-bqa-good" style={{ width: "4.2%" }} />
+              <div className="h-full rounded-full bg-bqa-good" style={{ width: leastCity.barPct }} />
             </div>
           </div>
 

@@ -2,18 +2,10 @@
 
 import Image from "next/image";
 import { useMemo } from "react";
+import { AQI_LEGEND_ITEMS } from "@/lib/air-quality/aqi-levels";
 import { SectionTitle } from "./SectionTitle";
 
-const AQI_LEVELS = [
-  { label: "Good (0–50)", color: "#00e5aa" },
-  { label: "Moderate (51–100)", color: "#ffd24d" },
-  { label: "Poor (101–150)", color: "#ff8c42" },
-  { label: "Unhealthy (151–200)", color: "#ff4d6d" },
-  { label: "Severe (201–300)", color: "#c77dff" },
-  { label: "Hazardous (300+)", color: "#9b2dff" },
-];
-
-const COLORS = AQI_LEVELS.map((l) => l.color);
+const COLORS = AQI_LEGEND_ITEMS.map((l) => l.color);
 
 function cellColor(seed: number) {
   return COLORS[seed % COLORS.length];
@@ -102,7 +94,7 @@ export function TrendsAnalysisSection() {
             </div>
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
-            {AQI_LEVELS.map((l) => (
+            {AQI_LEGEND_ITEMS.map((l) => (
               <span
                 key={l.label}
                 className="flex items-center gap-1.5 text-[0.7rem] text-bqa-muted"

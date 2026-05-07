@@ -11,6 +11,7 @@ import {
 } from "@/lib/api/aqi-historical-range";
 import { resolveHistoricalSlug } from "@/lib/api/aqi-historical-24h";
 import { aqiColor } from "./chart-data";
+import { AQI_LEGEND_CHART_TUPLES } from "@/lib/air-quality/aqi-levels";
 import { registerLandingCharts } from "./chart-register";
 import { SectionTitle } from "./SectionTitle";
 
@@ -68,16 +69,6 @@ function IconBarChart({ className = "" }: { className?: string }) {
     </svg>
   );
 }
-
-/** Legend swatches aligned with mobile reference */
-const LEGEND_ITEMS: [string, string][] = [
-  ["#70E0A3", "Good (0–50)"],
-  ["#F9D250", "Moderate (51–100)"],
-  ["#F39C52", "Poor (101–150)"],
-  ["#F06262", "Unhealthy (151–200)"],
-  ["#A865F8", "Severe (201–300)"],
-  ["#8D2AF0", "Hazardous (300+)"],
-];
 
 const selectClass =
   "min-h-[2.75rem] min-w-0 flex-1 appearance-none rounded-[10px] border border-sky-400/10 bg-bqa-slate bg-[length:14px] bg-[right_0.65rem_center] bg-no-repeat px-3 py-2 pr-9 text-[0.8rem] text-bqa-text outline-none focus:border-sky-400/30 sm:w-auto sm:min-w-[7.5rem] sm:flex-none";
@@ -640,7 +631,7 @@ export function ChartHistorySection({
           </div>
 
           <div className="mx-auto mt-5 grid max-w-[22rem] grid-cols-3 gap-x-4 gap-y-3 text-[0.72rem] text-bqa-muted sm:max-w-none">
-            {LEGEND_ITEMS.map(([c, l]) => (
+            {AQI_LEGEND_CHART_TUPLES.map(([c, l]) => (
               <div key={l} className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 shrink-0 rounded-sm shadow-sm" style={{ background: c }} />
                 <span className="leading-tight">{l}</span>

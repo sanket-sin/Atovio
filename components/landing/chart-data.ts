@@ -1,3 +1,5 @@
+import { aqiIndexToColorHex } from "@/lib/air-quality/aqi-levels";
+
 export const rawData = {
   aqi30: [
     148, 122, 89, 78, 134, 156, 210, 189, 164, 142, 118, 95, 87, 104, 131, 155, 178,
@@ -24,12 +26,7 @@ export const prevPm25 = [
 ];
 
 export function aqiColor(v: number): string {
-  if (v <= 50) return "#00e5aa";
-  if (v <= 100) return "#ffd24d";
-  if (v <= 150) return "#ff8c42";
-  if (v <= 200) return "#ff4d6d";
-  if (v <= 300) return "#c77dff";
-  return "#9b2dff";
+  return aqiIndexToColorHex(v);
 }
 
 export function genDays(n: number): string[] {

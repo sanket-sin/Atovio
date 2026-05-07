@@ -1,3 +1,4 @@
+import { getAqiLevel } from "@/lib/air-quality/aqi-levels";
 import { AqiBadge, type AqiBadgeVariant } from "./AqiBadge";
 import { SectionEyebrow } from "./SectionEyebrow";
 import { SectionTitle } from "./SectionTitle";
@@ -15,80 +16,68 @@ type Metro = {
   trend: string;
 };
 
-const METROS: Metro[] = [
+const METRO_ROWS: Omit<Metro, "stripe" | "aqiColor" | "badge" | "status">[] = [
   {
-    stripe: "#ff4d6d",
     rank: "#1 Worst",
     city: "Delhi",
     aqi: "162",
-    aqiColor: "text-bqa-unhealthy",
-    badge: "unhealthy",
-    status: "Unhealthy",
     pm25: "99",
     pm10: "154",
     trend: "↑ Rising",
   },
   {
-    stripe: "#ff8c42",
     rank: "#2",
     city: "Mumbai",
     aqi: "160",
-    aqiColor: "text-bqa-poor",
-    badge: "poor",
-    status: "Poor",
     pm25: "46",
     pm10: "124",
     trend: "→ Stable",
   },
   {
-    stripe: "#ff8c42",
     rank: "#3",
     city: "Bengaluru",
     aqi: "116",
-    aqiColor: "text-bqa-poor",
-    badge: "poor",
-    status: "Poor",
     pm25: "52",
     pm10: "130",
     trend: "↓ Improving",
   },
   {
-    stripe: "#ff8c42",
     rank: "#4",
     city: "Hyderabad",
     aqi: "105",
-    aqiColor: "text-bqa-poor",
-    badge: "poor",
-    status: "Poor",
     pm25: "54",
     pm10: "103",
     trend: "→ Stable",
   },
   {
-    stripe: "#ffd24d",
     rank: "#5",
     city: "Chennai",
     aqi: "94",
-    aqiColor: "text-bqa-moderate",
-    badge: "moderate",
-    status: "Moderate",
     pm25: "48",
     pm10: "48",
     trend: "↓ Improving",
   },
   {
-    stripe: "#ffd24d",
     rank: "#6 Best",
     city: "Kolkata",
     aqi: "74",
-    aqiColor: "text-bqa-moderate",
-    badge: "moderate",
-    status: "Moderate",
     pm25: "28",
     pm10: "60",
     trend: "↓ Improving",
   },
 ];
+
+const METROS: Metro[] = METRO_ROWS.map((row) => {
+  const n = Number.parseInt(row.aqi, 10);
+  const L = getAqiLevel(Number.isFinite(n) ? n : 0);
+  return {
+    ...row,
+    stripe: L.colorHex,
+    aqiColor: L.textClass,
+    badge: L.variant,
+    status: L.label,
+  };
+});
 
 export function MetroSection() {
   return (
