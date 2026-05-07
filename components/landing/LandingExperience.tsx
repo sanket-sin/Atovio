@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   fetchCityAqiBySlug,
   fetchCityAqiByLocationParts,
@@ -9,7 +9,7 @@ import {
 } from "@/lib/api/aqi-city";
 import { searchAqi, type AqiSearchResult } from "@/lib/api/aqi-search";
 import type { DetectedCity } from "@/lib/location/detect-city";
-import { detectCityFromGeolocationOnly } from "@/lib/location/detect-city";
+import { detectUserCity } from "@/lib/location/detect-city";
 import { DM_Serif_Display, JetBrains_Mono, Outfit, Sora } from "next/font/google";
 import { AirQualityToolkitSection } from "./AirQualityToolkitSection";
 import { ChartHistorySection } from "./ChartHistorySection";
@@ -107,39 +107,50 @@ async function fetchDetectedCityAqi(
 export function LandingExperience() {
   const [isLight, setIsLight] = useState(false);
   const [heroCity, setHeroCity] = useState<HeroCitySnapshot | null>(null);
-  const [isLocatingCity, setIsLocatingCity] = useState(false);
+  const [isLocatingCity, setIsLocatingCity] = useState(true);
   const [locationUnavailable, setLocationUnavailable] = useState(false);
+  const locationBootstrapStarted = useRef(false);
   const userSelectedCity = useRef(false);
 
-  const showLocationPrompt =
-    !heroCity && !isLocatingCity && !locationUnavailable;
+  useEffect(() => {
+    if (locationBootstrapStarted.current) return;
+    locationBootstrapStarted.current = true;
 
-  async function handleEnableLocation() {
-    setIsLocatingCity(true);
-    try {
-      const detected = await detectCityFromGeolocationOnly();
-      if (!detected || userSelectedCity.current) {
-        if (!userSelectedCity.current) setLocationUnavailable(true);
+    let cancelled = false;
+
+    (async () => {
+      const detected = await detectUserCity();
+      if (!detected || cancelled || userSelectedCity.current) {
+        if (!cancelled) {
+          setIsLocatingCity(false);
+          if (!userSelectedCity.current) setLocationUnavailable(true);
+        }
         return;
       }
-      const snapshot = await fetchDetectedCityAqi(detected);
-      if (!userSelectedCity.current) {
-        setHeroCity(snapshot);
-        setLocationUnavailable(false);
-      }
-    } catch (err) {
-      if (process.env.NODE_ENV === "development") {
-        console.warn("[BeyondAQI] location AQI failed:", err);
-      }
-      if (!userSelectedCity.current) setLocationUnavailable(true);
-    } finally {
-      setIsLocatingCity(false);
-    }
-  }
 
-  function handleDismissLocationPrompt() {
-    setLocationUnavailable(true);
-  }
+      try {
+        const snapshot = await fetchDetectedCityAqi(detected);
+        if (!cancelled && !userSelectedCity.current) {
+          setHeroCity(snapshot);
+          setLocationUnavailable(false);
+        }
+      } catch (err) {
+        if (process.env.NODE_ENV === "development") {
+          console.warn("[BeyondAQI] initial location AQI failed:", {
+            detected,
+            err,
+          });
+        }
+        if (!cancelled && !userSelectedCity.current) setLocationUnavailable(true);
+      } finally {
+        if (!cancelled) setIsLocatingCity(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div
@@ -163,50 +174,6 @@ export function LandingExperience() {
         }}
       />
 
-      {showLocationPrompt && (
-        <div
-          className={`fixed left-0 right-0 top-14 z-[210] border-b px-4 py-3 shadow-lg sm:px-6 ${
-            isLight
-              ? "border-slate-200 bg-white/95 text-slate-800 backdrop-blur-md"
-              : "border-sky-400/20 bg-[#0b1428]/95 text-bqa-text backdrop-blur-md"
-          }`}
-          role="region"
-          aria-label="Location for local air quality"
-        >
-          <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-            <p className="text-[0.92rem] leading-snug sm:text-[0.95rem]">
-              <span className="font-semibold">See air quality for where you are.</span>{" "}
-              Enable location — your browser will ask for permission, then we load live AQI for
-              that area.
-            </p>
-            <div className="flex shrink-0 flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={handleEnableLocation}
-                className={`rounded-full px-4 py-2 text-[0.85rem] font-bold transition-colors ${
-                  isLight
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-sky-500 text-slate-950 hover:bg-sky-400"
-                }`}
-              >
-                Enable location
-              </button>
-              <button
-                type="button"
-                onClick={handleDismissLocationPrompt}
-                className={`rounded-full px-4 py-2 text-[0.85rem] font-semibold transition-colors ${
-                  isLight
-                    ? "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-                    : "border border-white/15 bg-white/5 text-bqa-muted hover:bg-white/10"
-                }`}
-              >
-                Not now — search city
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <main className="pt-0">
         <LandingHero
           isLight={isLight}
@@ -214,10 +181,9 @@ export function LandingExperience() {
           citySnapshot={heroCity}
           isLocatingLocation={isLocatingCity}
           locationUnavailable={locationUnavailable}
-          locationConsentBannerVisible={showLocationPrompt}
         />
-        <AirQualityToolkitSection isLight={isLight} />
-        <ChartHistorySection />
+        <AirQualityToolkitSection isLight={isLight} citySnapshot={heroCity} />
+        <ChartHistorySection citySnapshot={heroCity} />
         <RealtimeAqiMapSection isLight={isLight} />
         <PollutantsSection />
         <LeaderboardSection isLight={isLight} />

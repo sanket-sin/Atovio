@@ -9,6 +9,7 @@ const HERO_BG = "/images/hero-bg.png";
 const DEFAULT_HERO: HeroCitySnapshot = {
   cityName: "Mumbai",
   stateName: "Maharashtra",
+  countryName: "India",
   aqi: 160,
   statusLabel: "Poor",
   badgeVariant: "poor",
@@ -90,8 +91,6 @@ type LandingHeroProps = {
   citySnapshot?: HeroCitySnapshot | null;
   isLocatingLocation?: boolean;
   locationUnavailable?: boolean;
-  /** Fixed consent strip is visible — add top padding so hero clears header + banner. */
-  locationConsentBannerVisible?: boolean;
 };
 
 /** Phone + magnifying glass with “AQI” — matches product tab artwork */
@@ -212,7 +211,6 @@ export function LandingHero({
   citySnapshot = null,
   isLocatingLocation = false,
   locationUnavailable = false,
-  locationConsentBannerVisible = false,
 }: LandingHeroProps) {
   const whoRingGradId = useId().replace(/:/g, "");
   const ringR = 42;
@@ -222,26 +220,20 @@ export function LandingHero({
 
   const [heroTab, setHeroTab] = useState<"aqi" | "weather">("aqi");
 
-  const needsManualCity = locationUnavailable && !citySnapshot;
   const isDetectingCity = isLocatingLocation && !citySnapshot;
-  const awaitingConsent =
-    !citySnapshot && !isLocatingLocation && !locationUnavailable;
+  const needsManualCity = locationUnavailable && !citySnapshot;
   const d = citySnapshot ?? DEFAULT_HERO;
-  const showPlaceholder = isDetectingCity || needsManualCity || awaitingConsent;
+  const showPlaceholder = isDetectingCity || needsManualCity;
   const cityNameDisplay = isDetectingCity
     ? "Detecting your city"
     : needsManualCity
     ? "Search your city"
-    : awaitingConsent
-    ? "Your area"
     : d.cityName;
   const aqiDisplay = showPlaceholder ? "--" : String(d.aqi);
   const statusDisplay = isDetectingCity
     ? "Loading"
     : needsManualCity
     ? "Select city"
-    : awaitingConsent
-    ? "Enable location"
     : d.statusLabel;
   const badgeVariant = (showPlaceholder ? "moderate" : d.badgeVariant) as AqiBadgeVariant;
   const pm25Display = showPlaceholder ? "--" : String(d.pm25);
@@ -262,9 +254,7 @@ export function LandingHero({
   const weatherSummaryDisplay = isDetectingCity
     ? "Finding local conditions"
     : needsManualCity
-    ? "Enable location or search a city"
-    : awaitingConsent
-    ? "Use the banner above, then allow your browser"
+    ? "Search a city in the header"
     : weatherSummary || "--";
   const windDisplay =
     d.weather?.windSpeed == null
@@ -284,8 +274,6 @@ export function LandingHero({
         ? "Detecting"
         : needsManualCity
         ? "Search city"
-        : awaitingConsent
-        ? "Pending"
         : d.weather?.weatherStatus ?? d.weather?.weatherType ?? "--",
     ],
   ] as const;
@@ -307,8 +295,6 @@ export function LandingHero({
           ? "Live · Detecting location"
           : needsManualCity
           ? "Live · Search a city"
-          : awaitingConsent
-          ? "Live · Location needed"
           : `Live · Updated ${formatUpdatedAt(d.updatedAt)}`}
       </div>
       <h1 className="mb-3.5 font-outfit text-[clamp(1.65rem,5.5vw,2.5rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:text-5xl lg:text-[48px] lg:leading-[52.8px]">
@@ -347,14 +333,10 @@ export function LandingHero({
     return `${rounded} border-t-[3px] border-transparent bg-[#050a14] text-white/55 hover:bg-[#0a1220] hover:text-white/85`;
   }
 
-  const heroTopPad = locationConsentBannerVisible
-    ? "pt-[12rem] sm:pt-[11rem] md:pt-[10.75rem]"
-    : "pt-[7rem] sm:pt-[8rem] md:pt-[7.75rem]";
-
   return (
     <section
       id="sec-hero"
-      className={`relative flex min-h-[100dvh] items-center overflow-hidden border-b border-sky-400/10 ${heroTopPad}`}
+      className="relative flex min-h-[100dvh] items-center overflow-hidden border-b border-sky-400/10 pt-[7rem] sm:pt-[8rem] md:pt-[7.75rem]"
     >
       <div
         className="absolute inset-0 z-0 scale-105 animate-hero-drift bg-cover bg-[center_20%]"

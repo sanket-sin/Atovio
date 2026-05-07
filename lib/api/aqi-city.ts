@@ -10,9 +10,21 @@ export type HeroAqiBadgeVariant =
   | "severe"
   | "hazardous";
 
+/** Six-axis radar + extras from `data.pollutants` (units per BeyondAQI). */
+export type HeroPollutants = {
+  pm2_5: number;
+  pm10: number;
+  o3: number;
+  co: number;
+  so2: number;
+  no2: number;
+};
+
 export type HeroCitySnapshot = {
   cityName: string;
   stateName?: string;
+  /** From BeyondAQI `location.country` — used for historical and other path-based APIs. */
+  countryName?: string;
   aqi: number;
   statusLabel: string;
   badgeVariant: HeroAqiBadgeVariant;
@@ -20,6 +32,8 @@ export type HeroCitySnapshot = {
   pm10: number;
   pm25BadgeVariant: HeroAqiBadgeVariant;
   pm10BadgeVariant: HeroAqiBadgeVariant;
+  /** Full breakdown when API returns it — drives pollutant radar. */
+  pollutants?: HeroPollutants;
   updatedAt?: string;
   weather?: {
     temperature?: number;
@@ -46,8 +60,14 @@ type CityAqiApiResponse = {
       country: string;
     };
     pollutants: {
-      pm2_5: number;
-      pm10: number;
+      pm2_5?: number;
+      pm10?: number;
+      o3?: number;
+      co?: number;
+      so2?: number;
+      no2?: number;
+      nh3?: number;
+      no?: number;
     };
     basic_weather?: {
       temperature?: number;
@@ -128,13 +148,24 @@ export function pm10ToBadgeVariant(ug: number): HeroAqiBadgeVariant {
   return "hazardous";
 }
 
+function pollutantNumber(v: unknown, fallback: number): number {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  return fallback;
+}
+
 export function cityApiToHeroSnapshot(res: CityAqiApiResponse): HeroCitySnapshot {
   const d = res.data;
-  const pm25 = d.pollutants.pm2_5;
-  const pm10 = d.pollutants.pm10;
+  const p = d.pollutants;
+  const pm25 = pollutantNumber(p.pm2_5, 0);
+  const pm10 = pollutantNumber(p.pm10, 0);
+  const o3 = pollutantNumber(p.o3, 0);
+  const co = pollutantNumber(p.co, 0);
+  const so2 = pollutantNumber(p.so2, 0);
+  const no2 = pollutantNumber(p.no2, 0);
   return {
     cityName: d.location.city,
     stateName: d.location.state,
+    countryName: d.location.country,
     aqi: d.aqi,
     statusLabel: d.aqi_status,
     badgeVariant: statusTextToBadgeVariant(d.aqi_status),
@@ -142,6 +173,7 @@ export function cityApiToHeroSnapshot(res: CityAqiApiResponse): HeroCitySnapshot
     pm10,
     pm25BadgeVariant: pm25ToBadgeVariant(pm25),
     pm10BadgeVariant: pm10ToBadgeVariant(pm10),
+    pollutants: { pm2_5: pm25, pm10, o3, co, so2, no2 },
     updatedAt: d.timestamp,
     weather: d.basic_weather
       ? {

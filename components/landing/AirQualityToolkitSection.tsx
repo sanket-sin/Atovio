@@ -1,34 +1,41 @@
 "use client";
 
 import Image from "next/image";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
+import {
+  fetchAqiHistorical24Hour,
+  formatClockHourRange12h,
+  resolveHistoricalSlug,
+  type ExposureClockModel,
+} from "@/lib/api/aqi-historical-24h";
 
-/* ── Clock ── */
-const SEG_COLORS = [
+/* ── Clock fallback (before API load or on error) ── */
+const FALLBACK_SEGMENT_COLORS = [
+  "#ffd24d",
+  "#ffd24d", // 12–2AM yellow
+  "#14532d",
+  "#166534",
+  "#15803d", // 2–5AM dark green
+  "#4ade80",
+  "#86efac", // 5–7AM best window
+  "#ffd24d", // 7–8AM
+  "#fb7185",
+  "#f87171",
+  "#ef4444",
+  "#f97316", // 8AM–12PM worst band
+  "#fb923c",
+  "#f97316",
+  "#ea580c",
+  "#f97316", // 12–4PM orange
+  "#fdba74",
+  "#fb923c",
+  "#fbbf24",
+  "#f59e0b",
+  "#fcd34d", // 4–9PM yellow-orange
   "#ffd24d",
   "#ffd24d",
-  "#a3e635",
-  "#00e5aa",
-  "#00e5aa",
-  "#00e5aa",
-  "#00e5aa",
-  "#ffd24d",
-  "#ff8c42",
-  "#ff4d6d",
-  "#ff4d6d",
-  "#ff8c42",
-  "#ff8c42",
-  "#ff8c42",
-  "#ffd24d",
-  "#ffd24d",
-  "#ffd24d",
-  "#ffd24d",
-  "#ffd24d",
-  "#ffd24d",
-  "#a3e635",
-  "#ffd24d",
-  "#a3e635",
-  "#ffd24d",
+  "#ffd24d", // 9PM–12AM yellow
 ];
 
 const CLOCK_LABELS = [
@@ -44,11 +51,11 @@ const CLOCK_LABELS = [
 
 const CX = 50,
   CY = 50,
-  RI = 30,
-  RO = 46;
+  RI = 26,
+  RO = 49;
 
 function segPath(h: number): string {
-  const gap = 2;
+  const gap = 1.25;
   const a1 = (h / 24) * 360 - 90 + gap / 2;
   const a2 = ((h + 1) / 24) * 360 - 90 - gap / 2;
   const rad = (d: number) => (d * Math.PI) / 180;
@@ -110,26 +117,32 @@ const AREA_D =
 
 const OUTFIT = "var(--font-outfit), system-ui, sans-serif";
 
-function ClockFace({ isLight }: { isLight: boolean }) {
+function ClockFace({
+  isLight,
+  segmentColors,
+}: {
+  isLight: boolean;
+  segmentColors: string[];
+}) {
   const holeFill = isLight ? "#f0f4f8" : "#0b111e";
   const centerNumFill = isLight ? "#0f172a" : "#ffffff";
   const subFill = isLight ? "#64748b" : "#9ca3af";
   const ringLabelFill = isLight ? "#94a3b8" : "#9ca3af";
 
   return (
-    <div className="relative mx-auto w-full max-w-[min(100%,220px)] shrink-0">
-      <svg viewBox="-12 -38 124 124" className="w-full overflow-visible">
-        {SEG_COLORS.map((color, h) => (
+    <div className="relative mx-auto w-full max-w-[min(100%,240px)] shrink-0">
+      <svg viewBox="-14 -28 128 128" className="w-full overflow-visible">
+        {segmentColors.map((color, h) => (
           <path key={h} d={segPath(h)} fill={color} />
         ))}
-        <circle cx={CX} cy={CY} r={RI - 1} fill={holeFill} />
+        <circle cx={CX} cy={CY} r={RI - 0.5} fill={holeFill} />
         <text
           x={CX}
-          y={CY - 5}
+          y={CY - 6}
           textAnchor="middle"
           dominantBaseline="middle"
           fill={centerNumFill}
-          fontSize="15"
+          fontSize="18"
           fontWeight="bold"
           style={{ fontFamily: OUTFIT }}
         >
@@ -137,17 +150,17 @@ function ClockFace({ isLight }: { isLight: boolean }) {
         </text>
         <text
           x={CX}
-          y={CY + 9}
+          y={CY + 10}
           textAnchor="middle"
           dominantBaseline="middle"
           fill={subFill}
-          fontSize="5.2"
+          fontSize="6.25"
           style={{ fontFamily: OUTFIT }}
         >
           hours
         </text>
         {CLOCK_LABELS.map(({ label, h }) => {
-          const { x, y } = labelPos(h, 52);
+          const { x, y } = labelPos(h, 54);
           return (
             <text
               key={label}
@@ -169,12 +182,12 @@ function ClockFace({ isLight }: { isLight: boolean }) {
   );
 }
 
-function ClockLegendColumn({ compact, isLight }: { compact?: boolean; isLight?: boolean }) {
+function ClockLegendRow({ isLight }: { isLight: boolean }) {
   const legendMuted = isLight ? "text-slate-500" : "text-[#9ca3af]";
 
   return (
     <div
-      className={`flex shrink-0 flex-col justify-center gap-4 font-outfit text-[0.75rem] leading-tight ${legendMuted} ${compact ? "text-left" : ""}`}
+      className={`flex w-full flex-row flex-wrap items-center justify-center gap-x-10 gap-y-2 font-outfit text-[0.75rem] leading-tight ${legendMuted}`}
     >
       <span className="flex items-center gap-2.5">
         <span className="h-2 w-2 shrink-0 rounded-full bg-[#4ade80]" />
@@ -188,7 +201,15 @@ function ClockLegendColumn({ compact, isLight }: { compact?: boolean; isLight?: 
   );
 }
 
-function ClockRecommendations({ isLight }: { isLight: boolean }) {
+function ClockRecommendations({
+  isLight,
+  bestRange,
+  worstRange,
+}: {
+  isLight: boolean;
+  bestRange: string;
+  worstRange: string;
+}) {
   const labelClass = isLight ? "text-bqa-muted" : "text-white";
 
   return (
@@ -207,7 +228,7 @@ function ClockRecommendations({ isLight }: { isLight: boolean }) {
         </span>
         <p className="font-outfit text-[0.82rem] leading-snug">
           <span className={labelClass}>Best outdoors: </span>
-          <span className="font-semibold text-[#4ade80]">5am–7am (AQI ~52)</span>
+          <span className="font-semibold text-[#4ade80]">{bestRange}</span>
         </p>
       </div>
       <div className="mt-4 flex items-start gap-3">
@@ -223,7 +244,7 @@ function ClockRecommendations({ isLight }: { isLight: boolean }) {
         </span>
         <p className="font-outfit text-[0.82rem] leading-snug">
           <span className={labelClass}>Avoid outdoors: </span>
-          <span className="font-semibold text-[#f87171]">8am–12pm (AQI ~185)</span>
+          <span className="font-semibold text-[#f87171]">{worstRange}</span>
         </p>
       </div>
     </div>
@@ -401,8 +422,38 @@ function ChevronDown({ className = "" }: { className?: string }) {
   );
 }
 
+function exposureDetail(model: ExposureClockModel, kind: "best" | "worst"): string {
+  const w = kind === "best" ? model.best : model.worst;
+  const range = formatClockHourRange12h(w.startHour, w.endHour);
+  return `${range} (AQI ~${Math.round(w.avgAqi)})`;
+}
+
+const STATIC_BEST = "5am–7am (AQI ~52)";
+const STATIC_WORST = "8am–12pm (AQI ~185)";
+
 /** Dark: inset navy card + dark clock hole. Light: white card, mint icon tile, pale clock center (ref screenshot 2). */
-function HealthExposureClockCard({ isLight }: { isLight: boolean }) {
+function HealthExposureClockCard({
+  isLight,
+  clockModel,
+  clockLoading,
+}: {
+  isLight: boolean;
+  clockModel: ExposureClockModel | null;
+  clockLoading: boolean;
+}) {
+  const segmentColors =
+    clockModel?.segmentColors?.length === 24 ? clockModel.segmentColors : FALLBACK_SEGMENT_COLORS;
+  const bestRange = clockModel
+    ? exposureDetail(clockModel, "best")
+    : clockLoading
+      ? "Loading…"
+      : STATIC_BEST;
+  const worstRange = clockModel
+    ? exposureDetail(clockModel, "worst")
+    : clockLoading
+      ? "Loading…"
+      : STATIC_WORST;
+
   const shell = isLight
     ? "rounded-2xl border border-sky-400/10 bg-bqa-navy2/70 p-5 shadow-[0_2px_24px_rgba(15,23,42,0.07)] backdrop-blur-md sm:p-6"
     : "rounded-2xl border border-white/[0.07] bg-[#0b111e] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6";
@@ -413,7 +464,7 @@ function HealthExposureClockCard({ isLight }: { isLight: boolean }) {
 
   return (
     <div className={shell}>
-      <div className="mb-5 flex items-center gap-3 sm:mb-6">
+      <div className="mb-2 flex items-center gap-3 sm:mb-3">
         <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${iconTile}`}>
           <Image
             src="/images/watch-icon.svg"
@@ -431,21 +482,51 @@ function HealthExposureClockCard({ isLight }: { isLight: boolean }) {
         </h3>
       </div>
 
-      <div className="flex flex-row items-center justify-between gap-4 sm:gap-6">
-        <div className="flex min-w-0 flex-1 justify-center sm:justify-start">
-          <ClockFace isLight={isLight} />
-        </div>
-        <ClockLegendColumn compact isLight={isLight} />
+      <div
+        className={`-mt-2 flex flex-col items-center gap-4 sm:-mt-2.5 ${clockLoading ? "opacity-[0.72]" : ""} transition-opacity duration-300`}
+      >
+        <ClockFace isLight={isLight} segmentColors={segmentColors} />
+        <ClockLegendRow isLight={isLight} />
       </div>
 
-      <ClockRecommendations isLight={isLight} />
+      <ClockRecommendations isLight={isLight} bestRange={bestRange} worstRange={worstRange} />
     </div>
   );
 }
 
-export function AirQualityToolkitSection({ isLight = false }: { isLight?: boolean }) {
+export function AirQualityToolkitSection({
+  isLight = false,
+  citySnapshot = null,
+}: {
+  isLight?: boolean;
+  citySnapshot?: HeroCitySnapshot | null;
+}) {
   const [age, setAge] = useState("32");
   const [years, setYears] = useState("10");
+  const [clockModel, setClockModel] = useState<ExposureClockModel | null>(null);
+  const [clockLoading, setClockLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const slug = resolveHistoricalSlug(citySnapshot);
+    setClockLoading(true);
+    fetchAqiHistorical24Hour(slug)
+      .then((model) => {
+        if (!cancelled) setClockModel(model);
+      })
+      .catch((err: unknown) => {
+        if (process.env.NODE_ENV === "development") {
+          console.warn("[BeyondAQI] 24h historical for Health Exposure Clock failed:", err);
+        }
+        if (!cancelled) setClockModel(null);
+      })
+      .finally(() => {
+        if (!cancelled) setClockLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [citySnapshot]);
 
   const cardShell = "rounded-2xl border border-sky-400/10 bg-bqa-navy2/70 backdrop-blur-md";
 
@@ -458,7 +539,11 @@ export function AirQualityToolkitSection({ isLight = false }: { isLight?: boolea
 
         {/* Mobile / tablet: clock expanded + accordions */}
         <div className="flex flex-col gap-4 lg:hidden">
-          <HealthExposureClockCard isLight={isLight} />
+          <HealthExposureClockCard
+            isLight={isLight}
+            clockModel={clockModel}
+            clockLoading={clockLoading}
+          />
 
           <details className={`${cardShell} overflow-hidden open:shadow-[0_8px_30px_rgba(0,0,0,0.25)]`}>
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 [&::-webkit-details-marker]:hidden">
@@ -519,7 +604,11 @@ export function AirQualityToolkitSection({ isLight = false }: { isLight?: boolea
 
         {/* Desktop: three-column grid */}
         <div className="hidden grid-cols-1 gap-6 lg:grid lg:grid-cols-3">
-          <HealthExposureClockCard isLight={isLight} />
+          <HealthExposureClockCard
+            isLight={isLight}
+            clockModel={clockModel}
+            clockLoading={clockLoading}
+          />
 
           <div className={`${cardShell} p-6`}>
             <div className="mb-4 flex items-center justify-between">

@@ -3,7 +3,14 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Chart } from "chart.js";
-import { aqiColor, genDays, rawData } from "./chart-data";
+import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
+import {
+  fetchAqiHistoricalRange,
+  historyMetricToPollutantParam,
+  type HistoricalRangePeriod,
+} from "@/lib/api/aqi-historical-range";
+import { resolveHistoricalSlug } from "@/lib/api/aqi-historical-24h";
+import { aqiColor } from "./chart-data";
 import { registerLandingCharts } from "./chart-register";
 import { SectionTitle } from "./SectionTitle";
 
@@ -77,10 +84,77 @@ const selectClass =
 const selectChevronBg =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M4 6l3 3 3-3'/%3E%3C/svg%3E\")";
 
-function PollutantRadarBody() {
+/** Soft caps — values above cap sit on the outer ring (same numeric scale as API). */
+const RADAR_AXIS_ORDER = ["pm2_5", "pm10", "o3", "co", "so2", "no2"] as const;
+const RADAR_AXIS_CAPS: Record<(typeof RADAR_AXIS_ORDER)[number], number> = {
+  pm2_5: 150,
+  pm10: 300,
+  o3: 180,
+  co: 5000,
+  so2: 80,
+  no2: 200,
+};
+
+const RADAR_CX = 160;
+const RADAR_CY = 160;
+const RADAR_R_OUT = 90;
+const RADAR_R_IN = 26;
+
+function radarNorm(value: number, cap: number): number {
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return Math.min(1, value / cap);
+}
+
+function radarPoint(axisIndex: number, norm: number): { x: number; y: number } {
+  const angleDeg = -90 + axisIndex * 60;
+  const rad = (angleDeg * Math.PI) / 180;
+  const r = RADAR_R_IN + norm * (RADAR_R_OUT - RADAR_R_IN);
+  return {
+    x: RADAR_CX + r * Math.cos(rad),
+    y: RADAR_CY + r * Math.sin(rad),
+  };
+}
+
+function radarPolygonFromSnapshot(snapshot: HeroCitySnapshot | null): {
+  points: string;
+  vertices: { x: number; y: number }[];
+} {
+  const pol = snapshot?.pollutants;
+  const raw: number[] = [
+    pol?.pm2_5 ?? snapshot?.pm25 ?? 0,
+    pol?.pm10 ?? snapshot?.pm10 ?? 0,
+    pol?.o3 ?? 0,
+    pol?.co ?? 0,
+    pol?.so2 ?? 0,
+    pol?.no2 ?? 0,
+  ];
+  const norms = raw.map((v, i) => radarNorm(v, RADAR_AXIS_CAPS[RADAR_AXIS_ORDER[i]]));
+  const vertices = norms.map((n, i) => radarPoint(i, n));
+  const points = vertices.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  return { points, vertices };
+}
+
+const RADAR_LABELS: {
+  x: number;
+  y: number;
+  anchor: "middle" | "start" | "end";
+  text: string;
+}[] = [
+  { x: 160, y: 52, anchor: "middle", text: "PM 2.5" },
+  { x: 245, y: 112, anchor: "start", text: "PM 10" },
+  { x: 245, y: 206, anchor: "start", text: "O3" },
+  { x: 160, y: 242, anchor: "middle", text: "CO" },
+  { x: 75, y: 206, anchor: "end", text: "SO2" },
+  { x: 75, y: 112, anchor: "end", text: "NO2" },
+];
+
+function PollutantRadarBody({ citySnapshot }: { citySnapshot: HeroCitySnapshot | null }) {
+  const { points, vertices } = radarPolygonFromSnapshot(citySnapshot);
+  const hasLive = Boolean(citySnapshot);
+
   return (
     <>
-      <svg viewBox="0 0 320 285" className="w-full">
+      <svg viewBox="0 0 320 285" className="mx-auto w-full max-w-[32rem]" aria-label="Pollutant mix radar chart">
         {[
           "160,70 237.9,115 237.9,205 160,250 82.1,205 82.1,115",
           "160,92.5 218.5,126.3 218.5,193.8 160,227.5 101.5,193.8 101.5,126.3",
@@ -97,86 +171,37 @@ function PollutantRadarBody() {
         )}
 
         <polygon
-          points="160,95.2 210.7,130.8 199,182.5 160,191.5 127.3,178.9 113.2,133"
+          points={points}
           fill="rgba(61,158,255,0.12)"
           stroke="#3d9eff"
           strokeWidth="1.5"
           strokeLinejoin="round"
         />
 
-        {["160,95.2", "210.7,130.8", "199,182.5", "160,191.5", "127.3,178.9", "113.2,133"].map((pt) => {
-          const [cx, cy] = pt.split(",");
-          return <circle key={pt} cx={cx} cy={cy} r="3.5" fill="#3d9eff" />;
-        })}
+        {vertices.map((pt, i) => (
+          <circle key={i} cx={pt.x.toFixed(1)} cy={pt.y.toFixed(1)} r="3.5" fill="#3d9eff" />
+        ))}
 
-        <text
-          x="160"
-          y="12"
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fill="#7da5c9"
-          fontSize="12"
-          style={{ fontFamily: "var(--font-outfit), system-ui" }}
-        >
-          PM 2.5
-        </text>
-        <text
-          x="261"
-          y="104"
-          textAnchor="start"
-          dominantBaseline="middle"
-          fill="#7da5c9"
-          fontSize="12"
-          style={{ fontFamily: "var(--font-outfit), system-ui" }}
-        >
-          PM 10
-        </text>
-        <text
-          x="261"
-          y="218"
-          textAnchor="start"
-          dominantBaseline="middle"
-          fill="#7da5c9"
-          fontSize="12"
-          style={{ fontFamily: "var(--font-outfit), system-ui" }}
-        >
-          O3
-        </text>
-        <text
-          x="160"
-          y="272"
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fill="#7da5c9"
-          fontSize="12"
-          style={{ fontFamily: "var(--font-outfit), system-ui" }}
-        >
-          CO
-        </text>
-        <text
-          x="59"
-          y="218"
-          textAnchor="end"
-          dominantBaseline="middle"
-          fill="#7da5c9"
-          fontSize="12"
-          style={{ fontFamily: "var(--font-outfit), system-ui" }}
-        >
-          SO2
-        </text>
-        <text
-          x="59"
-          y="104"
-          textAnchor="end"
-          dominantBaseline="middle"
-          fill="#7da5c9"
-          fontSize="12"
-          style={{ fontFamily: "var(--font-outfit), system-ui" }}
-        >
-          NO2
-        </text>
+        {RADAR_LABELS.map((lab) => (
+          <text
+            key={lab.text}
+            x={lab.x}
+            y={lab.y}
+            textAnchor={lab.anchor}
+            dominantBaseline="middle"
+            fill="#7da5c9"
+            fontSize="12"
+            style={{ fontFamily: "var(--font-outfit), system-ui" }}
+          >
+            {lab.text}
+          </text>
+        ))}
       </svg>
-      <p className="mt-2 font-outfit text-[0.78rem] text-bqa-dim">• Shape changes by hour of day</p>
+      <p className="mt-1.5 font-outfit text-[0.78rem] text-bqa-dim">
+        {hasLive && citySnapshot
+          ? `• Latest mix for ${citySnapshot.cityName} — spoke length vs reference cap`
+          : "• Load a city above to see live pollutant mix"}
+      </p>
     </>
   );
 }
@@ -260,16 +285,81 @@ function WhoComplianceBody() {
 
 const cardShell = "rounded-2xl border border-sky-400/10 bg-bqa-navy2/75 backdrop-blur-md";
 
-export function ChartHistorySection() {
+function rangeToApiPeriod(days: 7 | 30): HistoricalRangePeriod {
+  return days === 7 ? "7day" : "30day";
+}
+
+function metricChartTitle(metric: Metric): string {
+  if (metric === "aqi") return "AQI";
+  if (metric === "pm25") return "PM2.5";
+  return "PM10";
+}
+
+function formatHistorySubtitle(
+  city: string,
+  state: string,
+  metric: Metric,
+  summary?: { min: number; max: number; average: number }
+): string {
+  const base = `${city} · ${state} · daily avg`;
+  if (!summary) return base;
+  if (metric === "aqi") {
+    return `${base} · avg ${summary.average} (${summary.min}–${summary.max})`;
+  }
+  return `${base} · avg ${summary.average} µg/m³ (${summary.min}–${summary.max})`;
+}
+
+export function ChartHistorySection({
+  citySnapshot = null,
+}: {
+  citySnapshot?: HeroCitySnapshot | null;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
   const [chartType, setChartType] = useState<ChartType>("bar");
-  const [range, setRange] = useState(30);
+  const [range, setRange] = useState<7 | 30>(30);
   const [metric, setMetric] = useState<Metric>("aqi");
+  const [chartLabels, setChartLabels] = useState<string[]>([]);
+  const [chartValues, setChartValues] = useState<number[]>([]);
+  const [historySubtitle, setHistorySubtitle] = useState<string>("");
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   useEffect(() => {
     registerLandingCharts();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const slug = resolveHistoricalSlug(citySnapshot ?? null);
+    const period = rangeToApiPeriod(range);
+    const pollutant = historyMetricToPollutantParam(metric);
+
+    setHistoryLoading(true);
+    setHistoryError(null);
+
+    fetchAqiHistoricalRange(slug, period, pollutant)
+      .then((res) => {
+        if (cancelled) return;
+        setChartLabels(res.labels);
+        setChartValues(res.values);
+        const { city, state } = res.location;
+        setHistorySubtitle(formatHistorySubtitle(city, state, metric, res.summary));
+        setHistoryLoading(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setHistoryError(err instanceof Error ? err.message : "Failed to load air quality history");
+        setChartLabels([]);
+        setChartValues([]);
+        setHistorySubtitle("");
+        setHistoryLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [citySnapshot, range, metric]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -279,14 +369,8 @@ export function ChartHistorySection() {
 
     chartRef.current?.destroy();
 
-    const metricData =
-      metric === "aqi"
-        ? rawData.aqi30
-        : metric === "pm25"
-          ? rawData.pm25_30
-          : rawData.pm10_30;
-    const data = metricData.slice(-range);
-    const labels = genDays(range);
+    const data = chartValues;
+    const labels = chartLabels;
     const colors = data.map((v) => aqiColor(v));
 
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
@@ -353,7 +437,7 @@ export function ChartHistorySection() {
       chartRef.current?.destroy();
       chartRef.current = null;
     };
-  }, [chartType, range, metric]);
+  }, [chartType, chartLabels, chartValues, metric]);
 
   return (
     <section id="sec-chart" className="sec-fx border-t border-sky-400/10 py-12 sm:py-14">
@@ -366,10 +450,14 @@ export function ChartHistorySection() {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <h3 className="font-outfit text-lg font-bold tracking-[-0.02em] text-bqa-text sm:text-xl md:text-2xl">
-                30-Day AQI Trend
+                {range}-Day {metricChartTitle(metric)} Trend
               </h3>
               <p className="mt-1 text-[0.85rem] leading-snug text-bqa-muted sm:text-[0.95rem]">
-                Mumbai · 1hr avg · Totals Stations: 47
+                {historyLoading && !historySubtitle
+                  ? "Loading history…"
+                  : historyError
+                    ? historyError
+                    : historySubtitle || "—"}
               </p>
             </div>
             <button
@@ -414,14 +502,13 @@ export function ChartHistorySection() {
             </div>
             <select
               value={range}
-              onChange={(e) => setRange(Number(e.target.value))}
+              onChange={(e) => setRange(Number(e.target.value) as 7 | 30)}
               style={{ backgroundImage: selectChevronBg }}
               className={selectClass}
               aria-label="Date range"
             >
               <option value={7}>7 Days</option>
               <option value={30}>30 Days</option>
-              <option value={90}>90 Days</option>
             </select>
             <select
               value={metric}
@@ -474,7 +561,7 @@ export function ChartHistorySection() {
               <ChevronDown className="history-details-chevron" />
             </summary>
             <div className="border-t border-sky-400/10 px-5 pb-5 pt-4">
-              <PollutantRadarBody />
+              <PollutantRadarBody citySnapshot={citySnapshot} />
             </div>
           </details>
 
@@ -504,8 +591,8 @@ export function ChartHistorySection() {
         </div>
 
         {/* Desktop: two-column panels */}
-        <div className="mt-6 hidden grid-cols-1 gap-6 lg:grid lg:grid-cols-2">
-          <div className={`${cardShell} p-5 sm:p-6`}>
+        <div className="mt-6 hidden grid-cols-1 gap-6 lg:grid lg:grid-cols-2 lg:items-stretch">
+          <div className={`${cardShell} h-full p-5 sm:p-6`}>
             <div className="mb-3 flex items-center gap-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-bqa-accent/15">
                 <Image
@@ -519,10 +606,10 @@ export function ChartHistorySection() {
               </span>
               <h3 className="font-outfit text-base font-bold text-white">Pollutant Source Radar</h3>
             </div>
-            <PollutantRadarBody />
+            <PollutantRadarBody citySnapshot={citySnapshot} />
           </div>
 
-          <div className={`${cardShell} p-5 sm:p-6`}>
+          <div className={`${cardShell} h-full p-5 sm:p-6`}>
             <div className="mb-1 flex items-center gap-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-500/15">
                 <Image
