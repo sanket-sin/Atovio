@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   fetchCityAqiBySlug,
   fetchCityAqiByLocationParts,
@@ -152,6 +152,38 @@ export function LandingExperience() {
     };
   }, []);
 
+  useEffect(() => {
+    const nodes = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-reveal]")
+    );
+    if (nodes.length === 0) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      nodes.forEach((node) => {
+        node.dataset.revealed = "true";
+      });
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const target = entry.target as HTMLElement;
+          target.dataset.revealed = "true";
+          observer.unobserve(target);
+        });
+      },
+      { threshold: 0.18, rootMargin: "0px 0px -8% 0px" }
+    );
+
+    nodes.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, []);
+
+  const revealStyle = (delay: number): CSSProperties =>
+    ({ "--reveal-delay": `${delay}ms` }) as CSSProperties;
+
   return (
     <div
       className={`${isLight ? "light-theme" : ""} landing-theme ${dmSerif.variable} ${jetbrains.variable} ${sora.variable} ${outfit.variable} min-h-screen bg-bqa-navy font-outfit text-[15px] leading-relaxed text-bqa-text antialiased`}
@@ -175,25 +207,47 @@ export function LandingExperience() {
       />
 
       <main className="pt-0">
-        <LandingHero
-          isLight={isLight}
-          onScrollToMap={scrollToRealtimeMap}
-          citySnapshot={heroCity}
-          isLocatingLocation={isLocatingCity}
-          locationUnavailable={locationUnavailable}
-        />
-        <AirQualityToolkitSection isLight={isLight} citySnapshot={heroCity} />
-        <ChartHistorySection citySnapshot={heroCity} />
-        <RealtimeAqiMapSection isLight={isLight} />
-        <PollutantsSection citySnapshot={heroCity} />
-        <LeaderboardSection isLight={isLight} />
-        <IndiaAqiOverviewSection />
-        <HealthGuidanceSection isLight={isLight} />
-        <FaqSection />
-        <SubscribeSection />
+        <div className="landing-reveal" data-reveal data-revealed="true">
+          <LandingHero
+            isLight={isLight}
+            onScrollToMap={scrollToRealtimeMap}
+            citySnapshot={heroCity}
+            isLocatingLocation={isLocatingCity}
+            locationUnavailable={locationUnavailable}
+          />
+        </div>
+        <div className="landing-reveal" data-reveal style={revealStyle(40)}>
+          <AirQualityToolkitSection isLight={isLight} citySnapshot={heroCity} />
+        </div>
+        <div className="landing-reveal" data-reveal style={revealStyle(80)}>
+          <ChartHistorySection citySnapshot={heroCity} />
+        </div>
+        <div className="landing-reveal" data-reveal style={revealStyle(120)}>
+          <RealtimeAqiMapSection isLight={isLight} />
+        </div>
+        <div className="landing-reveal" data-reveal style={revealStyle(160)}>
+          <PollutantsSection citySnapshot={heroCity} />
+        </div>
+        <div className="landing-reveal" data-reveal style={revealStyle(200)}>
+          <LeaderboardSection isLight={isLight} />
+        </div>
+        <div className="landing-reveal" data-reveal style={revealStyle(240)}>
+          <IndiaAqiOverviewSection />
+        </div>
+        <div className="landing-reveal" data-reveal style={revealStyle(280)}>
+          <HealthGuidanceSection isLight={isLight} />
+        </div>
+        <div className="landing-reveal" data-reveal style={revealStyle(320)}>
+          <FaqSection />
+        </div>
+        <div className="landing-reveal" data-reveal style={revealStyle(360)}>
+          <SubscribeSection />
+        </div>
       </main>
 
-      <LandingFooter />
+      <div className="landing-reveal" data-reveal style={revealStyle(400)}>
+        <LandingFooter />
+      </div>
     </div>
   );
 }

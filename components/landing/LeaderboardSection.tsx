@@ -68,14 +68,14 @@ function TrendIcon({ t }: { t: Row["trend"] }) {
 }
 
 function aqiBadgeSurface(variant: AqiLevelVariant, darkClass: string, isLight: boolean): string {
-  const darkFull = `inline-flex rounded-lg border px-3.5 py-1 font-mono text-[0.95rem] font-extrabold ${darkClass}`;
+  const darkFull = `inline-flex rounded-lg border px-2.5 py-1 font-mono text-[0.95rem] font-extrabold ${darkClass}`;
   if (!isLight) return darkFull;
   return aqiVariantToLightBadgeShell(variant);
 }
 
 /** One shared template: Rank | City | AQI | Status | Trend | Puff (bar + value stay in the last cell — no md:contents split). */
 const ROW_GRID =
-  "grid grid-cols-[40px_minmax(0,1fr)_72px_88px_40px_minmax(120px,1fr)] items-center gap-x-2.5 gap-y-0 px-3 py-2.5 sm:grid-cols-[52px_minmax(0,1fr)_88px_100px_52px_minmax(130px,1fr)] sm:gap-x-4 sm:px-4 sm:py-3 md:grid-cols-[52px_minmax(0,1fr)_96px_110px_56px_1fr] md:gap-x-5 md:py-3.5";
+  "grid grid-cols-[40px_minmax(0,1fr)_64px_88px_40px_minmax(120px,1fr)] items-center gap-x-2.5 gap-y-0 px-3 py-2.5 sm:grid-cols-[52px_minmax(0,1fr)_74px_100px_52px_minmax(130px,1fr)] sm:gap-x-4 sm:px-4 sm:py-3 md:grid-cols-[52px_minmax(0,1fr)_82px_110px_56px_1fr] md:gap-x-5 md:py-3.5";
 
 export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
   const [q, setQ] = useState("");
@@ -180,7 +180,7 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
             >
               <span>Rank</span>
               <span>City</span>
-              <span>AQI</span>
+              <span className="text-center">AQI</span>
               <span>Status</span>
               <span className="text-center">Trend</span>
               <span>
@@ -236,7 +236,11 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
                       >
                         {r.city}
                       </span>
-                      <span className={aqiBadgeSurface(r.levelVariant, r.aqiClass, isLight)}>{r.aqi}</span>
+                      <span
+                        className={`${aqiBadgeSurface(r.levelVariant, r.aqiClass, isLight)} aqi-pill-bubble w-fit justify-self-center`}
+                      >
+                        {r.aqi}
+                      </span>
                       <div className={`text-xs font-bold leading-none sm:text-sm ${r.statusColor}`}>
                         {r.status}
                       </div>
