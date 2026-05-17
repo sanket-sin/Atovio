@@ -9,7 +9,6 @@ import {
   aqiVariantToLightBadgeShell,
   getAqiLevel,
 } from "@/lib/air-quality/aqi-levels";
-import { AnimatedCigarette } from "./AnimatedCigarette";
 import { SectionEyebrow } from "./SectionEyebrow";
 import { SectionTitle } from "./SectionTitle";
 
@@ -19,23 +18,18 @@ type Row = {
   city: string;
   aqi: string;
   aqiClass: string;
-  status: string;
-  statusColor: string;
-  trend: "up" | "down" | "flat";
-  puffPct: number;
   puffVal: string;
   rowBorder: string;
   levelVariant: AqiLevelVariant;
 };
 
-/** Puff bar scale: scores from API are typically under ~5 cigs/day for per-city rows. */
-const PUFF_SCORE_BAR_CAP = 5;
-
 function rankLabel(rank: number): { rank: string; rankClass: string } {
   const label = `${rank}.`;
   if (rank === 1) return { rank: label, rankClass: "text-amber-400" };
-  if (rank === 2) return { rank: label, rankClass: "text-slate-400" };
-  if (rank === 3) return { rank: label, rankClass: "text-amber-700" };
+  if (rank === 2) return { rank: label, rankClass: "text-sky-400" };
+  if (rank === 3) return { rank: label, rankClass: "text-orange-500" };
+  if (rank === 4) return { rank: label, rankClass: "text-indigo-400" };
+  if (rank === 5) return { rank: label, rankClass: "text-sky-300" };
   return { rank: label, rankClass: "" };
 }
 
@@ -43,40 +37,21 @@ function apiCityToRow(c: MostPollutedCityRow): Row {
   const rl = rankLabel(c.rank);
   const level = getAqiLevel(c.aqi);
   const styles = aqiVariantToLeaderboardRowChrome(level.variant);
-  const puffPct = Math.min(
-    100,
-    Math.round((Math.min(c.puff_score, PUFF_SCORE_BAR_CAP) / PUFF_SCORE_BAR_CAP) * 100)
-  );
   return {
     ...rl,
     ...styles,
     levelVariant: level.variant,
     city: c.city,
     aqi: String(Math.round(c.aqi)),
-    status: level.labelUppercase,
-    trend: "flat",
-    puffPct,
     puffVal: c.puff_score.toFixed(1),
   };
 }
 
-function TrendIcon({ t }: { t: Row["trend"] }) {
-  if (t === "up")
-    return <span className="text-lg font-extrabold text-bqa-unhealthy">↑</span>;
-  if (t === "down")
-    return <span className="text-lg font-extrabold text-bqa-good">↓</span>;
-  return <span className="text-lg font-extrabold text-bqa-dim">→</span>;
-}
-
 function aqiBadgeSurface(variant: AqiLevelVariant, darkClass: string, isLight: boolean): string {
-  const darkFull = `inline-flex rounded-lg border px-2.5 py-1 font-mono text-[0.95rem] font-extrabold ${darkClass}`;
+  const darkFull = `inline-flex shrink-0 rounded-lg border px-2.5 py-1 font-mono text-[0.95rem] font-extrabold ${darkClass}`;
   if (!isLight) return darkFull;
   return aqiVariantToLightBadgeShell(variant);
 }
-
-/** One shared template: Rank | City | AQI | Status | Trend | Puff (bar + value stay in the last cell — no md:contents split). */
-const ROW_GRID =
-  "grid grid-cols-[40px_minmax(0,1fr)_64px_88px_40px_minmax(120px,1fr)] items-center gap-x-2.5 gap-y-0 px-3 py-2.5 sm:grid-cols-[52px_minmax(0,1fr)_74px_100px_52px_minmax(130px,1fr)] sm:gap-x-4 sm:px-4 sm:py-3 md:grid-cols-[52px_minmax(0,1fr)_82px_110px_56px_1fr] md:gap-x-5 md:py-3.5";
 
 export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
   const [q, setQ] = useState("");
@@ -147,24 +122,24 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
             <SectionEyebrow>Pollution Index · India</SectionEyebrow>
             <SectionTitle className="mb-1">National AQI Leaderboard</SectionTitle>
           </div>
-          <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap lg:w-auto">
+          <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap lg:w-auto">
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search here......"
               disabled={loading || !!error}
-              className="w-full rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-outfit text-sm text-bqa-text outline-none focus:border-sky-400/30 disabled:opacity-50 sm:w-52"
+              className="w-full min-w-0 rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-outfit text-sm text-bqa-text outline-none focus:border-sky-400/30 disabled:opacity-50 sm:w-52"
             />
             <select
               disabled
-              className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-outfit text-sm text-bqa-muted opacity-70"
+              className="w-full min-w-0 cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-outfit text-sm text-bqa-muted opacity-70 sm:w-auto"
               title="Coming soon"
             >
               <option>All India</option>
             </select>
             <select
               disabled
-              className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-outfit text-sm text-bqa-muted opacity-70"
+              className="w-full min-w-0 cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-outfit text-sm text-bqa-muted opacity-70 sm:w-auto"
               title="Sorted by most polluted (API)"
             >
               <option>Most Polluted</option>
@@ -172,125 +147,92 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
           </div>
         </div>
 
-        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:overflow-visible sm:px-0">
-          <div className="min-w-[680px] sm:min-w-0">
-            <div
-              className={`${ROW_GRID} pb-2.5 font-outfit text-[0.78rem] font-semibold uppercase tracking-widest sm:text-[0.85rem] ${
-                isLight ? "text-slate-400" : "text-bqa-dim"
-              }`}
-            >
-              <span>Rank</span>
-              <span>City</span>
-              <span className="text-center">AQI</span>
-              <span>Status</span>
-              <span className="text-center">Trend</span>
-              <span className="inline-flex flex-wrap items-center gap-x-1">
-                Puff Score
-                <AnimatedCigarette isLight={isLight} className="cursor-help text-bqa-accent" />
-              </span>
+        <div className="w-full min-w-0">
+          {loading && (
+            <p className={`py-10 text-center font-mono text-sm ${isLight ? "text-slate-500" : "text-bqa-muted"}`}>
+              Loading leaderboard…
+            </p>
+          )}
+
+          {!loading && error && (
+            <div className="py-10 text-center">
+              <p className={`mb-3 text-sm ${isLight ? "text-rose-700" : "text-rose-300"}`}>{error}</p>
+              <button
+                type="button"
+                onClick={() => setRetryTick((t) => t + 1)}
+                className={`rounded-lg px-4 py-2 font-mono text-sm font-semibold ${
+                  isLight
+                    ? "border border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
+                    : "border border-sky-400/20 bg-bqa-slate text-bqa-text hover:bg-bqa-slate2"
+                }`}
+              >
+                Retry
+              </button>
             </div>
+          )}
 
-            {loading && (
-              <p className={`py-10 text-center font-mono text-sm ${isLight ? "text-slate-500" : "text-bqa-muted"}`}>
-                Loading leaderboard…
-              </p>
-            )}
-
-            {!loading && error && (
-              <div className="py-10 text-center">
-                <p className={`mb-3 text-sm ${isLight ? "text-rose-700" : "text-rose-300"}`}>{error}</p>
-                <button
-                  type="button"
-                  onClick={() => setRetryTick((t) => t + 1)}
-                  className={`rounded-lg px-4 py-2 font-mono text-sm font-semibold ${
-                    isLight
-                      ? "border border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
-                      : "border border-sky-400/20 bg-bqa-slate text-bqa-text hover:bg-bqa-slate2"
-                  }`}
+          {!loading && !error && (
+            <div className="flex flex-col gap-2.5">
+              {filtered.map((r) => (
+                <article
+                  key={`${r.rank}-${r.city}`}
+                  className={`min-w-0 overflow-hidden rounded-xl border-l-4 ${r.rowBorder} ${cardShell}`}
                 >
-                  Retry
-                </button>
-              </div>
-            )}
-
-            {!loading && !error && (
-              <div className="flex flex-col gap-1.5">
-                {filtered.map((r) => (
-                  <div
-                    key={`${r.rank}-${r.city}`}
-                    className={`rounded-xl border-l-4 ${r.rowBorder} ${cardShell}`}
-                  >
-                    <div className={ROW_GRID}>
+                  <div className="px-3.5 py-3 sm:px-4 sm:py-3.5">
+                    <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
                       <span
-                        className={`shrink-0 font-mono text-base font-extrabold tabular-nums ${
-                          isLight ? "text-slate-500" : `text-bqa-dim ${r.rankClass}`
+                        className={`shrink-0 font-mono text-base font-extrabold tabular-nums sm:text-lg ${
+                          isLight ? "text-slate-500" : r.rankClass || "text-bqa-dim"
                         }`}
                       >
                         {r.rank}
                       </span>
                       <span
-                        className={`min-w-0 truncate font-semibold ${
-                          isLight ? "font-bold text-slate-900" : "text-bqa-text"
+                        className={`min-w-0 flex-1 truncate text-base font-bold sm:text-lg ${
+                          isLight ? "text-slate-900" : "text-bqa-text"
                         }`}
                       >
                         {r.city}
                       </span>
-                      <span
-                        className={`${aqiBadgeSurface(r.levelVariant, r.aqiClass, isLight)} aqi-pill-bubble w-fit justify-self-center`}
-                      >
+                      <span className={`${aqiBadgeSurface(r.levelVariant, r.aqiClass, isLight)} aqi-pill-bubble`}>
                         {r.aqi}
                       </span>
-                      <div className={`text-xs font-bold leading-none sm:text-sm ${r.statusColor}`}>
-                        {r.status}
-                      </div>
-                      <div className="flex justify-center">
-                        <TrendIcon t={r.trend} />
-                      </div>
-                      <div className="flex min-w-0 items-center gap-2">
-                        <div
-                          className={`h-1.5 min-w-[48px] flex-1 rounded ${
-                            isLight ? "bg-slate-200" : "bg-bqa-slate2"
-                          }`}
-                        >
-                          <div
-                            className="h-full rounded bg-gradient-to-r from-bqa-accent2 to-bqa-accent"
-                            style={{ width: `${r.puffPct}%` }}
-                          />
-                        </div>
+                    </div>
+                    <div
+                      className={`my-2.5 border-t border-dotted sm:my-3 ${
+                        isLight ? "border-slate-200" : "border-sky-400/15"
+                      }`}
+                      aria-hidden
+                    />
+                    <div className="flex min-w-0 items-center justify-between gap-3">
+                      <span
+                        className={`shrink-0 font-outfit text-[0.68rem] font-semibold uppercase tracking-wider sm:text-xs ${
+                          isLight ? "text-slate-500" : "text-bqa-muted"
+                        }`}
+                      >
+                        Puff Score:
+                      </span>
+                      <span
+                        className={`min-w-0 truncate text-right font-mono text-sm font-bold tabular-nums sm:text-base ${
+                          isLight ? "text-slate-900" : "text-bqa-text"
+                        }`}
+                      >
+                        {r.puffVal}
                         <span
-                          className={`shrink-0 whitespace-nowrap font-mono text-xs font-bold sm:text-sm ${
-                            isLight ? "text-slate-900" : "text-bqa-text"
+                          className={`ml-1 text-[0.65rem] font-medium sm:text-xs ${
+                            isLight ? "text-slate-500" : "text-bqa-muted"
                           }`}
                         >
-                          {r.puffVal}
-                          <span
-                            className={`text-[0.65rem] font-medium ${isLight ? "text-slate-500" : "text-bqa-muted"}`}
-                          >
-                            {" "}
-                            cigs/day
-                          </span>
+                          cigs/day
                         </span>
-                      </div>
+                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
-
-        {!loading && !error && filtered.length > 0 && (
-          <button
-            type="button"
-            className={`mt-3 w-full rounded-lg px-3 py-2 font-outfit text-[0.72rem] font-semibold transition sm:mt-4 md:hidden ${
-              isLight
-                ? "border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
-                : "bg-bqa-accent text-white shadow-[0_4px_12px_rgba(61,158,255,0.25)] hover:brightness-110"
-            }`}
-          >
-            View Detailed List
-          </button>
-        )}
 
         {!loading && !error && filtered.length === 0 && rows.length > 0 && (
           <p className="py-8 text-center text-bqa-muted">No cities match.</p>

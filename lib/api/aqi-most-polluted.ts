@@ -1,5 +1,9 @@
 import axios from "axios";
-import { BEYONDAQI_API_BASE, beyondaqiRequestHeaders } from "@/lib/config/beyondaqi-api";
+import {
+  BEYONDAQI_API_BASE,
+  BEYONDAQI_REQUEST_TIMEOUT_MS,
+  beyondaqiRequestHeaders,
+} from "@/lib/config/beyondaqi-api";
 
 /** One row from `data.cities` — matches BeyondAQI `most-polluted` leaderboard. */
 export type MostPollutedCityRow = {
@@ -52,6 +56,7 @@ async function getMostPollutedResponse(
 
   const { data } = await axios.get<MostPollutedApiResponse>(url, {
     headers: beyondaqiRequestHeaders(),
+    timeout: BEYONDAQI_REQUEST_TIMEOUT_MS,
   });
 
   if (data.error || data.status?.toLowerCase() !== "success" || data.statusCode !== 200) {

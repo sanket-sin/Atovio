@@ -1,7 +1,11 @@
 import axios from "axios";
 import type { AqiLevelVariant } from "@/lib/air-quality/aqi-levels";
 import { getAqiLevel, getPm10Ugm3Level, getPm25Ugm3Level } from "@/lib/air-quality/aqi-levels";
-import { BEYONDAQI_API_BASE, beyondaqiRequestHeaders } from "@/lib/config/beyondaqi-api";
+import {
+  BEYONDAQI_API_BASE,
+  BEYONDAQI_REQUEST_TIMEOUT_MS,
+  beyondaqiRequestHeaders,
+} from "@/lib/config/beyondaqi-api";
 
 /** Matches `AqiBadge` variants — same literals as `AqiLevelVariant` in `lib/air-quality/aqi-levels`. */
 export type HeroAqiBadgeVariant = AqiLevelVariant;
@@ -54,6 +58,8 @@ type CityAqiApiResponse = {
       city: string;
       state: string;
       country: string;
+      latitude?: number;
+      longitude?: number;
     };
     pollutants: {
       pm2_5?: number;
@@ -207,4 +213,61 @@ export async function fetchCityAqiByLocationParts({
   city: string;
 }): Promise<HeroCitySnapshot> {
   return fetchCityAqiBySlug(`${country}/${state}/${city}`);
+}
+
+export type CityAqiMapPoint = {
+  city: string;
+  state: string;
+  country: string;
+  lat: number;
+  lng: number;
+  aqi: number;
+  aqiStatus: string;
+  temperature?: number;
+  temperatureUnit?: string;
+};
+
+/** Lat/lng + live AQI for map markers (from city detail endpoint). */
+export async function fetchCityAqiMapPoint({
+  country,
+  state,
+  city,
+}: {
+  country: string;
+  state: string;
+  city: string;
+}): Promise<CityAqiMapPoint | null> {
+  const path = slugToAqiPath(`${country}/${state}/${city}`);
+  if (path.split("/").filter(Boolean).length < 3) return null;
+
+  try {
+    const { data } = await axios.get<CityAqiApiResponse>(
+      `${BEYONDAQI_API_BASE}/api/aqi/${path}`,
+      {
+        headers: beyondaqiRequestHeaders(),
+        timeout: BEYONDAQI_REQUEST_TIMEOUT_MS,
+      }
+    );
+    const loc = data.data?.location;
+    const lat = loc?.latitude;
+    const lng = loc?.longitude;
+    if (typeof lat !== "number" || typeof lng !== "number" || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return null;
+    }
+
+    const weather = data.data.basic_weather;
+    return {
+      city: loc.city,
+      state: loc.state,
+      country: loc.country,
+      lat,
+      lng,
+      aqi: data.data.aqi,
+      aqiStatus: data.data.aqi_status,
+      temperature: weather?.temperature,
+      temperatureUnit: weather?.temperature_unit,
+    };
+  } catch {
+    return null;
+  }
 }

@@ -11,20 +11,24 @@ import {
   type ExposureClockModel,
 } from "@/lib/api/aqi-historical-24h";
 
+/** Figma: best #22C55E, avoid #EF4444 */
+const CLOCK_BEST = "#22C55E";
+const CLOCK_WORST = "#EF4444";
+
 /* ── Clock fallback (before API load or on error) ── */
 const FALLBACK_SEGMENT_COLORS = [
   "#ffd24d",
   "#ffd24d", // 12–2AM yellow
-  "#14532d",
-  "#166534",
-  "#15803d", // 2–5AM dark green
-  "#4ade80",
-  "#86efac", // 5–7AM best window
+  "#15803d",
+  "#16a34a",
+  "#22c55e", // 2–5AM green
+  "#22c55e",
+  "#4ade80", // 5–7AM best window
   "#ffd24d", // 7–8AM
-  "#fb7185",
-  "#f87171",
+  "#f97316",
   "#ef4444",
-  "#f97316", // 8AM–12PM worst band
+  "#ef4444",
+  "#ef4444", // 8AM–12PM avoid band
   "#fb923c",
   "#f97316",
   "#ea580c",
@@ -72,20 +76,43 @@ function segPath(h: number): string {
   );
 }
 
-function labelPos(h: number, r: number) {
+type ClockLabelLayout = {
+  x: number;
+  y: number;
+  textAnchor: "start" | "middle" | "end";
+};
+
+/** Push labels outward and anchor by quadrant so 3AM/9AM etc. do not overlap. */
+function clockLabelLayout(h: number, r: number): ClockLabelLayout {
   const rad = ((h / 24) * 360 - 90) * (Math.PI / 180);
-  return { x: CX + r * Math.cos(rad), y: CY + r * Math.sin(rad) };
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const x = CX + r * cos;
+  const y = CY + r * sin;
+
+  if (h === 0) return { x, y: y - 2, textAnchor: "middle" };
+  if (h === 12) return { x, y: y + 2, textAnchor: "middle" };
+  if (h === 6) return { x: x + 2.5, y, textAnchor: "start" };
+  if (h === 18) return { x: x - 2.5, y, textAnchor: "end" };
+  if (h > 0 && h < 12) {
+    const yNudge = h === 3 ? -1.25 : h === 9 ? 1.25 : 0;
+    return { x: x + 2, y: y + yNudge, textAnchor: "start" };
+  }
+  const yNudge = h === 15 ? 1.25 : h === 21 ? -1.25 : 0;
+  return { x: x - 2, y: y + yNudge, textAnchor: "end" };
 }
 
 /* ── Forecast chart ── */
 const VW = 336,
-  VH = 192;
+  VH = 208;
 const PL = 28,
-  PT = 8,
-  PB = 42,
-  PR = 4;
+  PT = 10,
+  PB = 56,
+  PR = 8;
 const GW = VW - PL - PR,
   GH = VH - PT - PB;
+const X_TICK_Y = PT + GH + 18;
+const DATE_ROW_Y = VH - 5;
 
 const AQI_PTS = [160, 172, 190, 215, 258, 308, 360, 405, 426, 412, 346, 166];
 const X_LABS = ["4PM", "6PM", "8PM", "10PM", "12AM", "2AM", "4AM", "6AM", "8AM", "10AM", "12PM", "2PM"];
@@ -131,8 +158,8 @@ function ClockFace({
   const ringLabelFill = isLight ? "#94a3b8" : "#9ca3af";
 
   return (
-    <div className="relative mx-auto w-full max-w-[min(100%,240px)] shrink-0">
-      <svg viewBox="-14 -28 128 128" className="w-full overflow-visible">
+    <div className="relative mx-auto w-full max-w-[min(100%,200px)] shrink-0 px-1">
+      <svg viewBox="-12 -12 124 124" className="w-full overflow-visible">
         {segmentColors.map((color, h) => (
           <path key={h} d={segPath(h)} fill={color} />
         ))}
@@ -143,7 +170,7 @@ function ClockFace({
           textAnchor="middle"
           dominantBaseline="middle"
           fill={centerNumFill}
-          fontSize="18"
+          fontSize="16"
           fontWeight="bold"
           style={{ fontFamily: OUTFIT }}
         >
@@ -161,18 +188,18 @@ function ClockFace({
           hours
         </text>
         {CLOCK_LABELS.map(({ label, h }) => {
-          const { x, y } = labelPos(h, 54);
+          const { x, y, textAnchor } = clockLabelLayout(h, 58);
           return (
             <text
               key={label}
               x={x}
               y={y}
-              textAnchor="middle"
+              textAnchor={textAnchor}
               dominantBaseline="middle"
               fill={ringLabelFill}
-              fontSize="5"
-              letterSpacing="0.02em"
-              style={{ fontFamily: OUTFIT }}
+              fontSize="4.75"
+              letterSpacing="0.04em"
+              style={{ fontFamily: "var(--font-sora), system-ui, sans-serif" }}
             >
               {label}
             </text>
@@ -191,11 +218,11 @@ function ClockLegendRow({ isLight }: { isLight: boolean }) {
       className={`flex w-full flex-row flex-wrap items-center justify-center gap-x-10 gap-y-2 font-outfit text-[0.75rem] leading-tight ${legendMuted}`}
     >
       <span className="flex items-center gap-2.5">
-        <span className="h-2 w-2 shrink-0 rounded-full bg-[#4ade80]" />
+        <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: CLOCK_BEST }} />
         Best window
       </span>
       <span className="flex items-center gap-2.5">
-        <span className="h-2 w-2 shrink-0 rounded-full bg-[#f87171]" />
+        <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: CLOCK_WORST }} />
         Worst window
       </span>
     </div>
@@ -211,42 +238,54 @@ function ClockRecommendations({
   bestRange: string;
   worstRange: string;
 }) {
-  const labelClass = isLight ? "text-bqa-muted" : "text-white";
+  const labelClass = "text-bqa-muted";
 
   return (
     <div className={`mt-6 border-t pt-5 ${isLight ? "border-slate-200" : "border-white/10"}`}>
-      <div className="flex items-start gap-3">
-        <span className="mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-[#4ade80]">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path
-              d="M20 6L9 17l-5-5"
-              stroke="white"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
-        <p className="font-outfit text-[0.82rem] leading-snug">
-          <span className={labelClass}>Best outdoors: </span>
-          <span className="font-semibold text-[#4ade80]">{bestRange}</span>
-        </p>
-      </div>
-      <div className="mt-4 flex items-start gap-3">
-        <span className="mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-[#f87171]">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path
-              d="M18 6L6 18M6 6l12 12"
-              stroke="white"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
-        </span>
-        <p className="font-outfit text-[0.82rem] leading-snug">
-          <span className={labelClass}>Avoid outdoors: </span>
-          <span className="font-semibold text-[#f87171]">{worstRange}</span>
-        </p>
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex items-start gap-3">
+          <span
+            className="mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full"
+            style={{ backgroundColor: CLOCK_BEST }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path
+                d="M20 6L9 17l-5-5"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <p className="font-sora text-xs font-normal leading-snug">
+            <span className={labelClass}>Best outdoors: </span>
+            <span className="font-normal" style={{ color: CLOCK_BEST }}>
+              {bestRange}
+            </span>
+          </p>
+        </div>
+        <div className="flex items-start gap-3">
+          <span
+            className="mt-0.5 flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full"
+            style={{ backgroundColor: CLOCK_WORST }}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path
+                d="M18 6L6 18M6 6l12 12"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
+          <p className="font-sora text-xs font-normal leading-snug">
+            <span className={labelClass}>Avoid outdoors: </span>
+            <span className="font-normal" style={{ color: CLOCK_WORST }}>
+              {worstRange}
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -302,26 +341,51 @@ function ForecastChartBlock() {
         />
 
         {X_LABS.map((lb, i) => (
-          <text
-            key={lb}
-            x={gx(i)}
-            y={PT + GH + 11}
-            textAnchor="middle"
-            fill="#4a728a"
-            fontSize="7"
-            style={{ fontFamily: OUTFIT }}
-          >
-            {lb}
-          </text>
+          <g key={`${lb}-${i}`}>
+            <line
+              x1={gx(i)}
+              y1={PT + GH}
+              x2={gx(i)}
+              y2={PT + GH + 5}
+              stroke="rgba(96,165,250,0.22)"
+              strokeWidth="0.75"
+            />
+            <text
+              x={gx(i)}
+              y={X_TICK_Y}
+              textAnchor="middle"
+              dominantBaseline="hanging"
+              fill="#4a728a"
+              fontSize="6.75"
+              letterSpacing="-0.02em"
+              style={{ fontFamily: OUTFIT }}
+            >
+              {lb}
+            </text>
+          </g>
         ))}
 
-        <text x={PL} y={VH - 2} fill="#4a728a" fontSize="7" style={{ fontFamily: OUTFIT }}>
+        <text x={PL} y={DATE_ROW_Y} fill="#4a728a" fontSize="7" style={{ fontFamily: OUTFIT }}>
           30/03/2026
         </text>
-        <text x={VW / 2} y={VH - 2} textAnchor="middle" fill="#4a728a" fontSize="7" style={{ fontFamily: OUTFIT }}>
+        <text
+          x={VW / 2}
+          y={DATE_ROW_Y}
+          textAnchor="middle"
+          fill="#4a728a"
+          fontSize="7"
+          style={{ fontFamily: OUTFIT }}
+        >
           Time
         </text>
-        <text x={VW - PR} y={VH - 2} textAnchor="end" fill="#4a728a" fontSize="7" style={{ fontFamily: OUTFIT }}>
+        <text
+          x={VW - PR}
+          y={DATE_ROW_Y}
+          textAnchor="end"
+          fill="#4a728a"
+          fontSize="7"
+          style={{ fontFamily: OUTFIT }}
+        >
           01/04/2026
         </text>
       </svg>

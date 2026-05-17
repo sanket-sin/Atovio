@@ -1,30 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { fetchMostPollutedCities } from "@/lib/api/aqi-most-polluted";
 import { aqiScaleToTextClass, getAqiLevel } from "@/lib/air-quality/aqi-levels";
 
-/**
- * Remount key so the CSS marquee restarts after layout-affecting changes.
- * `translateX(-50%)` is measured against the track width; if width changes (fallback → API,
- * or fonts finishing loading) without a remount, motion looks wrong until the next reflow (e.g. scroll).
- */
-function useMarqueeRemountKey(itemCount: number, source: "live" | "fallback") {
-  const [fontEpoch, setFontEpoch] = useState(0);
-
-  useEffect(() => {
-    if (typeof document === "undefined" || !document.fonts?.ready) return;
-    let cancelled = false;
-    document.fonts.ready.then(() => {
-      if (!cancelled) setFontEpoch((n) => n + 1);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return `${itemCount}-${source}-${fontEpoch}`;
-}
+/** One segment width scrolls in this many seconds — keeps px/s steady as content/fonts load. */
+const TICKER_PX_PER_SEC = 52;
 
 /** Fallback when the API is unavailable (matches prior static ticker styling). */
 const FALLBACK_CITIES: { rank: number; city: string; aqi: number; color: string }[] = [
@@ -44,10 +25,45 @@ function aqiScaleToTickerColor(scale: number): string {
   return aqiScaleToTextClass(scale);
 }
 
+type TickerRow = { rank: number; city: string; aqi: number; color: string };
+
 type LiveAQITickerProps = {
   rowPad?: string;
   isLight?: boolean;
 };
+
+function TickerSegment({
+  rows,
+  segmentKey,
+  cityClass,
+  sepClass,
+  hidden,
+}: {
+  rows: TickerRow[];
+  segmentKey: string;
+  cityClass: string;
+  sepClass: string;
+  hidden?: boolean;
+}) {
+  return (
+    <div className="flex shrink-0" aria-hidden={hidden || undefined}>
+      {rows.map((c) => (
+        <span
+          key={`${segmentKey}-${c.rank}`}
+          className="inline-flex items-baseline whitespace-nowrap font-mono text-[0.78rem] sm:text-[0.8rem]"
+        >
+          <span className={cityClass}>{c.city}</span>
+          <span className="ml-1.5 font-bold tabular-nums sm:ml-2">
+            <span className={c.color}>{c.aqi}</span>
+          </span>
+          <span className={sepClass} aria-hidden>
+            |
+          </span>
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export function LiveAQITicker({
   rowPad = "px-4 sm:px-6 lg:px-8 xl:px-10",
@@ -80,15 +96,38 @@ export function LiveAQITicker({
     };
   }, []);
 
-  const items = useMemo(() => {
-    const rows = liveRows ?? FALLBACK_CITIES;
-    return [...rows, ...rows];
-  }, [liveRows]);
+  const rows = useMemo(() => liveRows ?? FALLBACK_CITIES, [liveRows]);
+  const trackRef = useRef<HTMLDivElement>(null);
 
-  const marqueeKey = useMarqueeRemountKey(
-    items.length,
-    liveRows ? "live" : "fallback"
-  );
+  useLayoutEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const syncDuration = () => {
+      const segment = track.children[0] as HTMLElement | undefined;
+      if (!segment) return;
+      const width = segment.getBoundingClientRect().width;
+      if (width <= 0) return;
+      track.style.animationDuration = `${width / TICKER_PX_PER_SEC}s`;
+      track.style.animationPlayState = "running";
+    };
+
+    track.style.animationPlayState = "paused";
+    syncDuration();
+
+    const ro = new ResizeObserver(syncDuration);
+    ro.observe(track);
+
+    let cancelled = false;
+    document.fonts?.ready.then(() => {
+      if (!cancelled) syncDuration();
+    });
+
+    return () => {
+      cancelled = true;
+      ro.disconnect();
+    };
+  }, [rows]);
 
   const barClass = isLight
     ? "border-b border-black/[0.07] bg-white"
@@ -118,23 +157,22 @@ export function LiveAQITicker({
           className={`min-h-[1.25rem] min-w-0 flex-1 self-center overflow-hidden pl-3 sm:pl-4 ${tickerBorderClass}`}
         >
           <div
-            key={marqueeKey}
-            className="flex w-max animate-ticker gap-0 pr-8 will-change-transform"
+            ref={trackRef}
+            className="flex w-max animate-ticker transform-gpu [animation-play-state:paused]"
           >
-            {items.map((c, i) => (
-              <span
-                key={`${c.rank}-${i}`}
-                className="inline-flex items-baseline whitespace-nowrap font-mono text-[0.78rem] sm:text-[0.8rem]"
-              >
-                <span className={cityClass}>{c.city}</span>
-                <span className="ml-1.5 font-bold tabular-nums sm:ml-2">
-                  <span className={c.color}>{c.aqi}</span>
-                </span>
-                <span className={sepClass} aria-hidden>
-                  |
-                </span>
-              </span>
-            ))}
+            <TickerSegment
+              rows={rows}
+              segmentKey="a"
+              cityClass={cityClass}
+              sepClass={sepClass}
+            />
+            <TickerSegment
+              rows={rows}
+              segmentKey="b"
+              cityClass={cityClass}
+              sepClass={sepClass}
+              hidden
+            />
           </div>
         </div>
       </div>

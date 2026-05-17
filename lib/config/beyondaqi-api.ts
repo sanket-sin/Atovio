@@ -12,6 +12,9 @@
 
 export const BEYONDAQI_API_BASE = "https://dev-api.beyondaqi.com";
 
+/** Per-request cap — dev API can be slow; avoids hung map marker loads. */
+export const BEYONDAQI_REQUEST_TIMEOUT_MS = 12_000;
+
 function beyondaqiAuthHeader(): string {
   const raw =
     process.env.NEXT_PUBLIC_BEYONDAQI_API_TOKEN?.trim() ||

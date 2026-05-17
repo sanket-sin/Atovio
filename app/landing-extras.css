@@ -1,20 +1,73 @@
 /* BeyondAQI landing — section ambience & complex effects (paired with Tailwind) */
 
-.landing-theme .landing-reveal {
-  opacity: 0;
-  transform: translateY(24px) scale(0.985);
-  filter: saturate(0.9);
-  transition:
-    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
-    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
-    filter 0.7s ease var(--reveal-delay, 0ms);
-  will-change: opacity, transform;
+/* Hero — cityscape background + legibility overlays (light overrides in globals.css) */
+.landing-theme #sec-hero .hero-overlay-base {
+  background: rgba(5, 10, 20, 0.36);
 }
 
-.landing-theme .landing-reveal[data-revealed="true"] {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  filter: saturate(1);
+.landing-theme #sec-hero .hero-overlay-t {
+  background: linear-gradient(
+    to top,
+    rgba(5, 10, 20, 0.92) 0%,
+    rgba(5, 10, 20, 0.42) 42%,
+    transparent 100%
+  );
+}
+
+.landing-theme #sec-hero .hero-overlay-r {
+  background: linear-gradient(
+    to right,
+    rgba(5, 10, 20, 0.9) 0%,
+    rgba(5, 10, 20, 0.58) 36%,
+    rgba(5, 10, 20, 0.14) 68%,
+    transparent 100%
+  );
+}
+
+/* One-shot shimmer when section enters view (triggered via data-shimmer-active in LandingExperience) */
+.landing-theme .section-shimmer {
+  position: relative;
+  isolation: isolate;
+}
+
+.landing-theme .section-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(255, 255, 255, 0.07) 49.5%,
+    rgba(96, 180, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.06) 50.5%,
+    transparent 62%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  background-position: 130% 0;
+}
+
+.light-theme .section-shimmer::after {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(61, 158, 255, 0.1) 49.5%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(61, 158, 255, 0.08) 50.5%,
+    transparent 62%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  background-position: 130% 0;
+}
+
+.landing-theme .section-shimmer[data-shimmer-active="true"]::after {
+  animation: section-shimmer-sweep 1.05s cubic-bezier(0.45, 0, 0.2, 1) var(--shimmer-delay, 0ms) forwards;
 }
 
 .landing-theme .sec-fx {
@@ -25,52 +78,6 @@
 .landing-theme .sec-fx > .mx-auto {
   position: relative;
   z-index: 2;
-}
-
-.landing-theme .sec-fx::before {
-  content: "";
-  position: absolute;
-  inset: -25% 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.32;
-  background: linear-gradient(
-    120deg,
-    transparent 0%,
-    rgba(61, 158, 255, 0.09) 35%,
-    rgba(0, 229, 170, 0.06) 55%,
-    transparent 85%
-  );
-  transform: translateX(-15%) translateY(0);
-  animation: sec-ambient-shift 18s ease-in-out infinite alternate;
-}
-
-.landing-theme .sec-fx::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 1px;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.5;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(61, 158, 255, 0.28) 30%,
-    rgba(255, 210, 77, 0.22) 50%,
-    rgba(255, 77, 109, 0.26) 70%,
-    transparent 100%
-  );
-  animation: section-line-glow 8s ease-in-out infinite;
-}
-
-.landing-theme .sec-fx:nth-of-type(2n)::before {
-  animation-duration: 24s;
-  opacity: 0.24;
-}
-
-.landing-theme .sec-fx:nth-of-type(3n)::before {
-  animation-direction: alternate-reverse;
 }
 
 .landing-theme #sec-why {
@@ -291,37 +298,31 @@
   transform: rotate(180deg);
 }
 
-@keyframes sec-ambient-shift {
-  0% {
-    transform: translateX(-15%) translateY(-1%);
-  }
-  100% {
-    transform: translateX(10%) translateY(1.5%);
-  }
+/* Health guidance accordions */
+#sec-health details[open] summary .health-details-chevron {
+  transform: rotate(180deg);
 }
 
-@keyframes section-line-glow {
-  0%,
-  100% {
-    opacity: 0.28;
-    filter: blur(0px);
+@keyframes section-shimmer-sweep {
+  0% {
+    opacity: 0;
+    background-position: 130% 0;
   }
-  50% {
-    opacity: 0.62;
-    filter: blur(0.3px);
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    background-position: -30% 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .landing-theme .landing-reveal {
-    opacity: 1;
-    transform: none;
-    filter: none;
-    transition: none;
+  .landing-theme .section-shimmer::after {
+    animation: none !important;
+    opacity: 0 !important;
   }
 
-  .landing-theme .sec-fx::before,
-  .landing-theme .sec-fx::after,
   .landing-theme .sensor-dot,
   .landing-theme .sensor-ring {
     animation: none !important;

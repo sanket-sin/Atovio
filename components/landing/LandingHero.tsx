@@ -4,7 +4,7 @@ import { useId, useState } from "react";
 import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
 import { AqiBadge, type AqiBadgeVariant } from "./AqiBadge";
 
-const HERO_BG = "/images/hero-bg.png";
+const HERO_BG = "/images/heroSec_bgImg.png";
 
 const DEFAULT_HERO: HeroCitySnapshot = {
   cityName: "Mumbai",
@@ -339,22 +339,13 @@ export function LandingHero({
       className="relative flex min-h-[100dvh] items-center overflow-hidden border-b border-sky-400/10 pt-[7rem] sm:pt-[8rem] md:pt-[7.75rem]"
     >
       <div
-        className="absolute inset-0 z-0 scale-105 animate-hero-drift bg-cover bg-[center_20%]"
+        className="hero-bg absolute inset-0 z-0 bg-cover bg-[center_38%] bg-no-repeat"
         style={{ backgroundImage: `url(${HERO_BG})` }}
         aria-hidden
       />
-      <div
-        className="absolute inset-0 z-[1] bg-gradient-to-t from-bqa-navy via-bqa-navy/50 to-transparent"
-        aria-hidden
-      />
-      <div
-        className="absolute inset-0 z-[1] bg-gradient-to-r from-bqa-navy/95 via-bqa-navy/70 to-bqa-navy/25"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_60%_60%_at_10%_40%,rgba(0,229,170,0.07),transparent_50%),radial-gradient(ellipse_50%_50%_at_90%_20%,rgba(61,158,255,0.09),transparent_50%)]"
-        aria-hidden
-      />
+      <div className="hero-overlay-base absolute inset-0 z-[1]" aria-hidden />
+      <div className="hero-overlay-t absolute inset-0 z-[1]" aria-hidden />
+      <div className="hero-overlay-r absolute inset-0 z-[1]" aria-hidden />
 
       <div className="relative z-[2] mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         {/* Narrow screens: headline + tabbed dashboard */}

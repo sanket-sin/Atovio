@@ -1,5 +1,7 @@
 "use client";
 
+import { RealtimeAqiGoogleMap } from "./RealtimeAqiGoogleMap";
+
 type MapModalProps = {
   open: boolean;
   onClose: () => void;
@@ -36,12 +38,8 @@ export function MapModal({ open, onClose }: MapModalProps) {
             ×
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-hidden rounded-b-[20px]">
-          <iframe
-            src="https://map.beyondaqi.in"
-            title="BeyondAQI Sensor Map"
-            className="h-full w-full border-0"
-          />
+        <div className="relative min-h-0 flex-1 overflow-hidden rounded-b-[20px]">
+          <RealtimeAqiGoogleMap className="h-full min-h-[400px]" />
         </div>
       </div>
     </div>

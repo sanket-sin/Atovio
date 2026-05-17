@@ -16,6 +16,11 @@ const nextConfig = {
         hostname: "images.unsplash.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "timesofindia.indiatimes.com",
+        pathname: "/**",
+      },
     ],
   },
   env: {

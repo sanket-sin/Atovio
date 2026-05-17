@@ -177,6 +177,58 @@ function hourlySeriesFromSamples(
   return interpolate24Ring(pairs);
 }
 
+/** Hours in `[startHour, endHour)` on the 24h ring (end is exclusive). */
+function windowHourIndices(startHour: number, endHour: number): number[] {
+  const hours: number[] = [];
+  let h = startHour;
+  while (h !== endHour) {
+    hours.push(h);
+    h = (h + 1) % 24;
+    if (hours.length > 24) break;
+  }
+  return hours;
+}
+
+/** Figma best #22C55E, avoid #EF4444 */
+const CLOCK_BEST_PALETTE = ["#15803d", "#16a34a", "#22c55e", "#4ade80"];
+const CLOCK_WORST_PALETTE = ["#f97316", "#ef4444", "#dc2626", "#ef4444"];
+
+function paletteAt(palette: string[], index: number, count: number): string {
+  if (count <= 1) return palette[Math.floor(palette.length / 2)] ?? palette[0];
+  const t = index / (count - 1);
+  const i = Math.round(t * (palette.length - 1));
+  return palette[Math.min(Math.max(i, 0), palette.length - 1)];
+}
+
+/**
+ * Ring colors that match the best/worst summary lines: green best window, red worst,
+ * AQI ramp elsewhere (stretched when the day is flat so bands still read clearly).
+ */
+export function buildExposureClockVisualColors(
+  hourly: number[],
+  best: ExposureClockWindow,
+  worst: ExposureClockWindow
+): string[] {
+  const bestHours = windowHourIndices(best.startHour, best.endHour);
+  const worstHours = windowHourIndices(worst.startHour, worst.endHour);
+  const min = Math.min(...hourly);
+  const max = Math.max(...hourly);
+  const span = max - min;
+  const stretch = span < 25;
+
+  return Array.from({ length: 24 }, (_, h) => {
+    if (bestHours.includes(h)) {
+      return paletteAt(CLOCK_BEST_PALETTE, bestHours.indexOf(h), bestHours.length);
+    }
+    if (worstHours.includes(h)) {
+      return paletteAt(CLOCK_WORST_PALETTE, worstHours.indexOf(h), worstHours.length);
+    }
+    const v = hourly[h] ?? min;
+    const paintAqi = stretch ? min + ((v - min) / (span || 1)) * 220 : v;
+    return aqiToClockSegmentColor(paintAqi);
+  });
+}
+
 function bestWorstTwoHourWindows(hourly: number[]): { best: ExposureClockWindow; worst: ExposureClockWindow } {
   let bestStart = 0;
   let bestAvg = Infinity;
@@ -218,8 +270,8 @@ export function buildExposureClockModel(rows: Historical24hSampleRow[]): Exposur
     .filter((x): x is NonNullable<typeof x> => x != null);
 
   const hourly = hourlySeriesFromSamples(samples);
-  const segmentColors = hourly.map((aqi) => aqiToClockSegmentColor(aqi));
   const { best, worst } = bestWorstTwoHourWindows(hourly);
+  const segmentColors = buildExposureClockVisualColors(hourly, best, worst);
   return { segmentColors, best, worst };
 }
 

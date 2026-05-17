@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { MostPollutedCityRow } from "@/lib/api/aqi-most-polluted";
 import { fetchMostAndLeastPollutedCities } from "@/lib/api/aqi-most-polluted";
 import { getAqiLevel } from "@/lib/air-quality/aqi-levels";
+import { RealtimeAqiGoogleMap } from "./RealtimeAqiGoogleMap";
 import { SectionTitle } from "./SectionTitle";
 
 const METRICS = ["AQI", "PM10", "PM2.5", "Temp", "Humidity", "Wind"] as const;
@@ -95,12 +96,8 @@ export function RealtimeAqiMapSection({ isLight = false }: { isLight?: boolean }
 
         <div className="overflow-hidden rounded-3xl border border-sky-400/10 bg-[#0a0c10] shadow-xl">
           <div className="relative aspect-[16/10] min-h-[320px] w-full sm:min-h-[420px]">
-            <iframe
-              src="https://map.beyondaqi.in"
-              title="BeyondAQI real-time sensor map"
-              className="absolute inset-0 h-full w-full border-0 grayscale-[0.2] contrast-[1.05]"
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bqa-navy/40 via-transparent to-bqa-navy/20" />
+            <RealtimeAqiGoogleMap className="absolute inset-0" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bqa-navy/25 via-transparent to-bqa-navy/10" />
 
             <div className="absolute left-4 top-4 z-[2] flex flex-col gap-2">
               <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-emerald-500/30 bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md">

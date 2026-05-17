@@ -99,8 +99,17 @@ body {
 .light-theme #sec-hero .hero-overlay-t {
   background: linear-gradient(to top, rgb(248 250 252) 0%, rgba(248 250 252 / 0.5) 50%, transparent 100%);
 }
+.light-theme #sec-hero .hero-overlay-base {
+  background: rgba(248, 250, 252, 0.32);
+}
 .light-theme #sec-hero .hero-overlay-r {
-  background: linear-gradient(to right, rgba(248 250 252 / 0.95) 0%, rgba(248 250 252 / 0.7) 50%, rgba(248 250 252 / 0.2) 100%);
+  background: linear-gradient(
+    to right,
+    rgba(248, 250, 252, 0.95) 0%,
+    rgba(248, 250, 252, 0.68) 42%,
+    rgba(248, 250, 252, 0.18) 70%,
+    transparent 100%
+  );
 }
 
 /* ── Light mode: map iframe section ── */

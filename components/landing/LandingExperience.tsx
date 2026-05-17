@@ -154,14 +154,11 @@ export function LandingExperience() {
 
   useEffect(() => {
     const nodes = Array.from(
-      document.querySelectorAll<HTMLElement>("[data-reveal]")
+      document.querySelectorAll<HTMLElement>("[data-section-shimmer]")
     );
     if (nodes.length === 0) return;
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      nodes.forEach((node) => {
-        node.dataset.revealed = "true";
-      });
       return;
     }
 
@@ -170,19 +167,19 @@ export function LandingExperience() {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
           const target = entry.target as HTMLElement;
-          target.dataset.revealed = "true";
+          target.dataset.shimmerActive = "true";
           observer.unobserve(target);
         });
       },
-      { threshold: 0.18, rootMargin: "0px 0px -8% 0px" }
+      { threshold: 0.15, rootMargin: "0px 0px -6% 0px" }
     );
 
     nodes.forEach((node) => observer.observe(node));
     return () => observer.disconnect();
   }, []);
 
-  const revealStyle = (delay: number): CSSProperties =>
-    ({ "--reveal-delay": `${delay}ms` }) as CSSProperties;
+  const shimmerDelayStyle = (delayMs: number): CSSProperties =>
+    ({ "--shimmer-delay": `${delayMs}ms` }) as CSSProperties;
 
   return (
     <div
@@ -207,7 +204,11 @@ export function LandingExperience() {
       />
 
       <main className="pt-0">
-        <div className="landing-reveal" data-reveal data-revealed="true">
+        <div
+          className="section-shimmer"
+          data-section-shimmer
+          style={shimmerDelayStyle(0)}
+        >
           <LandingHero
             isLight={isLight}
             onScrollToMap={scrollToRealtimeMap}
@@ -216,36 +217,76 @@ export function LandingExperience() {
             locationUnavailable={locationUnavailable}
           />
         </div>
-        <div className="landing-reveal" data-reveal style={revealStyle(40)}>
+        <div
+          className="section-shimmer"
+          data-section-shimmer
+          style={shimmerDelayStyle(40)}
+        >
           <AirQualityToolkitSection isLight={isLight} citySnapshot={heroCity} />
         </div>
-        <div className="landing-reveal" data-reveal style={revealStyle(80)}>
+        <div
+          className="section-shimmer"
+          data-section-shimmer
+          style={shimmerDelayStyle(80)}
+        >
           <ChartHistorySection citySnapshot={heroCity} />
         </div>
-        <div className="landing-reveal" data-reveal style={revealStyle(120)}>
+        <div
+          className="section-shimmer"
+          data-section-shimmer
+          style={shimmerDelayStyle(120)}
+        >
           <RealtimeAqiMapSection isLight={isLight} />
         </div>
-        <div className="landing-reveal" data-reveal style={revealStyle(160)}>
+        <div
+          className="section-shimmer"
+          data-section-shimmer
+          style={shimmerDelayStyle(160)}
+        >
           <PollutantsSection citySnapshot={heroCity} />
         </div>
-        <div className="landing-reveal" data-reveal style={revealStyle(200)}>
+        <div
+          className="section-shimmer"
+          data-section-shimmer
+          style={shimmerDelayStyle(200)}
+        >
           <LeaderboardSection isLight={isLight} />
         </div>
-        <div className="landing-reveal" data-reveal style={revealStyle(240)}>
+        <div
+          className="section-shimmer"
+          data-section-shimmer
+          style={shimmerDelayStyle(240)}
+        >
           <IndiaAqiOverviewSection />
         </div>
-        <div className="landing-reveal" data-reveal style={revealStyle(280)}>
+        <div
+          className="section-shimmer"
+          data-section-shimmer
+          style={shimmerDelayStyle(280)}
+        >
           <HealthGuidanceSection isLight={isLight} />
         </div>
-        <div className="landing-reveal" data-reveal style={revealStyle(320)}>
+        <div
+          className="section-shimmer"
+          data-section-shimmer
+          style={shimmerDelayStyle(320)}
+        >
           <FaqSection />
         </div>
-        <div className="landing-reveal" data-reveal style={revealStyle(360)}>
+        <div
+          className="section-shimmer"
+          data-section-shimmer
+          style={shimmerDelayStyle(360)}
+        >
           <SubscribeSection />
         </div>
       </main>
 
-      <div className="landing-reveal" data-reveal style={revealStyle(400)}>
+      <div
+        className="section-shimmer"
+        data-section-shimmer
+        style={shimmerDelayStyle(400)}
+      >
         <LandingFooter />
       </div>
     </div>
