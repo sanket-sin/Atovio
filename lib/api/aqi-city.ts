@@ -25,6 +25,8 @@ export type HeroCitySnapshot = {
   stateName?: string;
   /** From BeyondAQI `location.country` — used for historical and other path-based APIs. */
   countryName?: string;
+  latitude?: number;
+  longitude?: number;
   aqi: number;
   statusLabel: string;
   badgeVariant: HeroAqiBadgeVariant;
@@ -83,14 +85,23 @@ type CityAqiApiResponse = {
   };
 };
 
+/** BeyondAQI paths use spaces in segments (`Uttar Pradesh`), not hyphens (`Uttar-Pradesh`). */
 function slugSegmentToPathSegment(segment: string): string {
   return segment
     .trim()
-    .replace(/\s+/g, "-")
-    .split("-")
+    .replace(/-/g, " ")
+    .split(/\s+/)
     .filter(Boolean)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join("-");
+    .join(" ");
+}
+
+export function encodeAqiPathSegments(path: string): string {
+  return path
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
 }
 
 /**
@@ -109,7 +120,7 @@ export function normalizeBeyondAqiSlug(slug: string): string {
   return parts.join("/");
 }
 
-/** Converts `india/tamil-nadu/dindigul` → `India/Tamil-Nadu/Dindigul` for the REST path. */
+/** Converts `india/tamil-nadu/dindigul` → `India/Tamil Nadu/Dindigul` for the REST path. */
 export function slugToAqiPath(slug: string): string {
   const normalized = normalizeBeyondAqiSlug(slug);
   return normalized
@@ -154,10 +165,16 @@ export function cityApiToHeroSnapshot(res: CityAqiApiResponse): HeroCitySnapshot
   const co = pollutantNumber(p.co, 0);
   const so2 = pollutantNumber(p.so2, 0);
   const no2 = pollutantNumber(p.no2, 0);
+  const lat = d.location.latitude;
+  const lng = d.location.longitude;
   return {
     cityName: d.location.city,
     stateName: d.location.state,
     countryName: d.location.country,
+    latitude:
+      typeof lat === "number" && Number.isFinite(lat) ? lat : undefined,
+    longitude:
+      typeof lng === "number" && Number.isFinite(lng) ? lng : undefined,
     aqi: d.aqi,
     statusLabel: getAqiLevel(d.aqi).labelUppercase,
     badgeVariant: getAqiLevel(d.aqi).variant,
@@ -195,12 +212,39 @@ export async function fetchCityAqiBySlug(slug: string): Promise<HeroCitySnapshot
     );
   }
   const { data } = await axios.get<CityAqiApiResponse>(
-    `${BEYONDAQI_API_BASE}/api/aqi/${path}`,
+    `${BEYONDAQI_API_BASE}/api/aqi/${encodeAqiPathSegments(path)}`,
     {
       headers: beyondaqiRequestHeaders(),
+      timeout: BEYONDAQI_REQUEST_TIMEOUT_MS,
     }
   );
   return cityApiToHeroSnapshot(data);
+}
+
+/** Map marker from a hero/search city snapshot (no extra API call). */
+export function heroSnapshotToMapPoint(
+  snapshot: HeroCitySnapshot
+): CityAqiMapPoint | null {
+  const { latitude: lat, longitude: lng } = snapshot;
+  if (
+    lat == null ||
+    lng == null ||
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng)
+  ) {
+    return null;
+  }
+  return {
+    city: snapshot.cityName,
+    state: snapshot.stateName ?? "",
+    country: snapshot.countryName ?? "India",
+    lat,
+    lng,
+    aqi: snapshot.aqi,
+    aqiStatus: snapshot.statusLabel,
+    temperature: snapshot.weather?.temperature,
+    temperatureUnit: snapshot.weather?.temperatureUnit,
+  };
 }
 
 export async function fetchCityAqiByLocationParts({
@@ -242,7 +286,7 @@ export async function fetchCityAqiMapPoint({
 
   try {
     const { data } = await axios.get<CityAqiApiResponse>(
-      `${BEYONDAQI_API_BASE}/api/aqi/${path}`,
+      `${BEYONDAQI_API_BASE}/api/aqi/${encodeAqiPathSegments(path)}`,
       {
         headers: beyondaqiRequestHeaders(),
         timeout: BEYONDAQI_REQUEST_TIMEOUT_MS,

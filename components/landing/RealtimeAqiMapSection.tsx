@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { MostPollutedCityRow } from "@/lib/api/aqi-most-polluted";
 import { fetchMostAndLeastPollutedCities } from "@/lib/api/aqi-most-polluted";
 import { getAqiLevel } from "@/lib/air-quality/aqi-levels";
+import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
 import { RealtimeAqiGoogleMap } from "./RealtimeAqiGoogleMap";
 import { SectionTitle } from "./SectionTitle";
 
@@ -58,7 +59,13 @@ function toCardData(
   };
 }
 
-export function RealtimeAqiMapSection({ isLight = false }: { isLight?: boolean }) {
+export function RealtimeAqiMapSection({
+  isLight = false,
+  selectedCity = null,
+}: {
+  isLight?: boolean;
+  selectedCity?: HeroCitySnapshot | null;
+}) {
   const [metric, setMetric] = useState<(typeof METRICS)[number]>("AQI");
   const [standard, setStandard] = useState<(typeof STANDARDS)[number]>("CPCB");
   const [extremes, setExtremes] = useState<{
@@ -96,7 +103,10 @@ export function RealtimeAqiMapSection({ isLight = false }: { isLight?: boolean }
 
         <div className="overflow-hidden rounded-3xl border border-sky-400/10 bg-[#0a0c10] shadow-xl">
           <div className="relative aspect-[16/10] min-h-[320px] w-full sm:min-h-[420px]">
-            <RealtimeAqiGoogleMap className="absolute inset-0" />
+            <RealtimeAqiGoogleMap
+              className="absolute inset-0"
+              selectedCity={selectedCity}
+            />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bqa-navy/25 via-transparent to-bqa-navy/10" />
 
             <div className="absolute left-4 top-4 z-[2] flex flex-col gap-2">

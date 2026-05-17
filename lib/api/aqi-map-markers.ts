@@ -46,7 +46,7 @@ function rowToMapPoint(row: MostPollutedCityRow): Promise<CityAqiMapPoint | null
 export type FetchAqiMapMarkersOptions = {
   /** Leaderboard pages to load (default 1). */
   pages?: number;
-  /** Max cities to resolve coordinates for (default 24). */
+  /** Max cities to resolve coordinates for (default 16). */
   maxMarkers?: number;
   concurrency?: number;
   /** Called as each marker resolves — for progressive map rendering. */
@@ -54,14 +54,15 @@ export type FetchAqiMapMarkersOptions = {
 };
 
 /**
- * Loads leaderboard cities, then resolves lat/lng from per-city AQI endpoints.
- * Dev API is slow (~10s/city); keep `maxMarkers` modest and use `onProgress` in the UI.
+ * Map markers need lat/lng, but `most-polluted` only returns city names + AQI.
+ * So we call `GET /api/aqi/{Country}/{State}/{City}` once per city (N+1 pattern).
+ * There is no bulk map endpoint — keep `maxMarkers` low (default 16).
  */
 export async function fetchAqiMapMarkers(
   options: FetchAqiMapMarkersOptions = {}
 ): Promise<CityAqiMapPoint[]> {
   const pages = options.pages ?? 1;
-  const maxMarkers = options.maxMarkers ?? 24;
+  const maxMarkers = options.maxMarkers ?? 16;
   const concurrency = options.concurrency ?? DEFAULT_CONCURRENCY;
   const onProgress = options.onProgress;
 

@@ -1,15 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import {
-  fetchCityAqiBySlug,
-  fetchCityAqiByLocationParts,
-  normalizeBeyondAqiSlug,
-  type HeroCitySnapshot,
-} from "@/lib/api/aqi-city";
-import { searchAqi, type AqiSearchResult } from "@/lib/api/aqi-search";
-import type { DetectedCity } from "@/lib/location/detect-city";
-import { detectUserCity } from "@/lib/location/detect-city";
+import { useEffect, useState, type CSSProperties } from "react";
+import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
 import { DM_Serif_Display, JetBrains_Mono, Outfit, Sora } from "next/font/google";
 import { AirQualityToolkitSection } from "./AirQualityToolkitSection";
 import { ChartHistorySection } from "./ChartHistorySection";
@@ -56,101 +48,10 @@ function scrollToRealtimeMap() {
     ?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function citySlugFromSearchResult(result: AqiSearchResult): string | undefined {
-  const fromSlug = result.slug?.trim();
-  if (fromSlug) return fromSlug;
-  const u = result.url?.trim();
-  if (u && !/^https?:\/\//i.test(u) && u.includes("/")) return u;
-  return undefined;
-}
-
-async function fetchDetectedCityAqi(
-  detected: DetectedCity
-): Promise<HeroCitySnapshot> {
-  try {
-    return await fetchCityAqiByLocationParts(detected);
-  } catch (directErr) {
-    if (process.env.NODE_ENV === "development") {
-      console.debug("[BeyondAQI] direct detected-city AQI failed; trying search fallback:", {
-        detected,
-        directErr,
-      });
-    }
-  }
-
-  const queries = [
-    `${detected.city}, ${detected.state}, ${detected.country}`,
-    `${detected.city}, ${detected.country}`,
-    detected.city,
-  ];
-
-  for (const q of queries) {
-    const results = await searchAqi(q);
-    const city = results.find((r) => {
-      const slug = citySlugFromSearchResult(r);
-      const normalized = slug ? normalizeBeyondAqiSlug(slug) : "";
-      return (
-        r.type?.toLowerCase() === "city" &&
-        normalized.split("/").filter(Boolean).length >= 3
-      );
-    });
-
-    const slug = city ? citySlugFromSearchResult(city) : undefined;
-    if (slug) return fetchCityAqiBySlug(normalizeBeyondAqiSlug(slug));
-  }
-
-  throw new Error(
-    `Unable to resolve AQI city from detected location: ${detected.city}, ${detected.state}, ${detected.country}`
-  );
-}
-
 export function LandingExperience() {
   const [isLight, setIsLight] = useState(false);
   const [heroCity, setHeroCity] = useState<HeroCitySnapshot | null>(null);
-  const [isLocatingCity, setIsLocatingCity] = useState(true);
-  const [locationUnavailable, setLocationUnavailable] = useState(false);
-  const locationBootstrapStarted = useRef(false);
-  const userSelectedCity = useRef(false);
-
-  useEffect(() => {
-    if (locationBootstrapStarted.current) return;
-    locationBootstrapStarted.current = true;
-
-    let cancelled = false;
-
-    (async () => {
-      const detected = await detectUserCity();
-      if (!detected || cancelled || userSelectedCity.current) {
-        if (!cancelled) {
-          setIsLocatingCity(false);
-          if (!userSelectedCity.current) setLocationUnavailable(true);
-        }
-        return;
-      }
-
-      try {
-        const snapshot = await fetchDetectedCityAqi(detected);
-        if (!cancelled && !userSelectedCity.current) {
-          setHeroCity(snapshot);
-          setLocationUnavailable(false);
-        }
-      } catch (err) {
-        if (process.env.NODE_ENV === "development") {
-          console.warn("[BeyondAQI] initial location AQI failed:", {
-            detected,
-            err,
-          });
-        }
-        if (!cancelled && !userSelectedCity.current) setLocationUnavailable(true);
-      } finally {
-        if (!cancelled) setIsLocatingCity(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const [locationUnavailable, setLocationUnavailable] = useState(true);
 
   useEffect(() => {
     const nodes = Array.from(
@@ -196,8 +97,6 @@ export function LandingExperience() {
         isLight={isLight}
         onToggleTheme={() => setIsLight((p) => !p)}
         onCityDataLoaded={(snapshot) => {
-          userSelectedCity.current = true;
-          setIsLocatingCity(false);
           setLocationUnavailable(false);
           setHeroCity(snapshot);
         }}
@@ -213,7 +112,7 @@ export function LandingExperience() {
             isLight={isLight}
             onScrollToMap={scrollToRealtimeMap}
             citySnapshot={heroCity}
-            isLocatingLocation={isLocatingCity}
+            isLocatingLocation={false}
             locationUnavailable={locationUnavailable}
           />
         </div>
@@ -236,7 +135,7 @@ export function LandingExperience() {
           data-section-shimmer
           style={shimmerDelayStyle(120)}
         >
-          <RealtimeAqiMapSection isLight={isLight} />
+          <RealtimeAqiMapSection isLight={isLight} selectedCity={heroCity} />
         </div>
         <div
           className="section-shimmer"

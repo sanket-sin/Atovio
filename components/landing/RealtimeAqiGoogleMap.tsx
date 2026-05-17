@@ -1,9 +1,12 @@
 "use client";
 
 import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
-import { useEffect, useRef, useState } from "react";
-import type { CityAqiMapPoint } from "@/lib/api/aqi-city";
-import { fetchAqiMapMarkers } from "@/lib/api/aqi-map-markers";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  heroSnapshotToMapPoint,
+  type CityAqiMapPoint,
+  type HeroCitySnapshot,
+} from "@/lib/api/aqi-city";
 import { aqiMarkerIconUrl } from "@/lib/map/aqi-marker-icon";
 import {
   BEYONDAQI_MAP_STYLES,
@@ -34,46 +37,25 @@ function buildInfoWindowHtml(point: CityAqiMapPoint): string {
 
 type RealtimeAqiGoogleMapProps = {
   className?: string;
+  /** Set when user picks a city from header search (single city AQI GET). */
+  selectedCity?: HeroCitySnapshot | null;
 };
 
-export function RealtimeAqiGoogleMap({ className = "" }: RealtimeAqiGoogleMapProps) {
+export function RealtimeAqiGoogleMap({
+  className = "",
+  selectedCity = null,
+}: RealtimeAqiGoogleMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const [mapReady, setMapReady] = useState(false);
-  const [markers, setMarkers] = useState<CityAqiMapPoint[]>([]);
-  const [loadingMarkers, setLoadingMarkers] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoadingMarkers(true);
-      setLoadError(null);
-      setMarkers([]);
-      try {
-        const points = await fetchAqiMapMarkers({
-          pages: 1,
-          maxMarkers: 24,
-          onProgress: (partial) => {
-            if (!cancelled) setMarkers(partial);
-          },
-        });
-        if (!cancelled) setMarkers(points);
-      } catch (e) {
-        if (!cancelled) {
-          setLoadError(e instanceof Error ? e.message : "Could not load city data.");
-          setMarkers([]);
-        }
-      } finally {
-        if (!cancelled) setLoadingMarkers(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const markers = useMemo(() => {
+    const point = selectedCity ? heroSnapshotToMapPoint(selectedCity) : null;
+    return point ? [point] : [];
+  }, [selectedCity]);
 
   useEffect(() => {
     if (!MAPS_API_KEY || !containerRef.current) return;
@@ -127,7 +109,11 @@ export function RealtimeAqiGoogleMap({ className = "" }: RealtimeAqiGoogleMapPro
     markersRef.current.forEach((m) => m.setMap(null));
     markersRef.current = [];
 
-    if (markers.length === 0) return;
+    if (markers.length === 0) {
+      map.setCenter(INDIA_MAP_DEFAULT_CENTER);
+      map.setZoom(INDIA_MAP_DEFAULT_ZOOM);
+      return;
+    }
 
     const bounds = new google.maps.LatLngBounds();
     const infoWindow = infoWindowRef.current;
@@ -157,12 +143,8 @@ export function RealtimeAqiGoogleMap({ className = "" }: RealtimeAqiGoogleMapPro
       markersRef.current.push(marker);
     }
 
-    if (markers.length > 1) {
-      map.fitBounds(bounds, { top: 48, right: 48, bottom: 48, left: 48 });
-    } else if (markers.length === 1) {
-      map.setCenter({ lat: markers[0]!.lat, lng: markers[0]!.lng });
-      map.setZoom(8);
-    }
+    map.setCenter({ lat: markers[0]!.lat, lng: markers[0]!.lng });
+    map.setZoom(8);
   }, [mapReady, markers]);
 
   if (!MAPS_API_KEY) {
@@ -200,9 +182,11 @@ export function RealtimeAqiGoogleMap({ className = "" }: RealtimeAqiGoogleMapPro
         </div>
       )}
 
-      {!loadError && mapReady && loadingMarkers && markers.length === 0 && (
+      {!loadError && mapReady && markers.length === 0 && (
         <div className="pointer-events-none absolute bottom-14 left-1/2 z-[2] -translate-x-1/2 rounded-full border border-sky-400/20 bg-black/60 px-3 py-1.5 backdrop-blur-md">
-          <p className="font-outfit text-xs text-bqa-muted">Loading live AQI cities…</p>
+          <p className="font-outfit text-xs text-bqa-muted">
+            Search and select a city to view it on the map
+          </p>
         </div>
       )}
 

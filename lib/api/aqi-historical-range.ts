@@ -1,6 +1,6 @@
 import axios from "axios";
 import { BEYONDAQI_API_BASE, beyondaqiRequestHeaders } from "@/lib/config/beyondaqi-api";
-import { slugToAqiPath } from "@/lib/api/aqi-city";
+import { encodeAqiPathSegments, slugToAqiPath } from "@/lib/api/aqi-city";
 
 /** API allows 24hour, 7day, 30day — chart uses the day-based periods. */
 export type HistoricalRangePeriod = "7day" | "30day";
@@ -130,7 +130,7 @@ export async function fetchAqiHistoricalRange(
     );
   }
   const q = pollutant === "" ? "" : encodeURIComponent(pollutant);
-  const url = `${BEYONDAQI_API_BASE}/api/aqi/historical/${path}/${period}?pollutant=${q}`;
+  const url = `${BEYONDAQI_API_BASE}/api/aqi/historical/${encodeAqiPathSegments(path)}/${period}?pollutant=${q}`;
   const { data } = await axios.get<HistoricalRangeApiResponse>(url, {
     headers: beyondaqiRequestHeaders(),
   });

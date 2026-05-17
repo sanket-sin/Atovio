@@ -1,6 +1,6 @@
 import axios from "axios";
 import { BEYONDAQI_API_BASE, beyondaqiRequestHeaders } from "@/lib/config/beyondaqi-api";
-import { slugToAqiPath } from "@/lib/api/aqi-city";
+import { encodeAqiPathSegments, slugToAqiPath } from "@/lib/api/aqi-city";
 
 export type ExposureClockWindow = {
   startHour: number;
@@ -300,7 +300,7 @@ export async function fetchAqiHistorical24Hour(
     );
   }
   const q = pollutant === "" ? "" : encodeURIComponent(pollutant);
-  const url = `${BEYONDAQI_API_BASE}/api/aqi/historical/${path}/24hour?pollutant=${q}`;
+  const url = `${BEYONDAQI_API_BASE}/api/aqi/historical/${encodeAqiPathSegments(path)}/24hour?pollutant=${q}`;
   const { data } = await axios.get<Historical24hApiResponse>(url, {
     headers: beyondaqiRequestHeaders(),
   });
