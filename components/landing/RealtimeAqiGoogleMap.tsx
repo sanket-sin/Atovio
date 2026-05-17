@@ -1,12 +1,14 @@
 "use client";
 
 import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { getMapCities } from "@/lib/api/aqi-map-cities";
 import {
   heroSnapshotToMapPoint,
   type CityAqiMapPoint,
   type HeroCitySnapshot,
 } from "@/lib/api/aqi-city";
+import { buildAqiMapInfoWindowHtml } from "@/lib/map/aqi-map-info-window";
 import { aqiMarkerIconUrl } from "@/lib/map/aqi-marker-icon";
 import {
   BEYONDAQI_MAP_STYLES,
@@ -16,23 +18,8 @@ import {
 
 const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ?? "";
 
-function formatTemperature(point: CityAqiMapPoint): string | null {
-  if (point.temperature == null || !Number.isFinite(point.temperature)) return null;
-  const unit = point.temperatureUnit?.replace("°", "") ?? "C";
-  return `${point.temperature.toFixed(1)}°${unit}`;
-}
-
-function buildInfoWindowHtml(point: CityAqiMapPoint): string {
-  const temp = formatTemperature(point);
-  const city = point.city.replace(/</g, "&lt;");
-  const tempRow = temp
-    ? `<div style="margin:4px 0 0;font-size:13px;color:#64748b">Temperature: ${temp}</div>`
-    : "";
-  return `<div style="padding:2px 4px;font-family:system-ui,sans-serif;min-width:140px">
-      <div style="font-weight:700;font-size:15px;color:#0f172a;margin-bottom:4px">${city}</div>
-      <div style="font-size:13px;color:#334155">AQI: <strong>${Math.round(point.aqi)}</strong></div>
-      ${tempRow}
-    </div>`;
+function cityMarkerKey(point: Pick<CityAqiMapPoint, "city" | "state">): string {
+  return `${point.city}|${point.state}`.toLowerCase();
 }
 
 type RealtimeAqiGoogleMapProps = {
@@ -49,20 +36,40 @@ export function RealtimeAqiGoogleMap({
   const mapRef = useRef<google.maps.Map | null>(null);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
+  const markerKeysRef = useRef([] as string[]);
   const [mapReady, setMapReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [mapCities, setMapCities] = useState([] as CityAqiMapPoint[]);
+  const [citiesLoading, setCitiesLoading] = useState(true);
+  const [citiesError, setCitiesError] = useState<string | null>(null);
 
-  const markers = useMemo(() => {
-    const point = selectedCity ? heroSnapshotToMapPoint(selectedCity) : null;
-    return point ? [point] : [];
-  }, [selectedCity]);
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        setCitiesLoading(true);
+        setCitiesError(null);
+        const cities = await getMapCities();
+        if (!cancelled) setMapCities(cities);
+      } catch {
+        if (!cancelled) setCitiesError("Failed to load city AQI data.");
+      } finally {
+        if (!cancelled) setCitiesLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!MAPS_API_KEY || !containerRef.current) return;
 
     let cancelled = false;
 
-    (async () => {
+    void (async () => {
       try {
         setOptions({ key: MAPS_API_KEY, v: "weekly" });
         await importLibrary("maps");
@@ -96,6 +103,7 @@ export function RealtimeAqiGoogleMap({
       cancelled = true;
       markersRef.current.forEach((m) => m.setMap(null));
       markersRef.current = [];
+      markerKeysRef.current = [];
       mapRef.current = null;
       infoWindowRef.current = null;
       setMapReady(false);
@@ -104,23 +112,21 @@ export function RealtimeAqiGoogleMap({
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!mapReady || !map) return;
+    const infoWindow = infoWindowRef.current;
+    if (!mapReady || !map || !infoWindow) return;
 
     markersRef.current.forEach((m) => m.setMap(null));
     markersRef.current = [];
+    markerKeysRef.current = [];
 
-    if (markers.length === 0) {
+    if (mapCities.length === 0) {
       map.setCenter(INDIA_MAP_DEFAULT_CENTER);
       map.setZoom(INDIA_MAP_DEFAULT_ZOOM);
       return;
     }
 
-    const bounds = new google.maps.LatLngBounds();
-    const infoWindow = infoWindowRef.current;
-
-    for (const point of markers) {
+    for (const point of mapCities) {
       const position = { lat: point.lat, lng: point.lng };
-      bounds.extend(position);
 
       const marker = new google.maps.Marker({
         map,
@@ -135,17 +141,40 @@ export function RealtimeAqiGoogleMap({
       });
 
       marker.addListener("click", () => {
-        if (!infoWindow) return;
-        infoWindow.setContent(buildInfoWindowHtml(point));
+        infoWindow.setContent(buildAqiMapInfoWindowHtml(point));
         infoWindow.open({ map, anchor: marker });
       });
 
       markersRef.current.push(marker);
+      markerKeysRef.current.push(cityMarkerKey(point));
+    }
+  }, [mapReady, mapCities]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const infoWindow = infoWindowRef.current;
+    if (!mapReady || !map || !infoWindow) return;
+
+    const selectedPoint = selectedCity ? heroSnapshotToMapPoint(selectedCity) : null;
+    if (!selectedPoint) return;
+
+    map.panTo({ lat: selectedPoint.lat, lng: selectedPoint.lng });
+    map.setZoom(8);
+
+    const key = cityMarkerKey(selectedPoint);
+    const markerIndex = markerKeysRef.current.indexOf(key);
+    const marker = markerIndex >= 0 ? markersRef.current[markerIndex] : undefined;
+
+    if (marker) {
+      infoWindow.setContent(buildAqiMapInfoWindowHtml(selectedPoint));
+      infoWindow.open({ map, anchor: marker });
+      return;
     }
 
-    map.setCenter({ lat: markers[0]!.lat, lng: markers[0]!.lng });
-    map.setZoom(8);
-  }, [mapReady, markers]);
+    infoWindow.setContent(buildAqiMapInfoWindowHtml(selectedPoint));
+    infoWindow.setPosition({ lat: selectedPoint.lat, lng: selectedPoint.lng });
+    infoWindow.open({ map });
+  }, [mapReady, selectedCity]);
 
   if (!MAPS_API_KEY) {
     return (
@@ -166,6 +195,9 @@ export function RealtimeAqiGoogleMap({
     );
   }
 
+  const showLoadingOverlay =
+    !loadError && (!mapReady || (citiesLoading && mapCities.length === 0));
+
   return (
     <div className={`relative h-full w-full ${className}`}>
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
@@ -176,17 +208,15 @@ export function RealtimeAqiGoogleMap({
         </div>
       )}
 
-      {!loadError && !mapReady && (
-        <div className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-[#0a0c10]/70 backdrop-blur-[2px]">
-          <p className="font-outfit text-sm text-bqa-muted">Loading map…</p>
+      {!loadError && citiesError && (
+        <div className="pointer-events-none absolute bottom-14 left-1/2 z-[2] -translate-x-1/2 rounded-full border border-rose-400/30 bg-black/60 px-3 py-1.5 backdrop-blur-md">
+          <p className="font-outfit text-xs text-rose-300">{citiesError}</p>
         </div>
       )}
 
-      {!loadError && mapReady && markers.length === 0 && (
-        <div className="pointer-events-none absolute bottom-14 left-1/2 z-[2] -translate-x-1/2 rounded-full border border-sky-400/20 bg-black/60 px-3 py-1.5 backdrop-blur-md">
-          <p className="font-outfit text-xs text-bqa-muted">
-            Search and select a city to view it on the map
-          </p>
+      {showLoadingOverlay && (
+        <div className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-[#0a0c10]/70 backdrop-blur-[2px]">
+          <p className="font-outfit text-sm text-bqa-muted">Loading map…</p>
         </div>
       )}
 
