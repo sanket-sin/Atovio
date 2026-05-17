@@ -20,7 +20,7 @@ export function NewsSection() {
 
       <div className="relative z-[2] mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="mb-10 flex flex-col gap-4 sm:mb-12 sm:flex-row sm:items-center sm:gap-6">
-          <h2 className="shrink-0 font-display text-[1.65rem] font-normal leading-tight tracking-tight text-bqa-text sm:text-[2rem]">
+          <h2 className="shrink-0 font-sans text-[1.65rem] font-normal leading-tight tracking-tight text-bqa-text sm:text-[2rem]">
             India&apos;s Air Quality, Covered.
           </h2>
           <div
@@ -41,7 +41,7 @@ export function NewsSection() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-bqa-navy/97 via-bqa-navy/50 to-bqa-navy/10" />
             <div className="relative z-[2] p-6 sm:p-8">
-              <div className="mb-3.5 inline-flex items-center gap-1.5 rounded-full border border-rose-400/30 bg-rose-500/10 px-3 py-1 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-rose-200">
+              <div className="mb-3.5 inline-flex items-center gap-1.5 rounded-full border border-rose-400/30 bg-rose-500/10 px-3 py-1 font-sans text-[0.65rem] font-bold uppercase tracking-wider text-rose-200">
                 <svg
                   width="10"
                   height="10"
@@ -55,11 +55,11 @@ export function NewsSection() {
                 </svg>
                 Health Alert
               </div>
-              <h2 className="mb-3 font-display text-2xl font-normal leading-tight tracking-tight text-white sm:text-3xl">
+              <h2 className="mb-3 font-sans text-2xl font-normal leading-tight tracking-tight text-white sm:text-3xl">
                 Delhi-NCR Enters Sixth Consecutive Week of Severe Air — PM2.5 at
                 4.8× WHO Limit
               </h2>
-              <div className="flex flex-wrap items-center gap-2 font-mono text-sm text-bqa-dim">
+              <div className="flex flex-wrap items-center gap-2 font-sans text-sm text-bqa-dim">
                 <span>Mar 17, 2026</span>
                 <span className="text-bqa-dim/60">|</span>
                 <span>BeyondAQI Desk</span>
@@ -72,10 +72,10 @@ export function NewsSection() {
           <div className="flex flex-col gap-4">
             <article className="rounded-[14px] border border-sky-400/10 border-l-[3px] border-l-sky-400 bg-bqa-navy2/70 p-5 backdrop-blur-md transition-colors hover:border-sky-400/20">
               <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-sky-400/30 bg-sky-400/10 px-2 py-0.5 font-mono text-[0.6rem] font-bold uppercase tracking-wide text-sky-300">
+                <span className="rounded-full border border-sky-400/30 bg-sky-400/10 px-2 py-0.5 font-sans text-[0.6rem] font-bold uppercase tracking-wide text-sky-300">
                   Policy
                 </span>
-                <span className="font-mono text-[0.65rem] text-bqa-dim">
+                <span className="font-sans text-[0.65rem] text-bqa-dim">
                   Mar 16, 2026
                 </span>
               </div>
@@ -91,10 +91,10 @@ export function NewsSection() {
 
             <article className="rounded-[14px] border border-sky-400/10 border-l-[3px] border-l-emerald-400 bg-bqa-navy2/70 p-5 backdrop-blur-md transition-colors hover:border-sky-400/20">
               <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 font-mono text-[0.6rem] font-bold uppercase tracking-wide text-emerald-300">
+                <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 font-sans text-[0.6rem] font-bold uppercase tracking-wide text-emerald-300">
                   Science
                 </span>
-                <span className="font-mono text-[0.65rem] text-bqa-dim">
+                <span className="font-sans text-[0.65rem] text-bqa-dim">
                   Mar 15, 2026
                 </span>
               </div>
@@ -110,10 +110,10 @@ export function NewsSection() {
 
             <article className="rounded-[14px] border border-sky-400/10 border-l-[3px] border-l-amber-400 bg-bqa-navy2/70 p-5 backdrop-blur-md transition-colors hover:border-sky-400/20">
               <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 font-mono text-[0.6rem] font-bold uppercase tracking-wide text-amber-200">
+                <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 font-sans text-[0.6rem] font-bold uppercase tracking-wide text-amber-200">
                   City Report
                 </span>
-                <span className="font-mono text-[0.65rem] text-bqa-dim">
+                <span className="font-sans text-[0.65rem] text-bqa-dim">
                   Mar 14, 2026
                 </span>
               </div>

@@ -75,12 +75,14 @@ export function RealtimeAqiGoogleMap({
         await importLibrary("maps");
         if (cancelled || !containerRef.current) return;
 
+        const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
+
         const map = new google.maps.Map(containerRef.current, {
           center: INDIA_MAP_DEFAULT_CENTER,
           zoom: INDIA_MAP_DEFAULT_ZOOM,
           styles: BEYONDAQI_MAP_STYLES,
           disableDefaultUI: true,
-          zoomControl: true,
+          zoomControl: !isMobile,
           gestureHandling: "greedy",
           backgroundColor: "#0a0c10",
           minZoom: 4,
@@ -181,10 +183,10 @@ export function RealtimeAqiGoogleMap({
       <div
         className={`flex h-full min-h-[320px] flex-col items-center justify-center bg-[#0a0c10] px-6 text-center ${className}`}
       >
-        <p className="mb-2 font-outfit text-sm font-semibold text-bqa-text">
+        <p className="mb-2 font-sans text-sm font-semibold text-bqa-text">
           Google Maps API key required
         </p>
-        <p className="max-w-md font-outfit text-xs leading-relaxed text-bqa-muted">
+        <p className="max-w-md font-sans text-xs leading-relaxed text-bqa-muted">
           Add{" "}
           <code className="rounded bg-bqa-slate px-1.5 py-0.5 text-bqa-accent2">
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
@@ -199,32 +201,46 @@ export function RealtimeAqiGoogleMap({
     !loadError && (!mapReady || (citiesLoading && mapCities.length === 0));
 
   return (
-    <div className={`relative h-full w-full ${className}`}>
-      <div ref={containerRef} className="absolute inset-0 h-full w-full" />
+    <div className={`bqa-google-map relative h-full w-full overflow-hidden ${className}`}>
+      <div ref={containerRef} className="absolute inset-0 h-full w-full" aria-label="Real-time AQI map" />
 
       {loadError && (
         <div className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-[#0a0c10]/70 backdrop-blur-[2px]">
-          <p className="max-w-xs px-4 text-center font-outfit text-sm text-rose-300">{loadError}</p>
+          <p className="max-w-xs px-4 text-center font-sans text-sm text-rose-300">{loadError}</p>
         </div>
       )}
 
       {!loadError && citiesError && (
         <div className="pointer-events-none absolute bottom-14 left-1/2 z-[2] -translate-x-1/2 rounded-full border border-rose-400/30 bg-black/60 px-3 py-1.5 backdrop-blur-md">
-          <p className="font-outfit text-xs text-rose-300">{citiesError}</p>
+          <p className="font-sans text-xs text-rose-300">{citiesError}</p>
         </div>
       )}
 
       {showLoadingOverlay && (
         <div className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-[#0a0c10]/70 backdrop-blur-[2px]">
-          <p className="font-outfit text-sm text-bqa-muted">Loading map…</p>
+          <p className="font-sans text-sm text-bqa-muted">Loading map…</p>
         </div>
       )}
 
       <div
-        className="pointer-events-none absolute bottom-4 right-4 z-[2] hidden flex-col items-end gap-1 sm:flex"
+        className="pointer-events-none absolute bottom-3 right-3 z-[2] flex items-center gap-2 rounded-lg border border-white/10 bg-black/45 px-2.5 py-1.5 backdrop-blur-md md:hidden"
         aria-hidden
       >
-        <span className="font-outfit text-[0.62rem] font-semibold uppercase tracking-wider text-bqa-dim">
+        <div
+          className="h-2 w-[4.5rem] shrink-0 rounded-full"
+          style={{
+            background:
+              "linear-gradient(90deg, #00e5aa 0%, #ffd24d 35%, #ff8c42 55%, #ff4d6d 75%, #9b2dff 100%)",
+          }}
+        />
+        <span className="font-sans text-[0.62rem] font-semibold text-white">Low → High</span>
+      </div>
+
+      <div
+        className="pointer-events-none absolute bottom-4 right-4 z-[2] hidden flex-col items-end gap-1 md:flex"
+        aria-hidden
+      >
+        <span className="font-sans text-[0.62rem] font-semibold uppercase tracking-wider text-bqa-dim">
           Low
         </span>
         <div
@@ -234,7 +250,7 @@ export function RealtimeAqiGoogleMap({
               "linear-gradient(90deg, #00e5aa 0%, #ffd24d 35%, #ff8c42 55%, #ff4d6d 75%, #9b2dff 100%)",
           }}
         />
-        <span className="font-outfit text-[0.62rem] font-semibold uppercase tracking-wider text-bqa-dim">
+        <span className="font-sans text-[0.62rem] font-semibold uppercase tracking-wider text-bqa-dim">
           High
         </span>
       </div>

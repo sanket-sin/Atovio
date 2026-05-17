@@ -341,3 +341,14 @@
     filter: none;
   }
 }
+
+/* Realtime Google Map — hide default footer row (keyboard shortcuts, map data, terms) */
+.landing-theme .bqa-google-map .gm-style-cc,
+.landing-theme .bqa-google-map .gm-style-mtc,
+.landing-theme .bqa-google-map .gm-style-moc {
+  display: none !important;
+}
+
+.landing-theme .bqa-google-map .gmnoprint:not(.gm-bundled-control-on-bottom) {
+  display: none !important;
+}

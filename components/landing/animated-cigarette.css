@@ -64,7 +64,7 @@
   background: rgba(0, 0, 0, 0.2);
   top: 130%;
   right: 5%;
-  animation: puff-cig-shrink-shade 14s linear infinite;
+  animation: puff-cig-shrink-shade 14s ease-in-out infinite;
 }
 
 .puff-score-cigarette .filter {
@@ -146,7 +146,7 @@
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   background: #f7f7f7;
-  animation: puff-cig-burnt 14s linear infinite;
+  animation: puff-cig-burnt 14s ease-in-out infinite;
 }
 
 .puff-score-cigarette .ciggi-body::before {
@@ -488,28 +488,40 @@
 }
 
 @keyframes puff-cig-burnt {
-  20% {
+  0%,
+  15% {
     width: 65%;
   }
-  80% {
+
+  65% {
+    width: 5%;
+  }
+
+  72% {
     width: 5%;
   }
 
   100% {
-    width: 5%;
+    width: 65%;
   }
 }
 
 @keyframes puff-cig-shrink-shade {
-  20% {
+  0%,
+  15% {
     width: 90%;
   }
-  80% {
+
+  65% {
+    width: 30%;
+  }
+
+  72% {
     width: 30%;
   }
 
   100% {
-    width: 30%;
+    width: 90%;
   }
 }
 

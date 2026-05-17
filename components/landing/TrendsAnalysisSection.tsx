@@ -60,14 +60,14 @@ export function TrendsAnalysisSection() {
                 {monthLabels.map((m) => (
                   <div
                     key={m}
-                    className="flex-1 text-center font-mono text-[0.6rem] text-bqa-dim"
+                    className="flex-1 text-center font-sans text-[0.6rem] text-bqa-dim"
                   >
                     {m}
                   </div>
                 ))}
               </div>
               <div className="flex gap-0.5">
-                <div className="flex w-7 shrink-0 flex-col justify-between py-0.5 pr-1 text-right font-mono text-[0.55rem] leading-[10px] text-bqa-dim">
+                <div className="flex w-7 shrink-0 flex-col justify-between py-0.5 pr-1 text-right font-sans text-[0.55rem] leading-[10px] text-bqa-dim">
                   <span>Mon</span>
                   <span />
                   <span>Wed</span>
@@ -193,7 +193,7 @@ export function TrendsAnalysisSection() {
                 }}
               >
                 <div className="absolute inset-[22%] flex flex-col items-center justify-center rounded-full bg-bqa-navy2">
-                  <span className="font-mono text-4xl font-black text-purple-400">
+                  <span className="font-sans text-4xl font-black text-purple-400">
                     5
                   </span>
                   <span className="text-sm text-bqa-dim">/ 30</span>

@@ -143,7 +143,7 @@ const AREA_D =
   `L${gx(AQI_PTS.length - 1).toFixed(1)} ${(PT + GH).toFixed(1)}` +
   `L${PL.toFixed(1)} ${(PT + GH).toFixed(1)}Z`;
 
-const OUTFIT = "var(--font-outfit), system-ui, sans-serif";
+const FONT_STACK = "Inter, ui-sans-serif, system-ui, sans-serif";
 
 function ClockFace({
   isLight,
@@ -172,7 +172,7 @@ function ClockFace({
           fill={centerNumFill}
           fontSize="16"
           fontWeight="bold"
-          style={{ fontFamily: OUTFIT }}
+          style={{ fontFamily: FONT_STACK }}
         >
           24
         </text>
@@ -183,7 +183,7 @@ function ClockFace({
           dominantBaseline="middle"
           fill={subFill}
           fontSize="6.25"
-          style={{ fontFamily: OUTFIT }}
+          style={{ fontFamily: FONT_STACK }}
         >
           hours
         </text>
@@ -199,7 +199,7 @@ function ClockFace({
               fill={ringLabelFill}
               fontSize="4.75"
               letterSpacing="0.04em"
-              style={{ fontFamily: "var(--font-sora), system-ui, sans-serif" }}
+              style={{ fontFamily: FONT_STACK }}
             >
               {label}
             </text>
@@ -215,7 +215,7 @@ function ClockLegendRow({ isLight }: { isLight: boolean }) {
 
   return (
     <div
-      className={`flex w-full flex-row flex-wrap items-center justify-center gap-x-10 gap-y-2 font-outfit text-[0.75rem] leading-tight ${legendMuted}`}
+      className={`flex w-full flex-row flex-wrap items-center justify-center gap-x-10 gap-y-2 font-sans text-[0.75rem] leading-tight ${legendMuted}`}
     >
       <span className="flex items-center gap-2.5">
         <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: CLOCK_BEST }} />
@@ -323,7 +323,7 @@ function ForecastChartBlock() {
               dominantBaseline="middle"
               fill="#4a728a"
               fontSize="7.5"
-              style={{ fontFamily: OUTFIT }}
+              style={{ fontFamily: FONT_STACK }}
             >
               {v}
             </text>
@@ -358,14 +358,14 @@ function ForecastChartBlock() {
               fill="#4a728a"
               fontSize="6.75"
               letterSpacing="-0.02em"
-              style={{ fontFamily: OUTFIT }}
+              style={{ fontFamily: FONT_STACK }}
             >
               {lb}
             </text>
           </g>
         ))}
 
-        <text x={PL} y={DATE_ROW_Y} fill="#4a728a" fontSize="7" style={{ fontFamily: OUTFIT }}>
+        <text x={PL} y={DATE_ROW_Y} fill="#4a728a" fontSize="7" style={{ fontFamily: FONT_STACK }}>
           30/03/2026
         </text>
         <text
@@ -374,7 +374,7 @@ function ForecastChartBlock() {
           textAnchor="middle"
           fill="#4a728a"
           fontSize="7"
-          style={{ fontFamily: OUTFIT }}
+          style={{ fontFamily: FONT_STACK }}
         >
           Time
         </text>
@@ -384,7 +384,7 @@ function ForecastChartBlock() {
           textAnchor="end"
           fill="#4a728a"
           fontSize="7"
-          style={{ fontFamily: OUTFIT }}
+          style={{ fontFamily: FONT_STACK }}
         >
           01/04/2026
         </text>
@@ -402,12 +402,12 @@ function ForecastChartBlock() {
             key={l}
             className="rounded-lg border border-sky-400/10 bg-bqa-slate/50 px-2 py-2 text-center"
           >
-            <div className="font-outfit text-[0.65rem] text-bqa-dim">{l}</div>
-            <div className={`font-outfit text-lg font-bold ${c}`}>{v}</div>
+            <div className="font-sans text-[0.65rem] text-bqa-dim">{l}</div>
+            <div className={`font-sans text-lg font-bold ${c}`}>{v}</div>
           </div>
         ))}
       </div>
-      <p className="mt-3 font-outfit text-[0.78rem] text-bqa-dim">
+      <p className="mt-3 font-sans text-[0.78rem] text-bqa-dim">
         • Best window tomorrow: 6–7 AM, (AQI 85)
       </p>
     </>
@@ -429,16 +429,16 @@ function PuffForm({
     <>
       <div className="grid grid-cols-2 gap-3">
         <label className="block">
-          <span className="mb-1 block font-outfit text-[0.65rem] text-bqa-dim">Your Age</span>
+          <span className="mb-1 block font-sans text-[0.65rem] text-bqa-dim">Your Age</span>
           <input
             value={age}
             onChange={(e) => setAge(e.target.value)}
-            className="w-full rounded-lg border border-sky-400/15 bg-bqa-slate px-3 py-2.5 font-outfit text-sm text-bqa-text outline-none focus:border-bqa-accent/50"
+            className="w-full rounded-lg border border-sky-400/15 bg-bqa-slate px-3 py-2.5 font-sans text-sm text-bqa-text outline-none focus:border-bqa-accent/50"
           />
         </label>
         <label className="block">
-          <span className="mb-1 block font-outfit text-[0.65rem] text-bqa-dim">City</span>
-          <select className="w-full rounded-lg border border-sky-400/15 bg-bqa-slate px-3 py-2.5 font-outfit text-sm text-bqa-text outline-none focus:border-bqa-accent/50">
+          <span className="mb-1 block font-sans text-[0.65rem] text-bqa-dim">City</span>
+          <select className="w-full rounded-lg border border-sky-400/15 bg-bqa-slate px-3 py-2.5 font-sans text-sm text-bqa-text outline-none focus:border-bqa-accent/50">
             <option>Mumbai</option>
             <option>Delhi</option>
             <option>Bengaluru</option>
@@ -447,21 +447,21 @@ function PuffForm({
       </div>
 
       <label className="mt-3 block">
-        <span className="mb-1 block font-outfit text-[0.65rem] text-bqa-dim">Years Lived Here</span>
+        <span className="mb-1 block font-sans text-[0.65rem] text-bqa-dim">Years Lived Here</span>
         <input
           value={years}
           onChange={(e) => setYears(e.target.value)}
-          className="w-full rounded-lg border border-sky-400/15 bg-bqa-slate px-3 py-2.5 font-outfit text-sm text-bqa-text outline-none focus:border-bqa-accent/50"
+          className="w-full rounded-lg border border-sky-400/15 bg-bqa-slate px-3 py-2.5 font-sans text-sm text-bqa-text outline-none focus:border-bqa-accent/50"
         />
       </label>
 
       <button
         type="button"
-        className="mt-4 w-full rounded-xl bg-bqa-accent py-3 font-outfit text-sm font-bold text-white shadow-[0_4px_16px_rgba(61,158,255,0.25)] transition hover:brightness-110"
+        className="mt-4 w-full rounded-xl bg-bqa-accent py-3 font-sans text-sm font-bold text-white shadow-[0_4px_16px_rgba(61,158,255,0.25)] transition hover:brightness-110"
       >
         Submit
       </button>
-      <p className="mt-3 text-center font-outfit text-[0.72rem] text-bqa-dim">
+      <p className="mt-3 text-center font-sans text-[0.72rem] text-bqa-dim">
         • Share your result and raise awareness about air quality
       </p>
     </>
@@ -541,7 +541,7 @@ function HealthExposureClockCard({
           />
         </span>
         <h3
-          className={`font-outfit text-[1rem] font-bold tracking-tight ${isLight ? "text-bqa-text" : "text-white"}`}
+          className={`font-sans text-[1rem] font-bold tracking-tight ${isLight ? "text-bqa-text" : "text-white"}`}
         >
           Health Exposure Clock
         </h3>
@@ -598,7 +598,7 @@ export function AirQualityToolkitSection({
   return (
     <section id="sec-toolkit" className="sec-fx border-t border-sky-400/10 py-12 sm:py-16">
       <div className="mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
-        <h2 className="mb-6 font-outfit text-[clamp(1.35rem,4.5vw,2rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:mb-8">
+        <h2 className="mb-6 font-sans text-[clamp(1.35rem,4.5vw,2rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:mb-8">
           Your Air Quality Toolkit
         </h2>
 
@@ -623,7 +623,7 @@ export function AirQualityToolkitSection({
                     unoptimized
                   />
                 </span>
-                <span className="truncate font-outfit text-[0.95rem] font-bold text-white">
+                <span className="truncate font-sans text-[0.95rem] font-bold text-white">
                   72-Hours AQI Forecast
                 </span>
               </div>
@@ -633,7 +633,7 @@ export function AirQualityToolkitSection({
               <div className="mb-4 flex items-center justify-end">
                 <button
                   type="button"
-                  className="rounded-lg border border-sky-400/15 bg-bqa-slate px-2.5 py-1 font-outfit text-[0.7rem] font-semibold text-bqa-muted"
+                  className="rounded-lg border border-sky-400/15 bg-bqa-slate px-2.5 py-1 font-sans text-[0.7rem] font-semibold text-bqa-muted"
                 >
                   AQI ▾
                 </button>
@@ -656,7 +656,7 @@ export function AirQualityToolkitSection({
                   />
                 </span>
                 <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
-                  <span className="min-w-0 shrink truncate font-outfit text-[0.95rem] font-bold text-white">
+                  <span className="min-w-0 shrink truncate font-sans text-[0.95rem] font-bold text-white">
                     Puff Score Lifetime Calculator
                   </span>
                   <AnimatedCigarette compact isLight={isLight} className="ml-0 shrink-0" />
@@ -691,11 +691,11 @@ export function AirQualityToolkitSection({
                     unoptimized
                   />
                 </span>
-                <h3 className="font-outfit text-[1rem] font-bold text-white">72-Hours AQI Forecast</h3>
+                <h3 className="font-sans text-[1rem] font-bold text-white">72-Hours AQI Forecast</h3>
               </div>
               <button
                 type="button"
-                className="rounded-lg border border-sky-400/15 bg-bqa-slate px-2.5 py-1 font-outfit text-[0.7rem] font-semibold text-bqa-muted"
+                className="rounded-lg border border-sky-400/15 bg-bqa-slate px-2.5 py-1 font-sans text-[0.7rem] font-semibold text-bqa-muted"
               >
                 AQI ▾
               </button>
@@ -716,7 +716,7 @@ export function AirQualityToolkitSection({
                 />
               </span>
               <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
-                <h3 className="min-w-0 shrink truncate font-outfit text-[1rem] font-bold text-white">
+                <h3 className="min-w-0 shrink truncate font-sans text-[1rem] font-bold text-white">
                   Puff Score Lifetime Calculator
                 </h3>
                 <AnimatedCigarette

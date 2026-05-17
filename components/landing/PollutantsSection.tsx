@@ -175,7 +175,7 @@ function PollutantCard({ p }: { p: Pol }) {
         aria-hidden
       />
       <div className="pl-2.5 text-[0.8rem] font-semibold text-bqa-muted">{p.name}</div>
-      <div className="pl-2.5 font-mono text-[1.8rem] font-bold text-bqa-text">
+      <div className="pl-2.5 font-sans text-[1.8rem] font-bold text-bqa-text">
         {p.value}{" "}
         <span className="text-[0.75rem] font-normal text-bqa-dim">{p.unit}</span>
       </div>
@@ -228,7 +228,7 @@ export function PollutantsSection({ citySnapshot = null }: { citySnapshot?: Hero
                 key={p.tab}
                 type="button"
                 onClick={() => setSel(i)}
-                className={`shrink-0 rounded-lg px-3.5 py-2 font-outfit text-[0.78rem] font-semibold transition-colors ${
+                className={`shrink-0 rounded-lg px-3.5 py-2 font-sans text-[0.78rem] font-semibold transition-colors ${
                   sel === i
                     ? "bg-bqa-accent text-white shadow-sm"
                     : "text-bqa-muted hover:bg-white/[0.04] hover:text-bqa-text"

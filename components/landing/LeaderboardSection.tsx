@@ -79,7 +79,7 @@ function TrendIcon({ t }: { t: Row["trend"] }) {
 }
 
 function aqiBadgeSurface(variant: AqiLevelVariant, darkClass: string, isLight: boolean): string {
-  const darkFull = `inline-flex shrink-0 rounded-lg border px-2.5 py-1 font-mono text-[0.95rem] font-extrabold ${darkClass}`;
+  const darkFull = `inline-flex shrink-0 rounded-lg border px-2.5 py-1 font-sans text-[0.95rem] font-extrabold ${darkClass}`;
   if (!isLight) return darkFull;
   return aqiVariantToLightBadgeShell(variant);
 }
@@ -98,7 +98,7 @@ function LeaderboardMobileCard({ r, isLight, cardShell }: { r: Row; isLight: boo
       <div className="px-3.5 py-3">
         <div className="flex min-w-0 items-center gap-2.5">
           <span
-            className={`shrink-0 font-mono text-base font-extrabold tabular-nums ${
+            className={`shrink-0 font-sans text-base font-extrabold tabular-nums ${
               isLight ? "text-slate-500" : mobileRank || "text-bqa-dim"
             }`}
           >
@@ -121,14 +121,14 @@ function LeaderboardMobileCard({ r, isLight, cardShell }: { r: Row; isLight: boo
         />
         <div className="flex min-w-0 items-center justify-between gap-3">
           <span
-            className={`shrink-0 font-outfit text-[0.68rem] font-semibold uppercase tracking-wider ${
+            className={`shrink-0 font-sans text-[0.68rem] font-semibold uppercase tracking-wider ${
               isLight ? "text-slate-500" : "text-bqa-muted"
             }`}
           >
             Puff Score:
           </span>
           <span
-            className={`min-w-0 truncate text-right font-mono text-sm font-bold tabular-nums ${
+            className={`min-w-0 truncate text-right font-sans text-sm font-bold tabular-nums ${
               isLight ? "text-slate-900" : "text-bqa-text"
             }`}
           >
@@ -148,7 +148,7 @@ function LeaderboardDesktopRow({ r, isLight, cardShell }: { r: Row; isLight: boo
     <div className={`rounded-xl border-l-4 ${r.rowBorder} ${cardShell}`}>
       <div className={ROW_GRID}>
         <span
-          className={`shrink-0 font-mono text-base font-extrabold tabular-nums ${
+          className={`shrink-0 font-sans text-base font-extrabold tabular-nums ${
             isLight ? "text-slate-500" : `text-bqa-dim ${r.rankClass}`
           }`}
         >
@@ -176,7 +176,7 @@ function LeaderboardDesktopRow({ r, isLight, cardShell }: { r: Row; isLight: boo
             />
           </div>
           <span
-            className={`shrink-0 whitespace-nowrap font-mono text-sm font-bold ${
+            className={`shrink-0 whitespace-nowrap font-sans text-sm font-bold ${
               isLight ? "text-slate-900" : "text-bqa-text"
             }`}
           >
@@ -250,7 +250,7 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
     ? "border border-slate-200 bg-white shadow-[0_2px_14px_rgba(15,23,42,0.06)] transition-colors hover:border-slate-300 hover:shadow-[0_4px_20px_rgba(15,23,42,0.08)]"
     : "border border-sky-400/10 bg-bqa-navy2/70 backdrop-blur-sm transition-colors hover:border-sky-400/20 hover:bg-bqa-slate/70";
 
-  const headerClass = `pb-2.5 font-outfit text-[0.85rem] font-semibold uppercase tracking-widest ${
+  const headerClass = `pb-2.5 font-sans text-[0.85rem] font-semibold uppercase tracking-widest ${
     isLight ? "text-slate-400" : "text-bqa-dim"
   }`;
 
@@ -271,18 +271,18 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search here......"
               disabled={loading || !!error}
-              className="w-full rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-outfit text-sm text-bqa-text outline-none focus:border-sky-400/30 disabled:opacity-50 sm:w-52"
+              className="w-full rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-sans text-sm text-bqa-text outline-none focus:border-sky-400/30 disabled:opacity-50 sm:w-52"
             />
             <select
               disabled
-              className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-outfit text-sm text-bqa-muted opacity-70"
+              className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-sans text-sm text-bqa-muted opacity-70"
               title="Coming soon"
             >
               <option>All India</option>
             </select>
             <select
               disabled
-              className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-outfit text-sm text-bqa-muted opacity-70"
+              className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-sans text-sm text-bqa-muted opacity-70"
               title="Sorted by most polluted (API)"
             >
               <option>Most Polluted</option>
@@ -291,7 +291,7 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
         </div>
 
         {loading && (
-          <p className={`py-10 text-center font-mono text-sm ${isLight ? "text-slate-500" : "text-bqa-muted"}`}>
+          <p className={`py-10 text-center font-sans text-sm ${isLight ? "text-slate-500" : "text-bqa-muted"}`}>
             Loading leaderboard…
           </p>
         )}
@@ -302,7 +302,7 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
             <button
               type="button"
               onClick={() => setRetryTick((t) => t + 1)}
-              className={`rounded-lg px-4 py-2 font-mono text-sm font-semibold ${
+              className={`rounded-lg px-4 py-2 font-sans text-sm font-semibold ${
                 isLight
                   ? "border border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
                   : "border border-sky-400/20 bg-bqa-slate text-bqa-text hover:bg-bqa-slate2"
@@ -352,7 +352,7 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
         {!loading && !error && filtered.length > 0 && (
           <button
             type="button"
-            className={`mt-3 w-full rounded-lg px-3 py-2 font-outfit text-[0.72rem] font-semibold transition md:hidden ${
+            className={`mt-3 w-full rounded-lg px-3 py-2 font-sans text-[0.72rem] font-semibold transition md:hidden ${
               isLight
                 ? "border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50"
                 : "bg-bqa-accent text-white shadow-[0_4px_12px_rgba(61,158,255,0.25)] hover:brightness-110"
@@ -369,7 +369,7 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
         {!loading && !error && (
           <div className="mt-4 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
             <span
-              className={`font-mono text-[0.8rem] ${isLight ? "text-slate-500" : "text-bqa-dim"}`}
+              className={`font-sans text-[0.8rem] ${isLight ? "text-slate-500" : "text-bqa-dim"}`}
             >
               {q.trim()
                 ? `Showing ${filtered.length} match${filtered.length === 1 ? "" : "es"} on this page (${rangeStart}–${rangeEnd} of ${total})`
@@ -380,7 +380,7 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className={`flex h-[34px] min-w-[34px] items-center justify-center rounded-lg border font-mono text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                className={`flex h-[34px] min-w-[34px] items-center justify-center rounded-lg border font-sans text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                   isLight
                     ? "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     : "border-sky-400/10 bg-bqa-slate text-bqa-muted hover:bg-bqa-slate2 hover:text-bqa-text"
@@ -394,14 +394,14 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
                 return (
                   <span key={pNum} className="flex items-center gap-1.5">
                     {showGap && (
-                      <span className={`px-0.5 font-mono text-sm ${isLight ? "text-slate-400" : "text-bqa-dim"}`}>
+                      <span className={`px-0.5 font-sans text-sm ${isLight ? "text-slate-400" : "text-bqa-dim"}`}>
                         ···
                       </span>
                     )}
                     <button
                       type="button"
                       onClick={() => setPage(pNum)}
-                      className={`flex h-[34px] min-w-[34px] items-center justify-center rounded-lg border font-mono text-sm font-semibold transition-colors ${
+                      className={`flex h-[34px] min-w-[34px] items-center justify-center rounded-lg border font-sans text-sm font-semibold transition-colors ${
                         pNum === page
                           ? "border-bqa-accent bg-bqa-accent text-white hover:brightness-110"
                           : isLight
@@ -418,7 +418,7 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
                 type="button"
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className={`flex h-[34px] min-w-[34px] items-center justify-center rounded-lg border font-mono text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                className={`flex h-[34px] min-w-[34px] items-center justify-center rounded-lg border font-sans text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                   isLight
                     ? "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     : "border-sky-400/10 bg-bqa-slate text-bqa-muted hover:bg-bqa-slate2 hover:text-bqa-text"

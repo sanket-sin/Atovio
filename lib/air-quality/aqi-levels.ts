@@ -205,7 +205,7 @@ export function aqiVariantToLeaderboardRowChrome(variant: AqiLevelVariant): {
 /** Light-mode AQI pill surface (Leaderboard). */
 export function aqiVariantToLightBadgeShell(variant: AqiLevelVariant): string {
   const shell =
-    "inline-flex rounded-lg border px-2.5 py-1 font-mono text-[0.95rem] font-extrabold";
+    "inline-flex rounded-lg border px-2.5 py-1 font-sans text-[0.95rem] font-extrabold";
   switch (variant) {
     case "hazardous":
       return `${shell} border-fuchsia-500 bg-fuchsia-50 text-fuchsia-900`;

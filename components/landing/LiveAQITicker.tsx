@@ -50,7 +50,7 @@ function TickerSegment({
       {rows.map((c) => (
         <span
           key={`${segmentKey}-${c.rank}`}
-          className="inline-flex items-baseline whitespace-nowrap font-mono text-[0.78rem] sm:text-[0.8rem]"
+          className="inline-flex items-baseline whitespace-nowrap font-sans text-[0.78rem] sm:text-[0.8rem]"
         >
           <span className={cityClass}>{c.city}</span>
           <span className="ml-1.5 font-bold tabular-nums sm:ml-2">
@@ -133,8 +133,8 @@ export function LiveAQITicker({
     ? "border-b border-black/[0.07] bg-white"
     : "border-b border-white/[0.06] bg-[#020617]";
   const labelClass = isLight
-    ? "font-mono text-[0.68rem] font-bold uppercase tracking-[0.12em] text-gray-800"
-    : "font-mono text-[0.68rem] font-bold uppercase tracking-[0.12em] text-white";
+    ? "font-sans text-[0.68rem] font-bold uppercase tracking-[0.12em] text-gray-800"
+    : "font-sans text-[0.68rem] font-bold uppercase tracking-[0.12em] text-white";
   const tickerBorderClass = isLight
     ? "border-l border-gray-300"
     : "border-l border-slate-600/70";

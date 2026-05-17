@@ -132,7 +132,7 @@ export function IndiaAqiOverviewSection() {
         className="mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10"
       >
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-          <h2 className="shrink-0 font-outfit text-[clamp(1.45rem,5vw,2rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text">
+          <h2 className="shrink-0 font-sans text-[clamp(1.45rem,5vw,2rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text">
             India&apos;s Air Quality, Covered
           </h2>
           <div
@@ -185,13 +185,13 @@ export function IndiaAqiOverviewSection() {
             <div className="absolute inset-0 bg-gradient-to-t from-bqa-navy/97 via-bqa-navy/50 to-bqa-navy/10" />
 
             <div className="relative z-[1] p-6 sm:p-7">
-              <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/20 px-3 py-1 font-outfit text-[0.62rem] font-bold uppercase tracking-widest text-rose-300">
+              <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/20 px-3 py-1 font-sans text-[0.62rem] font-bold uppercase tracking-widest text-rose-300">
                 <span aria-hidden>⚠</span> Health Alert
               </div>
-              <h3 className="mb-4 font-outfit text-xl font-bold leading-snug tracking-[-0.02em] text-white transition-colors group-hover:text-sky-100 sm:text-[1.4rem]">
+              <h3 className="mb-4 font-sans text-xl font-bold leading-snug tracking-[-0.02em] text-white transition-colors group-hover:text-sky-100 sm:text-[1.4rem]">
                 {featured.headline}
               </h3>
-              <div className="flex flex-wrap items-center gap-3 font-outfit text-[0.78rem] text-bqa-dim">
+              <div className="flex flex-wrap items-center gap-3 font-sans text-[0.78rem] text-bqa-dim">
                 <span>{featured.date}</span>
                 <span className="h-3 w-px bg-bqa-dim/40" />
                 <span>{featured.author}</span>
@@ -213,7 +213,7 @@ export function IndiaAqiOverviewSection() {
               >
                 <div className="mb-2.5 flex items-center gap-3">
                   <span
-                    className="rounded-full px-2.5 py-0.5 font-outfit text-[0.6rem] font-bold uppercase tracking-widest"
+                    className="rounded-full px-2.5 py-0.5 font-sans text-[0.6rem] font-bold uppercase tracking-widest"
                     style={{
                       color,
                       background: `${color}18`,
@@ -222,14 +222,14 @@ export function IndiaAqiOverviewSection() {
                   >
                     {badge}
                   </span>
-                  <span className="font-outfit text-[0.72rem] text-bqa-dim">
+                  <span className="font-sans text-[0.72rem] text-bqa-dim">
                     {date}
                   </span>
                 </div>
-                <h4 className="mb-1.5 font-outfit text-[0.9rem] font-bold leading-snug text-white group-hover:text-sky-100">
+                <h4 className="mb-1.5 font-sans text-[0.9rem] font-bold leading-snug text-white group-hover:text-sky-100">
                   {headline}
                 </h4>
-                <p className="font-outfit text-[0.8rem] leading-relaxed text-bqa-muted line-clamp-3">
+                <p className="font-sans text-[0.8rem] leading-relaxed text-bqa-muted line-clamp-3">
                   {body}
                 </p>
               </Link>

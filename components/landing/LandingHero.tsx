@@ -118,7 +118,7 @@ function TabAqiIcon({ active, isLight }: { active: boolean; isLight: boolean }) 
         y="11.3"
         textAnchor="middle"
         fill={blue}
-        style={{ fontFamily: "system-ui, sans-serif", fontSize: "4.5px", fontWeight: 700 }}
+        style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif", fontSize: "4.5px", fontWeight: 700 }}
       >
         AQI
       </text>
@@ -194,7 +194,7 @@ function WhoHoursRing({
           </defs>
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="font-numeric text-2xl font-bold tracking-normal text-bqa-text">19</span>
+          <span className="font-sans text-2xl font-bold tracking-normal text-bqa-text">19</span>
         </div>
       </div>
       <p className={`text-[0.72rem] leading-snug ${isLight ? "text-slate-600" : "text-bqa-dim"}`}>
@@ -281,7 +281,7 @@ export function LandingHero({
   const headlineBlock = (
     <>
       <div
-        className={`mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-[0.72rem] font-bold uppercase tracking-wider ${
+        className={`mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1 font-sans text-[0.72rem] font-bold uppercase tracking-wider ${
           isLight
             ? "border-rose-400 bg-rose-50 text-rose-700"
             : "border-rose-400/30 bg-rose-500/10 text-rose-200"
@@ -297,11 +297,11 @@ export function LandingHero({
           ? "Live · Search a city"
           : `Live · Updated ${formatUpdatedAt(d.updatedAt)}`}
       </div>
-      <h1 className="mb-3.5 font-outfit text-[clamp(1.65rem,5.5vw,2.5rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:text-5xl lg:text-[48px] lg:leading-[52.8px]">
+      <h1 className="mb-3.5 font-sans text-[clamp(1.65rem,5.5vw,2.5rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:text-5xl lg:text-[48px] lg:leading-[52.8px]">
         {cityNameDisplay} Air Quality
         <br />
         Index —{" "}
-        <em className={`not-italic font-numeric tracking-normal ${numTone}`}>{aqiDisplay}</em>
+        <em className={`not-italic font-sans tracking-normal ${numTone}`}>{aqiDisplay}</em>
       </h1>
       <p
         className={`mb-0 max-w-[380px] text-[0.92rem] leading-relaxed sm:text-[0.95rem] ${
@@ -390,7 +390,7 @@ export function LandingHero({
                 <>
                   <div className="mb-5 flex min-w-0 items-center justify-between gap-3">
                     <p
-                      className={`min-w-0 flex-1 font-outfit text-[9px] font-semibold uppercase leading-tight tracking-[0.14em] sm:text-[10.5px] sm:tracking-[0.18em] ${
+                      className={`min-w-0 flex-1 font-sans text-[9px] font-semibold uppercase leading-tight tracking-[0.14em] sm:text-[10.5px] sm:tracking-[0.18em] ${
                         isLight ? "text-sky-700/75" : "text-bqa-dim"
                       }`}
                     >
@@ -398,7 +398,7 @@ export function LandingHero({
                     </p>
                     <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
                       <span
-                        className={`font-numeric text-[clamp(2rem,11vw,3.25rem)] font-bold leading-none tracking-tight ${
+                        className={`font-sans text-[clamp(2rem,11vw,3.25rem)] font-bold leading-none tracking-tight ${
                           isLight
                             ? numTone
                             : `${numTone} drop-shadow-[0_0_40px_rgba(255,140,66,0.28)]`
@@ -431,7 +431,7 @@ export function LandingHero({
                         PM2.5
                       </div>
                       <div
-                        className={`font-numeric text-xl font-bold tracking-normal ${
+                        className={`font-sans text-xl font-bold tracking-normal ${
                           isLight ? "text-slate-800" : "text-bqa-text"
                         }`}
                       >
@@ -459,7 +459,7 @@ export function LandingHero({
                         PM10
                       </div>
                       <div
-                        className={`font-numeric text-xl font-bold tracking-normal ${
+                        className={`font-sans text-xl font-bold tracking-normal ${
                           isLight ? "text-slate-800" : "text-bqa-text"
                         }`}
                       >
@@ -485,7 +485,7 @@ export function LandingHero({
                         style={{ left: `${markerPct}%` }}
                       >
                         <span
-                          className={`absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded px-1.5 py-0.5 font-numeric text-[0.65rem] font-bold tracking-normal shadow-sm ${
+                          className={`absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded px-1.5 py-0.5 font-sans text-[0.65rem] font-bold tracking-normal shadow-sm ${
                             isLight ? "bg-white text-[#0f172a] ring-1 ring-slate-200" : "bg-white text-[#0a0a1a]"
                           }`}
                         >
@@ -493,7 +493,7 @@ export function LandingHero({
                         </span>
                       </div>
                     </div>
-                    <div className="-mx-0.5 flex justify-between gap-1 overflow-x-auto pb-0.5 font-mono text-[0.52rem] font-semibold sm:text-[0.6rem]">
+                    <div className="-mx-0.5 flex justify-between gap-1 overflow-x-auto pb-0.5 font-sans text-[0.52rem] font-semibold sm:text-[0.6rem]">
                       <span className="shrink-0 text-bqa-good">Good</span>
                       <span className="shrink-0 text-bqa-moderate">Moderate</span>
                       <span className="shrink-0 text-bqa-poor">Poor</span>
@@ -518,7 +518,7 @@ export function LandingHero({
                   }`}
                 >
                   <div
-                    className={`mb-4 font-outfit text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] ${
+                    className={`mb-4 font-sans text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] ${
                       isLight ? "text-sky-800/70" : "text-bqa-dim"
                     }`}
                   >
@@ -545,7 +545,7 @@ export function LandingHero({
                       <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                     </svg>
                     <div>
-                      <div className="font-numeric text-4xl font-bold tracking-normal text-bqa-text">{temperatureDisplay}</div>
+                      <div className="font-sans text-4xl font-bold tracking-normal text-bqa-text">{temperatureDisplay}</div>
                       <div className={`text-sm ${isLight ? "text-slate-600" : "text-bqa-muted"}`}>
                         {weatherSummaryDisplay}
                       </div>
@@ -567,7 +567,7 @@ export function LandingHero({
                           {k}
                         </div>
                         <div
-                          className={`font-numeric text-[0.95rem] font-semibold tracking-normal ${
+                          className={`font-sans text-[0.95rem] font-semibold tracking-normal ${
                             isLight ? "text-slate-900" : "text-bqa-text"
                           }`}
                         >
@@ -594,7 +594,7 @@ export function LandingHero({
               />
 
               <div
-                className={`mb-1 font-outfit text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] ${
+                className={`mb-1 font-sans text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] ${
                   isLight ? "text-sky-800/70" : "text-bqa-dim"
                 }`}
               >
@@ -604,7 +604,7 @@ export function LandingHero({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div
-                    className={`font-numeric text-[clamp(3.5rem,10vw,5.5rem)] font-bold leading-[1] tracking-normal ${
+                    className={`font-sans text-[clamp(3.5rem,10vw,5.5rem)] font-bold leading-[1] tracking-normal ${
                       isLight ? numTone : `${numTone} drop-shadow-[0_0_40px_rgba(255,140,66,0.3)]`
                     }`}
                   >
@@ -612,7 +612,7 @@ export function LandingHero({
                   </div>
                   <AqiBadge
                     variant={badgeVariant}
-                    className="mt-3 px-4 py-1.5 font-outfit tracking-[0.06em]"
+                    className="mt-3 px-4 py-1.5 font-sans tracking-[0.06em]"
                   >
                     {statusDisplay}
                   </AqiBadge>
@@ -645,7 +645,7 @@ export function LandingHero({
               <div className="mt-4 grid grid-cols-2 gap-2.5">
                 <div className="rounded-lg border-l-[3px] border-bqa-moderate bg-bqa-slate/60 p-3">
                   <div className="mb-0.5 text-[0.68rem] font-semibold tracking-wide text-bqa-dim">PM2.5</div>
-                  <div className="font-numeric text-xl font-bold tracking-normal text-bqa-text">
+                  <div className="font-sans text-xl font-bold tracking-normal text-bqa-text">
                     {pm25Display} <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
                   </div>
                   <AqiBadge variant={pm25Variant} className="mt-1.5">
@@ -654,7 +654,7 @@ export function LandingHero({
                 </div>
                 <div className="rounded-lg border-l-[3px] border-bqa-unhealthy bg-bqa-slate/60 p-3">
                   <div className="mb-0.5 text-[0.68rem] font-semibold tracking-wide text-bqa-dim">PM10</div>
-                  <div className="font-numeric text-xl font-bold tracking-normal text-bqa-text">
+                  <div className="font-sans text-xl font-bold tracking-normal text-bqa-text">
                     {pm10Display} <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
                   </div>
                   <AqiBadge variant={pm10Variant} className="mt-1.5">
@@ -669,12 +669,12 @@ export function LandingHero({
                     className="absolute -top-1.5 h-6 w-0.5 -translate-x-1/2 rounded-sm bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]"
                     style={{ left: `${markerPct}%` }}
                   >
-                    <span className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-white px-1.5 py-0.5 font-numeric text-[0.65rem] font-bold tracking-normal text-[#0a0a1a]">
+                    <span className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-white px-1.5 py-0.5 font-sans text-[0.65rem] font-bold tracking-normal text-[#0a0a1a]">
                       {aqiDisplay}
                     </span>
                   </div>
                 </div>
-                <div className="flex justify-between font-mono text-[0.62rem] font-semibold">
+                <div className="flex justify-between font-sans text-[0.62rem] font-semibold">
                   <span className="text-bqa-good">Good</span>
                   <span className="text-bqa-moderate">Moderate</span>
                   <span className="text-bqa-poor">Poor</span>
@@ -689,7 +689,7 @@ export function LandingHero({
           <div className="lg:flex lg:flex-col">
             <div className="flex flex-col flex-1 rounded-[20px] border border-sky-400/10 bg-bqa-navy2/80 p-5 backdrop-blur-xl sm:p-6">
               <div
-                className={`mb-4 font-outfit text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] ${
+                className={`mb-4 font-sans text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] ${
                   isLight ? "text-sky-800/70" : "text-bqa-dim"
                 }`}
               >
@@ -717,7 +717,7 @@ export function LandingHero({
                   <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                 </svg>
                 <div>
-                  <div className="font-numeric text-4xl font-bold tracking-normal text-bqa-text">{temperatureDisplay}</div>
+                  <div className="font-sans text-4xl font-bold tracking-normal text-bqa-text">{temperatureDisplay}</div>
                   <div className={`text-sm ${isLight ? "text-slate-600" : "text-bqa-muted"}`}>
                     {weatherSummaryDisplay}
                   </div>
@@ -728,7 +728,7 @@ export function LandingHero({
                 {weatherRows.map(([k, v]) => (
                   <div key={k} className="rounded-lg bg-bqa-slate px-3 py-2.5">
                     <div className="mb-0.5 text-[0.65rem] font-semibold tracking-wide text-bqa-dim">{k}</div>
-                    <div className="font-numeric text-[0.95rem] font-semibold tracking-normal text-bqa-text">{v}</div>
+                    <div className="font-sans text-[0.95rem] font-semibold tracking-normal text-bqa-text">{v}</div>
                   </div>
                 ))}
               </div>

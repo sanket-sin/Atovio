@@ -173,7 +173,7 @@ export function HealthGuidanceSection({ isLight = false }: { isLight?: boolean }
     >
       <div className="mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-          <h2 className="shrink-0 font-outfit text-[1.65rem] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:text-[2rem]">
+          <h2 className="shrink-0 font-sans text-[1.65rem] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:text-[2rem]">
             Adaptive Health Guidance
           </h2>
           <div
@@ -216,7 +216,7 @@ export function HealthGuidanceSection({ isLight = false }: { isLight?: boolean }
                 </div>
                 <div className="flex shrink-0 items-center gap-2.5">
                   <span
-                    className={`font-outfit text-[2.35rem] font-bold leading-none text-bqa-poor ${
+                    className={`font-sans text-[2.35rem] font-bold leading-none text-bqa-poor ${
                       isLight ? "" : "drop-shadow-[0_0_20px_rgba(255,140,66,0.3)]"
                     }`}
                   >
@@ -310,7 +310,7 @@ export function HealthGuidanceSection({ isLight = false }: { isLight?: boolean }
                 Outdoors (current)
               </div>
               <div
-                className={`font-outfit text-5xl font-bold leading-none text-bqa-poor ${
+                className={`font-sans text-5xl font-bold leading-none text-bqa-poor ${
                   isLight ? "" : "drop-shadow-[0_0_28px_rgba(255,140,66,0.35)]"
                 }`}
               >

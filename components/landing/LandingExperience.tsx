@@ -2,7 +2,6 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
-import { DM_Serif_Display, JetBrains_Mono, Outfit, Sora } from "next/font/google";
 import { AirQualityToolkitSection } from "./AirQualityToolkitSection";
 import { ChartHistorySection } from "./ChartHistorySection";
 import { FaqSection } from "./FaqSection";
@@ -16,28 +15,6 @@ import { PollutantsSection } from "./PollutantsSection";
 import { RealtimeAqiMapSection } from "./RealtimeAqiMapSection";
 import { StarFieldCanvas } from "./StarFieldCanvas";
 import { SubscribeSection } from "./SubscribeSection";
-
-const dmSerif = DM_Serif_Display({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-dm-serif",
-});
-
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
-});
-
-const sora = Sora({
-  subsets: ["latin"],
-  variable: "--font-sora",
-});
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-outfit",
-});
 
 const GRAIN =
   "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E\")";
@@ -84,7 +61,7 @@ export function LandingExperience() {
 
   return (
     <div
-      className={`${isLight ? "light-theme" : ""} landing-theme ${dmSerif.variable} ${jetbrains.variable} ${sora.variable} ${outfit.variable} min-h-screen bg-bqa-navy font-outfit text-[15px] leading-relaxed text-bqa-text antialiased`}
+      className={`${isLight ? "light-theme" : ""} landing-theme min-h-screen bg-bqa-navy font-sans text-[15px] leading-relaxed text-bqa-text antialiased`}
     >
       {!isLight && <StarFieldCanvas />}
       <div

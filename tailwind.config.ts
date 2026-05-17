@@ -32,16 +32,11 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: [
-          "Inter",
-          "ui-sans-serif",
-          "system-ui",
-          "sans-serif",
-        ],
-        display: ["var(--font-dm-serif)", "Georgia", "serif"],
-        body: ["var(--font-sora)", "system-ui", "sans-serif"],
-        mono: ["var(--font-jetbrains)", "ui-monospace", "monospace"],
-        outfit: ["var(--font-outfit)", "system-ui", "sans-serif"],
+        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        body: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        outfit: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
         numeric: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       maxWidth: {

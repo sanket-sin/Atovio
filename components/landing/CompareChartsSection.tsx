@@ -143,7 +143,7 @@ export function CompareChartsSection() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="min-w-0 overflow-hidden rounded-[20px] border border-sky-400/10 bg-bqa-navy2/75 p-5 backdrop-blur-md sm:p-7">
-            <h3 className="mb-1 font-display text-2xl text-bqa-text">
+            <h3 className="mb-1 font-sans text-2xl text-bqa-text">
               AQI Trend Overlay
             </h3>
             <p className="mb-4 text-sm text-bqa-muted">
@@ -165,7 +165,7 @@ export function CompareChartsSection() {
           </div>
 
           <div className="min-w-0 overflow-hidden rounded-[20px] border border-sky-400/10 bg-bqa-navy2/75 p-5 backdrop-blur-md sm:p-7">
-            <h3 className="mb-1 font-display text-2xl text-bqa-text">
+            <h3 className="mb-1 font-sans text-2xl text-bqa-text">
               PM₂.₅ Period Comparison
             </h3>
             <p className="mb-4 text-sm text-bqa-muted">

@@ -265,7 +265,7 @@ function PollutantRadarBody({ citySnapshot }: { citySnapshot: HeroCitySnapshot |
               fill="#9ec3ea"
               fontSize="7.6"
               letterSpacing="0.2"
-              style={{ fontFamily: "var(--font-outfit), system-ui" }}
+              style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}
             >
               {RADAR_LABELS[tooltipAxis].text}
             </text>
@@ -276,7 +276,7 @@ function PollutantRadarBody({ citySnapshot }: { citySnapshot: HeroCitySnapshot |
               fill="#ffffff"
               fontSize="9.8"
               fontWeight="700"
-              style={{ fontFamily: "var(--font-outfit), system-ui" }}
+              style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}
             >
               {tooltipText}
             </text>
@@ -292,13 +292,13 @@ function PollutantRadarBody({ citySnapshot }: { citySnapshot: HeroCitySnapshot |
             dominantBaseline="middle"
             fill="#7da5c9"
             fontSize="12"
-            style={{ fontFamily: "var(--font-outfit), system-ui" }}
+            style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}
           >
             {lab.text}
           </text>
         ))}
       </svg>
-      <p className="mt-1.5 font-outfit text-[0.78rem] text-bqa-dim">
+      <p className="mt-1.5 font-sans text-[0.78rem] text-bqa-dim">
         {hasLive && citySnapshot
           ? `• Latest mix for ${citySnapshot.cityName} — spoke length vs reference cap`
           : "• Load a city above to see live pollutant mix"}
@@ -310,7 +310,7 @@ function PollutantRadarBody({ citySnapshot }: { citySnapshot: HeroCitySnapshot |
 function WhoComplianceBody() {
   return (
     <>
-      <p className="mb-4 font-outfit text-[0.8rem] text-bqa-dim">Last 30 days · Mumbai</p>
+      <p className="mb-4 font-sans text-[0.8rem] text-bqa-dim">Last 30 days · Mumbai</p>
 
       <div className="flex justify-center">
         <svg viewBox="0 0 180 180" className="w-[160px]">
@@ -334,7 +334,7 @@ function WhoComplianceBody() {
             fill="#c77dff"
             fontSize="30"
             fontWeight="bold"
-            style={{ fontFamily: "var(--font-outfit), system-ui" }}
+            style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}
           >
             5
           </text>
@@ -345,7 +345,7 @@ function WhoComplianceBody() {
             dominantBaseline="middle"
             fill="#4a728a"
             fontSize="11"
-            style={{ fontFamily: "var(--font-outfit), system-ui" }}
+            style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}
           >
             /30
           </text>
@@ -353,13 +353,13 @@ function WhoComplianceBody() {
       </div>
 
       <div className="mt-1 text-center">
-        <p className="font-outfit text-[1rem] font-bold text-white">5 days within WHO Limits</p>
-        <p className="font-outfit text-[0.82rem] text-bqa-dim">25 days over WHO threshold</p>
+        <p className="font-sans text-[1rem] font-bold text-white">5 days within WHO Limits</p>
+        <p className="font-sans text-[0.82rem] text-bqa-dim">25 days over WHO threshold</p>
       </div>
 
       <div className="mt-5 space-y-4 rounded-[14px] border border-sky-400/10 bg-bqa-slate/40 p-4">
         <div>
-          <div className="mb-1.5 flex items-center justify-between font-outfit text-[0.78rem]">
+          <div className="mb-1.5 flex items-center justify-between font-sans text-[0.78rem]">
             <span className="text-bqa-muted">CPCB Standard</span>
             <span className="font-semibold text-bqa-good">18 Days Safe</span>
           </div>
@@ -368,7 +368,7 @@ function WhoComplianceBody() {
           </div>
         </div>
         <div>
-          <div className="mb-1.5 flex items-center justify-between font-outfit text-[0.78rem]">
+          <div className="mb-1.5 flex items-center justify-between font-sans text-[0.78rem]">
             <span className="text-bqa-muted">WHO Guideline</span>
             <span className="font-semibold text-bqa-compare">5 Days Safe</span>
           </div>
@@ -377,7 +377,7 @@ function WhoComplianceBody() {
           </div>
         </div>
       </div>
-      <p className="mt-3 font-outfit text-[0.78rem] text-bqa-dim">
+      <p className="mt-3 font-sans text-[0.78rem] text-bqa-dim">
         • Govt &ldquo;safe&rdquo; ≠ WHO &ldquo;safe&rdquo; — big gap
       </p>
     </>
@@ -519,14 +519,14 @@ export function ChartHistorySection({
             ticks: {
               color: "#4a728a",
               maxTicksLimit: 10,
-              font: { size: 11, family: "var(--font-outfit), system-ui, sans-serif" },
+              font: { size: 11, family: "Inter, ui-sans-serif, system-ui, sans-serif" },
             },
           },
           y: {
             grid: { color: "rgba(61,158,255,0.06)" },
             ticks: {
               color: "#4a728a",
-              font: { size: 11, family: "var(--font-outfit), system-ui, sans-serif" },
+              font: { size: 11, family: "Inter, ui-sans-serif, system-ui, sans-serif" },
             },
           },
         },
@@ -550,7 +550,7 @@ export function ChartHistorySection({
           {/* Header: title + meta | Show More */}
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <h3 className="font-outfit text-lg font-bold tracking-[-0.02em] text-bqa-text sm:text-xl md:text-2xl">
+              <h3 className="font-sans text-lg font-bold tracking-[-0.02em] text-bqa-text sm:text-xl md:text-2xl">
                 {range}-Day {metricChartTitle(metric)} Trend
               </h3>
               <p className="mt-1 text-[0.85rem] leading-snug text-bqa-muted sm:text-[0.95rem]">
@@ -563,7 +563,7 @@ export function ChartHistorySection({
             </div>
             <button
               type="button"
-              className="shrink-0 rounded-xl bg-bqa-accent px-4 py-2 font-outfit text-[0.78rem] font-semibold text-white shadow-[0_4px_14px_rgba(61,158,255,0.35)] transition hover:brightness-110 sm:px-5 sm:py-2.5 sm:text-sm"
+              className="shrink-0 rounded-xl bg-bqa-accent px-4 py-2 font-sans text-[0.78rem] font-semibold text-white shadow-[0_4px_14px_rgba(61,158,255,0.35)] transition hover:brightness-110 sm:px-5 sm:py-2.5 sm:text-sm"
             >
               Show More
             </button>
@@ -655,7 +655,7 @@ export function ChartHistorySection({
                     unoptimized
                   />
                 </span>
-                <span className="truncate font-outfit text-[0.95rem] font-bold text-white">
+                <span className="truncate font-sans text-[0.95rem] font-bold text-white">
                   Pollutant Source Radar
                 </span>
               </div>
@@ -679,7 +679,7 @@ export function ChartHistorySection({
                     unoptimized
                   />
                 </span>
-                <span className="truncate font-outfit text-[0.95rem] font-bold text-white">
+                <span className="truncate font-sans text-[0.95rem] font-bold text-white">
                   Who Compliance Scorecard
                 </span>
               </div>
@@ -705,7 +705,7 @@ export function ChartHistorySection({
                   unoptimized
                 />
               </span>
-              <h3 className="font-outfit text-base font-bold text-white">Pollutant Source Radar</h3>
+              <h3 className="font-sans text-base font-bold text-white">Pollutant Source Radar</h3>
             </div>
             <PollutantRadarBody citySnapshot={citySnapshot} />
           </div>
@@ -722,7 +722,7 @@ export function ChartHistorySection({
                   unoptimized
                 />
               </span>
-              <h3 className="font-outfit text-base font-bold text-white">Who Compliance Scorecard</h3>
+              <h3 className="font-sans text-base font-bold text-white">Who Compliance Scorecard</h3>
             </div>
             <WhoComplianceBody />
           </div>

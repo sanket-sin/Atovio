@@ -24,6 +24,21 @@ body {
   font-style: normal;
 }
 
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+  }
+}
+
 /**
  * Inter variable font — use with Tailwind weight utilities, e.g. `inter font-semibold`.
  * Weights 100–900 supported via the Google Fonts stylesheet in layout.tsx.

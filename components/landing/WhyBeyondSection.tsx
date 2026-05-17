@@ -90,7 +90,7 @@ export function WhyBeyondSection() {
             />
             <SensorMapVisual />
             <div className="relative z-[2]">
-              <div className="mb-4 flex items-center gap-2 font-mono text-[0.68rem] uppercase tracking-[0.2em] text-bqa-accent">
+              <div className="mb-4 flex items-center gap-2 font-sans text-[0.68rem] uppercase tracking-[0.2em] text-bqa-accent">
                 <span className="h-px w-[18px] bg-bqa-accent" aria-hidden />
                 Live Hardware Network
               </div>
@@ -120,7 +120,7 @@ export function WhyBeyondSection() {
                 ].map((p) => (
                   <span
                     key={p.label}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/20 bg-sky-400/[0.08] px-3.5 py-1.5 font-mono text-[0.7rem] tracking-wide text-bqa-accent2"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/20 bg-sky-400/[0.08] px-3.5 py-1.5 font-sans text-[0.7rem] tracking-wide text-bqa-accent2"
                   >
                     {p.label}
                   </span>
@@ -158,7 +158,7 @@ export function WhyBeyondSection() {
               What you see is exactly what the sensor transmitted at that moment
               — not a model&apos;s best guess.
             </p>
-            <div className="mt-5 flex items-center gap-2 border-t border-emerald-400/10 pt-3.5 font-mono text-[0.68rem] uppercase tracking-wider text-bqa-good opacity-80">
+            <div className="mt-5 flex items-center gap-2 border-t border-emerald-400/10 pt-3.5 font-sans text-[0.68rem] uppercase tracking-wider text-bqa-good opacity-80">
               <span className="h-1.5 w-1.5 rounded-full bg-current shadow-[0_0_6px_currentColor]" />
               Pure Raw Signal Feed
             </div>
@@ -199,13 +199,13 @@ export function WhyBeyondSection() {
               ].map(([label, c]) => (
                 <span
                   key={label}
-                  className={`rounded-full border px-2.5 py-1 font-mono text-[0.64rem] font-bold uppercase tracking-wide ${c}`}
+                  className={`rounded-full border px-2.5 py-1 font-sans text-[0.64rem] font-bold uppercase tracking-wide ${c}`}
                 >
                   {label}
                 </span>
               ))}
             </div>
-            <div className="mt-auto flex items-center gap-2 border-t border-amber-300/10 pt-3.5 font-mono text-[0.68rem] uppercase tracking-wider text-bqa-moderate opacity-80">
+            <div className="mt-auto flex items-center gap-2 border-t border-amber-300/10 pt-3.5 font-sans text-[0.68rem] uppercase tracking-wider text-bqa-moderate opacity-80">
               <span className="h-1.5 w-1.5 rounded-full bg-bqa-moderate shadow-[0_0_6px_#ffd24d]" />
               Sensor-Verified Journalism
             </div>

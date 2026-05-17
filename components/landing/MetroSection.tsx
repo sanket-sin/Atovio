@@ -97,7 +97,7 @@ export function MetroSection() {
         <SectionEyebrow>Network Status</SectionEyebrow>
         <SectionTitle className="mb-2">
           Metro City Signal Feed{" "}
-          <span className="font-body text-[0.85rem] font-light text-bqa-dim">
+          <span className="font-sans text-[0.85rem] font-light text-bqa-dim">
             — ranked by pollution load
           </span>
         </SectionTitle>
@@ -113,14 +113,14 @@ export function MetroSection() {
                 style={{ background: m.stripe }}
                 aria-hidden
               />
-              <div className="absolute right-3.5 top-3.5 rounded-full border border-sky-400/10 bg-bqa-slate px-2.5 py-0.5 font-mono text-[0.68rem] text-bqa-dim">
+              <div className="absolute right-3.5 top-3.5 rounded-full border border-sky-400/10 bg-bqa-slate px-2.5 py-0.5 font-sans text-[0.68rem] text-bqa-dim">
                 {m.rank}
               </div>
               <div className="pl-2.5 text-[0.95rem] font-bold text-bqa-text">
                 {m.city}
               </div>
               <div
-                className={`pl-2.5 font-mono text-[2.2rem] font-bold ${m.aqiColor}`}
+                className={`pl-2.5 font-sans text-[2.2rem] font-bold ${m.aqiColor}`}
               >
                 {m.aqi}
               </div>
@@ -130,13 +130,13 @@ export function MetroSection() {
               <div className="mt-2.5 flex gap-3.5 pl-2.5 text-[0.77rem] text-bqa-dim">
                 <span>
                   PM2.5{" "}
-                  <span className="font-mono font-bold text-bqa-text">
+                  <span className="font-sans font-bold text-bqa-text">
                     {m.pm25}
                   </span>
                 </span>
                 <span>
                   PM10{" "}
-                  <span className="font-mono font-bold text-bqa-text">
+                  <span className="font-sans font-bold text-bqa-text">
                     {m.pm10}
                   </span>
                 </span>

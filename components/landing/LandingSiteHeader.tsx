@@ -29,7 +29,7 @@ function AqiChip({ aqi }: { aqi?: number }) {
   if (aqi == null) return null;
   const color = aqiLevelToTextClass(getAqiLevel(aqi).variant);
   return (
-    <span className={`font-numeric text-[0.75rem] font-bold ${color}`}>
+    <span className={`font-sans text-[0.75rem] font-bold ${color}`}>
       {aqi}
     </span>
   );
