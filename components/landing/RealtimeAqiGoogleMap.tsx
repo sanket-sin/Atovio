@@ -178,6 +178,22 @@ export function RealtimeAqiGoogleMap({
     infoWindow.open({ map });
   }, [mapReady, selectedCity]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    const el = containerRef.current;
+    if (!mapReady || !map || !el) return;
+
+    const triggerResize = () => {
+      google.maps.event.trigger(map, "resize");
+    };
+
+    const ro = new ResizeObserver(triggerResize);
+    ro.observe(el);
+    triggerResize();
+
+    return () => ro.disconnect();
+  }, [mapReady]);
+
   if (!MAPS_API_KEY) {
     return (
       <div

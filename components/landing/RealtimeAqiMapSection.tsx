@@ -154,6 +154,81 @@ function MapControlsPanel({
   );
 }
 
+function MapExpandIcon({ expanded }: { expanded: boolean }) {
+  if (expanded) {
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
+        <path
+          d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
+      <path
+        d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function MapViewport({
+  expanded,
+  onToggleExpanded,
+  selectedCity,
+  metric,
+  standard,
+}: {
+  expanded: boolean;
+  onToggleExpanded: () => void;
+  selectedCity: HeroCitySnapshot | null;
+  metric: (typeof METRICS)[number];
+  standard: (typeof STANDARDS)[number];
+}) {
+  return (
+    <div
+      className={`map-shell relative w-full ${
+        expanded ? "h-full min-h-0" : "h-[min(480px,calc(100dvh-17rem))] min-h-[240px] sm:min-h-[280px]"
+      }`}
+    >
+      <RealtimeAqiGoogleMap className="absolute inset-0" selectedCity={selectedCity} />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bqa-navy/25 via-transparent to-bqa-navy/10" />
+
+      <div className="absolute left-4 top-4 z-[2] flex flex-col gap-2">
+        <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-emerald-500/30 bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+          200+ live sensors
+        </div>
+        <div className="pointer-events-auto rounded-full border border-sky-400/20 bg-black/55 px-3 py-1.5 text-xs text-bqa-muted backdrop-blur-md">
+          Showing: <span className="font-semibold text-bqa-text">{metric}</span> ·{" "}
+          <span className="font-semibold text-bqa-accent2">{standard}</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={onToggleExpanded}
+        className="pointer-events-auto absolute right-4 top-4 z-[3] flex items-center gap-2 rounded-full border border-sky-400/25 bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md transition-colors hover:border-sky-400/45 hover:bg-black/75"
+        aria-expanded={expanded}
+        aria-label={expanded ? "Exit full width map" : "View map full width"}
+      >
+        <MapExpandIcon expanded={expanded} />
+        {expanded ? "Exit full width" : "Full width"}
+      </button>
+    </div>
+  );
+}
+
 function MapTimeline() {
   return (
     <>
@@ -326,6 +401,7 @@ export function RealtimeAqiMapSection({
 }) {
   const [metric, setMetric] = useState<(typeof METRICS)[number]>("AQI");
   const [standard, setStandard] = useState<(typeof STANDARDS)[number]>("CPCB");
+  const [mapExpanded, setMapExpanded] = useState(false);
   const [extremes, setExtremes] = useState<{
     most: MostPollutedCityRow | null;
     least: MostPollutedCityRow | null;
@@ -346,6 +422,20 @@ export function RealtimeAqiMapSection({
     };
   }, []);
 
+  useEffect(() => {
+    if (!mapExpanded) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMapExpanded(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [mapExpanded]);
+
   const cityTitle = isLight ? "text-bqa-text" : "text-white";
   const barTrack = isLight ? "bg-slate-200/90" : "bg-bqa-navy";
   const mostCity = toCardData(extremes?.most ?? null, FALLBACK_MOST);
@@ -360,33 +450,36 @@ export function RealtimeAqiMapSection({
       <div className="mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         <SectionTitle className="mb-6">Real-Time AQI Map</SectionTitle>
 
-        <div className="overflow-hidden rounded-3xl border border-sky-400/10 bg-[#0a0c10] shadow-xl">
-          <div className="relative aspect-[5/6] min-h-[300px] w-full md:aspect-[16/10] md:min-h-[320px] lg:min-h-[420px]">
-            <RealtimeAqiGoogleMap
-              className="absolute inset-0"
-              selectedCity={selectedCity}
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bqa-navy/25 via-transparent to-bqa-navy/10" />
-
-            <div className="absolute left-4 top-4 z-[2] flex flex-col gap-2">
-              <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-emerald-500/30 bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-                200+ live sensors
-              </div>
-              <div className="pointer-events-auto rounded-full border border-sky-400/20 bg-black/55 px-3 py-1.5 text-xs text-bqa-muted backdrop-blur-md">
-                Showing:{" "}
-                <span className="font-semibold text-bqa-text">{metric}</span> ·{" "}
-                <span className="font-semibold text-bqa-accent2">{standard}</span>
-              </div>
-            </div>
-          </div>
-
-          <MapControlsPanel
-            metric={metric}
-            setMetric={setMetric}
-            standard={standard}
-            setStandard={setStandard}
+        {mapExpanded && (
+          <div
+            aria-hidden
+            className="h-[min(480px,calc(100dvh-17rem))] min-h-[240px] sm:min-h-[280px]"
           />
+        )}
+
+        <div
+          className={`overflow-hidden border border-sky-400/10 bg-[#0a0c10] shadow-xl ${
+            mapExpanded
+              ? "fixed inset-x-0 bottom-0 top-[7.25rem] z-[150] flex flex-col rounded-none border-x-0"
+              : "rounded-3xl"
+          }`}
+        >
+          <MapViewport
+            expanded={mapExpanded}
+            onToggleExpanded={() => setMapExpanded((prev) => !prev)}
+            selectedCity={selectedCity}
+            metric={metric}
+            standard={standard}
+          />
+
+          {!mapExpanded && (
+            <MapControlsPanel
+              metric={metric}
+              setMetric={setMetric}
+              standard={standard}
+              setStandard={setStandard}
+            />
+          )}
         </div>
 
         {/* Most Polluted + Cleanest City */}
