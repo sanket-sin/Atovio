@@ -351,7 +351,7 @@ export function ChartHistorySection({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
   const [chartWrapRef, chartInView] = useInViewOnce<HTMLDivElement>([]);
-  const [chartType, setChartType] = useState<ChartType>("bar");
+  const [chartType, setChartType] = useState<ChartType>("line");
   const [range, setRange] = useState<7 | 30>(30);
   const [metric, setMetric] = useState<Metric>("aqi");
   const [chartLabels, setChartLabels] = useState<string[]>([]);
@@ -486,8 +486,8 @@ export function ChartHistorySection({
 
         {/* Main trend card — layout: header row → controls row → chart → 2×3 legend */}
         <div className="overflow-hidden rounded-[16px] border border-sky-400/10 bg-bqa-navy2/80 p-5 backdrop-blur-md sm:p-7">
-          {/* Header: title + meta | Show More */}
-          <div className="flex items-start justify-between gap-3">
+          {/* Header: title + meta | chart controls */}
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <h3 className="font-sans text-lg font-bold tracking-[-0.02em] text-bqa-text sm:text-xl md:text-2xl">
                 {range}-Day {metricChartTitle(metric)} Trend
@@ -500,67 +500,59 @@ export function ChartHistorySection({
                     : historySubtitle || "—"}
               </p>
             </div>
-            <button
-              type="button"
-              className="shrink-0 rounded-xl bg-bqa-accent px-4 py-2 font-sans text-[0.78rem] font-semibold text-white shadow-[0_4px_14px_rgba(61,158,255,0.35)] transition hover:brightness-110 sm:px-5 sm:py-2.5 sm:text-sm"
-            >
-              Show More
-            </button>
-          </div>
-
-          {/* Controls: Line/Bar + range + metric */}
-          <div className="mt-5 flex flex-wrap items-center gap-2 sm:gap-3">
-            <div className="flex shrink-0 rounded-[10px] bg-bqa-slate p-0.5">
-              <button
-                type="button"
-                onClick={() => setChartType("line")}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[0.78rem] font-semibold transition-colors sm:px-3.5 sm:text-[0.8rem] ${
-                  chartType === "line"
-                    ? "bg-bqa-slate2 text-bqa-text shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-                    : "text-bqa-muted hover:text-bqa-text"
-                }`}
+            <div className="flex shrink-0 flex-wrap items-center gap-2 sm:gap-3">
+              <div className="flex shrink-0 rounded-[10px] bg-bqa-slate p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setChartType("line")}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[0.78rem] font-semibold transition-colors sm:px-3.5 sm:text-[0.8rem] ${
+                    chartType === "line"
+                      ? "bg-bqa-slate2 text-bqa-text shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                      : "text-bqa-muted hover:text-bqa-text"
+                  }`}
+                >
+                  <IconLineChart
+                    className={chartType === "line" ? "text-bqa-text" : "text-bqa-muted"}
+                  />
+                  Line
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartType("bar")}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[0.78rem] font-semibold transition-colors sm:px-3.5 sm:text-[0.8rem] ${
+                    chartType === "bar"
+                      ? "bg-bqa-slate2 text-bqa-text shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                      : "text-bqa-muted hover:text-bqa-text"
+                  }`}
+                >
+                  <IconBarChart
+                    className={chartType === "bar" ? "text-bqa-text" : "text-bqa-muted"}
+                  />
+                  Bar
+                </button>
+              </div>
+              <select
+                value={range}
+                onChange={(e) => setRange(Number(e.target.value) as 7 | 30)}
+                style={{ backgroundImage: selectChevronBg }}
+                className={selectClass}
+                aria-label="Date range"
               >
-                <IconLineChart
-                  className={chartType === "line" ? "text-bqa-text" : "text-bqa-muted"}
-                />
-                Line
-              </button>
-              <button
-                type="button"
-                onClick={() => setChartType("bar")}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[0.78rem] font-semibold transition-colors sm:px-3.5 sm:text-[0.8rem] ${
-                  chartType === "bar"
-                    ? "bg-bqa-slate2 text-bqa-text shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-                    : "text-bqa-muted hover:text-bqa-text"
-                }`}
+                <option value={7}>7 Days</option>
+                <option value={30}>30 Days</option>
+              </select>
+              <select
+                value={metric}
+                onChange={(e) => setMetric(e.target.value as Metric)}
+                style={{ backgroundImage: selectChevronBg }}
+                className={selectClass}
+                aria-label="Metric"
               >
-                <IconBarChart
-                  className={chartType === "bar" ? "text-bqa-text" : "text-bqa-muted"}
-                />
-                Bar
-              </button>
+                <option value="aqi">AQI</option>
+                <option value="pm25">PM2.5</option>
+                <option value="pm10">PM10</option>
+              </select>
             </div>
-            <select
-              value={range}
-              onChange={(e) => setRange(Number(e.target.value) as 7 | 30)}
-              style={{ backgroundImage: selectChevronBg }}
-              className={selectClass}
-              aria-label="Date range"
-            >
-              <option value={7}>7 Days</option>
-              <option value={30}>30 Days</option>
-            </select>
-            <select
-              value={metric}
-              onChange={(e) => setMetric(e.target.value as Metric)}
-              style={{ backgroundImage: selectChevronBg }}
-              className={selectClass}
-              aria-label="Metric"
-            >
-              <option value="aqi">AQI</option>
-              <option value="pm25">PM2.5</option>
-              <option value="pm10">PM10</option>
-            </select>
           </div>
 
           <div className="mt-6 border-t border-sky-400/10 pt-5">

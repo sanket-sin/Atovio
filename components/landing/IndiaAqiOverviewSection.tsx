@@ -11,17 +11,7 @@ const SIDEBAR_ACCENTS = [
   { badge: "City Report", color: "#ffd24d" },
 ] as const;
 
-const FALLBACK_FEATURED = {
-  headline:
-    "Delhi-NCR Enters Sixth Consecutive Week of Severe Air — PM2.5 at 4.8× WHO Limit",
-  date: "Mar 17, 2026",
-  author: "BeyondAQI Desk",
-  readTime: "6 min read",
-  link: "#",
-  image: null as string | null,
-};
-
-const FALLBACK_ARTICLES = [
+const FALLBACK_CARDS = [
   {
     badge: "Policy",
     color: "#3d9eff",
@@ -30,6 +20,9 @@ const FALLBACK_ARTICLES = [
       "CPCB Proposes 72hr AQI Averaging to Replace Outdated 24hr Standard",
     body: "Environmental ministry reviews methodology after BeyondAQI data reveals 3× variance between real-time and declared readings.",
     link: "#",
+    author: "BeyondAQI Desk",
+    readTime: "6 min read",
+    image: null as string | null,
   },
   {
     badge: "Science",
@@ -39,6 +32,9 @@ const FALLBACK_ARTICLES = [
       "New IIT Study Links PM2.5 Spikes to 19% Rise in Emergency Cardiac Events in Mumbai",
     body: "Researchers correlate hyperlocal sensor data with hospital admission records across 11 Mumbai districts.",
     link: "#",
+    author: "BeyondAQI Desk",
+    readTime: "5 min read",
+    image: null as string | null,
   },
   {
     badge: "City Report",
@@ -48,6 +44,9 @@ const FALLBACK_ARTICLES = [
       "Bengaluru Records Best Air Month Since 2019 — Construction Dust Controls Show Results",
     body: "AQI averaged 87 across city sensors in February, down from 134 same period last year. BBMP credits zoning enforcement.",
     link: "#",
+    author: "BeyondAQI Desk",
+    readTime: "4 min read",
+    image: null as string | null,
   },
 ];
 
@@ -69,18 +68,7 @@ function estimateReadTime(title: string, description: string): string {
   return `${minutes} min read`;
 }
 
-function newsToFeatured(item: FeedNewsItem) {
-  return {
-    headline: item.title,
-    date: formatNewsDate(item.pub_date),
-    author: "BeyondAQI Desk",
-    readTime: estimateReadTime(item.title, item.description),
-    link: item.link,
-    image: item.thumbnail || null,
-  };
-}
-
-function newsToSidebarItem(item: FeedNewsItem, index: number) {
+function newsToCard(item: FeedNewsItem, index: number) {
   const accent = SIDEBAR_ACCENTS[index % SIDEBAR_ACCENTS.length];
   return {
     badge: accent.badge,
@@ -91,15 +79,22 @@ function newsToSidebarItem(item: FeedNewsItem, index: number) {
       item.description.trim() ||
       "Read the full story for details on air quality and environmental impact.",
     link: item.link,
+    author: "BeyondAQI Desk",
+    readTime: estimateReadTime(item.title, item.description),
+    image: item.thumbnail || null,
   };
 }
 
-type FeaturedView = typeof FALLBACK_FEATURED;
-type SidebarView = (typeof FALLBACK_ARTICLES)[number];
+type NewsCardView = (typeof FALLBACK_CARDS)[number];
+
+const FEATURED_ROTATE_MS = 5000;
+const SIDEBAR_CARD_COUNT = 3;
 
 export function IndiaAqiOverviewSection() {
-  const [featured, setFeatured] = useState<FeaturedView>(FALLBACK_FEATURED);
-  const [articles, setArticles] = useState<SidebarView[]>(FALLBACK_ARTICLES);
+  const [cards, setCards] = useState<NewsCardView[]>(FALLBACK_CARDS);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const active = cards[activeIndex] ?? cards[0];
 
   useEffect(() => {
     let cancelled = false;
@@ -108,11 +103,12 @@ export function IndiaAqiOverviewSection() {
         const news = await fetchFeedNews();
         if (cancelled || news.length === 0) return;
 
-        const [first, ...rest] = news;
-        setFeatured(newsToFeatured(first));
-        const sidebar = rest.slice(0, 3).map(newsToSidebarItem);
-        if (sidebar.length > 0) {
-          setArticles(sidebar);
+        const pool = news
+          .slice(0, SIDEBAR_CARD_COUNT)
+          .map((item, index) => newsToCard(item, index));
+        if (pool.length > 0) {
+          setCards(pool);
+          setActiveIndex(0);
         }
       } catch {
         /* keep fallback content */
@@ -122,6 +118,14 @@ export function IndiaAqiOverviewSection() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (cards.length <= 1) return;
+    const timer = window.setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % cards.length);
+    }, FEATURED_ROTATE_MS);
+    return () => window.clearInterval(timer);
+  }, [cards.length]);
 
   return (
     <section
@@ -143,14 +147,16 @@ export function IndiaAqiOverviewSection() {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
           <Link
-            href={featured.link}
-            target={featured.link.startsWith("http") ? "_blank" : undefined}
-            rel={featured.link.startsWith("http") ? "noopener noreferrer" : undefined}
+            href={active.link}
+            target={active.link.startsWith("http") ? "_blank" : undefined}
+            rel={active.link.startsWith("http") ? "noopener noreferrer" : undefined}
             className="group relative flex min-h-[380px] flex-col justify-end overflow-hidden rounded-2xl lg:min-h-[480px]"
+            aria-live="polite"
           >
-            {featured.image ? (
+            {active.image ? (
               <Image
-                src={featured.image}
+                key={active.link}
+                src={active.image}
                 alt=""
                 fill
                 className="object-cover transition duration-500 group-hover:scale-[1.02] group-hover:brightness-105"
@@ -184,31 +190,42 @@ export function IndiaAqiOverviewSection() {
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-bqa-navy/97 via-bqa-navy/50 to-bqa-navy/10" />
 
-            <div className="relative z-[1] p-6 sm:p-7">
-              <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/20 px-3 py-1 font-sans text-[0.62rem] font-bold uppercase tracking-widest text-rose-300">
-                <span aria-hidden>⚠</span> Health Alert
+            <div key={activeIndex} className="relative z-[1] p-6 sm:p-7">
+              <div
+                className="mb-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-sans text-[0.62rem] font-bold uppercase tracking-widest text-white backdrop-blur-md"
+                style={{
+                  backgroundColor: "rgba(5, 11, 24, 0.78)",
+                  borderColor: active.color,
+                  boxShadow: `0 0 0 1px ${active.color}55 inset`,
+                }}
+              >
+                {active.badge}
               </div>
-              <h3 className="mb-4 font-sans text-xl font-bold leading-snug tracking-[-0.02em] text-white transition-colors group-hover:text-sky-100 sm:text-[1.4rem]">
-                {featured.headline}
+              <h3 className="mb-4 font-sans text-xl font-bold leading-snug tracking-[-0.02em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)] transition-colors group-hover:text-sky-100 sm:text-[1.4rem]">
+                {active.headline}
               </h3>
-              <div className="flex flex-wrap items-center gap-3 font-sans text-[0.78rem] text-bqa-dim">
-                <span>{featured.date}</span>
-                <span className="h-3 w-px bg-bqa-dim/40" />
-                <span>{featured.author}</span>
-                <span className="h-3 w-px bg-bqa-dim/40" />
-                <span>{featured.readTime}</span>
+              <div className="flex flex-wrap items-center gap-3 font-sans text-[0.78rem] text-white/85 drop-shadow-[0_1px_4px_rgba(0,0,0,0.75)]">
+                <span>{active.date}</span>
+                <span className="h-3 w-px bg-white/35" />
+                <span>{active.author}</span>
+                <span className="h-3 w-px bg-white/35" />
+                <span>{active.readTime}</span>
               </div>
             </div>
           </Link>
 
           <div className="flex flex-col gap-4">
-            {articles.map(({ badge, color, date, headline, body, link }) => (
+            {cards.map(({ badge, color, date, headline, body, link }, index) => (
               <Link
                 key={`${headline}-${date}`}
                 href={link}
                 target={link.startsWith("http") ? "_blank" : undefined}
                 rel={link.startsWith("http") ? "noopener noreferrer" : undefined}
-                className="group flex flex-1 flex-col rounded-2xl border border-sky-400/10 bg-bqa-navy2/70 p-5 backdrop-blur-md transition-colors hover:border-sky-400/25 hover:bg-bqa-navy2/90"
+                className={`group flex flex-1 flex-col rounded-2xl border bg-bqa-navy2/70 p-5 backdrop-blur-md transition-colors hover:border-sky-400/25 hover:bg-bqa-navy2/90 ${
+                  index === activeIndex
+                    ? "border-sky-400/35 bg-bqa-navy2/95 ring-1 ring-sky-400/15"
+                    : "border-sky-400/10"
+                }`}
                 style={{ borderLeft: `3px solid ${color}` }}
               >
                 <div className="mb-2.5 flex items-center gap-3">
@@ -216,8 +233,8 @@ export function IndiaAqiOverviewSection() {
                     className="rounded-full px-2.5 py-0.5 font-sans text-[0.6rem] font-bold uppercase tracking-widest"
                     style={{
                       color,
-                      background: `${color}18`,
-                      border: `1px solid ${color}35`,
+                      background: `${color}30`,
+                      border: `1px solid ${color}55`,
                     }}
                   >
                     {badge}
