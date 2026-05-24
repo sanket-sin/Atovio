@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useMemo } from "react";
 import { AQI_LEGEND_ITEMS } from "@/lib/air-quality/aqi-levels";
 import { SectionTitle } from "./SectionTitle";
+import { WhoComplianceScorecard } from "./WhoComplianceScorecard";
 
 const COLORS = AQI_LEGEND_ITEMS.map((l) => l.color);
 
@@ -184,51 +185,7 @@ export function TrendsAnalysisSection() {
                 WHO Compliance Scorecard
               </h3>
             </div>
-            <p className="mb-4 text-sm text-bqa-dim">Last 30 days · Mumbai</p>
-            <div className="mx-auto flex max-w-[220px] flex-col items-center">
-              <div
-                className="relative h-44 w-44 rounded-full"
-                style={{
-                  background: `conic-gradient(#c77dff 0deg 60deg, #1a2d4a 60deg 360deg)`,
-                }}
-              >
-                <div className="absolute inset-[22%] flex flex-col items-center justify-center rounded-full bg-bqa-navy2">
-                  <span className="font-sans text-4xl font-black text-purple-400">
-                    5
-                  </span>
-                  <span className="text-sm text-bqa-dim">/ 30</span>
-                </div>
-              </div>
-              <p className="mt-4 text-center font-semibold text-bqa-text">
-                5 days within WHO Limits
-              </p>
-              <p className="text-sm text-bqa-dim">
-                25 days over WHO threshold
-              </p>
-            </div>
-            <div className="mt-6 space-y-3">
-              <div>
-                <div className="mb-1 flex justify-between text-[0.75rem]">
-                  <span className="text-teal-400">CPCB Standard</span>
-                  <span className="text-bqa-muted">18 Days Safe</span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-bqa-slate2">
-                  <div className="h-full w-[60%] rounded-full bg-teal-500" />
-                </div>
-              </div>
-              <div>
-                <div className="mb-1 flex justify-between text-[0.75rem]">
-                  <span className="text-purple-400">WHO Guideline</span>
-                  <span className="text-bqa-muted">5 Days Safe</span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-bqa-slate2">
-                  <div className="h-full w-[17%] rounded-full bg-purple-500" />
-                </div>
-              </div>
-            </div>
-            <p className="mt-4 text-[0.75rem] text-bqa-dim">
-              • Govt &apos;safe&apos; ≠ WHO &apos;safe&apos; — big gap
-            </p>
+            <WhoComplianceScorecard />
           </div>
         </div>
       </div>

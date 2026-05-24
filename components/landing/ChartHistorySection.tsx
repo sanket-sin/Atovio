@@ -13,7 +13,10 @@ import { resolveHistoricalSlug } from "@/lib/api/aqi-historical-24h";
 import { aqiColor } from "./chart-data";
 import { AQI_LEGEND_CHART_TUPLES } from "@/lib/air-quality/aqi-levels";
 import { registerLandingCharts } from "./chart-register";
+import { useAnimatedProgress, useInViewOnce } from "./ReadingAnimation";
+import { DetailsPanelAnimation } from "./DetailsPanelAnimation";
 import { SectionTitle } from "./SectionTitle";
+import { WhoComplianceScorecard } from "./WhoComplianceScorecard";
 
 type ChartType = "bar" | "line";
 type Metric = "aqi" | "pm25" | "pm10";
@@ -152,10 +155,17 @@ const RADAR_LABELS: {
 ];
 
 function PollutantRadarBody({ citySnapshot }: { citySnapshot: HeroCitySnapshot | null }) {
-  const { points, vertices } = radarPolygonFromSnapshot(citySnapshot);
+  const { vertices } = radarPolygonFromSnapshot(citySnapshot);
   const values = radarRawValues(citySnapshot);
   const hasLive = Boolean(citySnapshot);
   const tooltipId = useId().replace(/:/g, "");
+  const [radarRef, radarActive] = useInViewOnce<HTMLDivElement>([citySnapshot?.cityName, citySnapshot?.aqi]);
+  const radarProgress = useAnimatedProgress(radarActive, 1100, 80);
+  const animatedVertices = vertices.map((v) => ({
+    x: RADAR_CX + (v.x - RADAR_CX) * radarProgress,
+    y: RADAR_CY + (v.y - RADAR_CY) * radarProgress,
+  }));
+  const points = animatedVertices.map((v) => `${v.x.toFixed(1)},${v.y.toFixed(1)}`).join(" ");
   const [hoveredAxis, setHoveredAxis] = useState<number | null>(null);
   const tooltipAxis = hoveredAxis ?? 0;
   const tooltipPoint = vertices[tooltipAxis];
@@ -165,7 +175,7 @@ function PollutantRadarBody({ citySnapshot }: { citySnapshot: HeroCitySnapshot |
   const tooltipY = Math.max(28, tooltipPoint.y - 20);
 
   return (
-    <>
+    <div ref={radarRef}>
       <svg viewBox="0 0 320 285" className="mx-auto w-full max-w-[32rem]" aria-label="Pollutant mix radar chart">
         <defs>
           <linearGradient id={`radar-tooltip-bg-${tooltipId}`} x1="0" y1="0" x2="1" y2="1">
@@ -204,7 +214,7 @@ function PollutantRadarBody({ citySnapshot }: { citySnapshot: HeroCitySnapshot |
           strokeLinejoin="round"
         />
 
-        {vertices.map((pt, i) => (
+        {animatedVertices.map((pt, i) => (
           <g key={RADAR_AXIS_ORDER[i]}>
             <circle
               cx={pt.x.toFixed(1)}
@@ -303,84 +313,7 @@ function PollutantRadarBody({ citySnapshot }: { citySnapshot: HeroCitySnapshot |
           ? `• Latest mix for ${citySnapshot.cityName} — spoke length vs reference cap`
           : "• Load a city above to see live pollutant mix"}
       </p>
-    </>
-  );
-}
-
-function WhoComplianceBody() {
-  return (
-    <>
-      <p className="mb-4 font-sans text-[0.8rem] text-bqa-dim">Last 30 days · Mumbai</p>
-
-      <div className="flex justify-center">
-        <svg viewBox="0 0 180 180" className="w-[160px]">
-          <circle cx="90" cy="90" r="60" fill="none" stroke="#1a2d4a" strokeWidth="14" />
-          <circle
-            cx="90"
-            cy="90"
-            r="60"
-            fill="none"
-            stroke="#c77dff"
-            strokeWidth="14"
-            strokeDasharray="62.83 376.99"
-            strokeDashoffset="94.25"
-            strokeLinecap="round"
-          />
-          <text
-            x="90"
-            y="84"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fill="#c77dff"
-            fontSize="30"
-            fontWeight="bold"
-            style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}
-          >
-            5
-          </text>
-          <text
-            x="90"
-            y="105"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fill="#4a728a"
-            fontSize="11"
-            style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}
-          >
-            /30
-          </text>
-        </svg>
-      </div>
-
-      <div className="mt-1 text-center">
-        <p className="font-sans text-[1rem] font-bold text-white">5 days within WHO Limits</p>
-        <p className="font-sans text-[0.82rem] text-bqa-dim">25 days over WHO threshold</p>
-      </div>
-
-      <div className="mt-5 space-y-4 rounded-[14px] border border-sky-400/10 bg-bqa-slate/40 p-4">
-        <div>
-          <div className="mb-1.5 flex items-center justify-between font-sans text-[0.78rem]">
-            <span className="text-bqa-muted">CPCB Standard</span>
-            <span className="font-semibold text-bqa-good">18 Days Safe</span>
-          </div>
-          <div className="h-1.5 w-full rounded-full bg-bqa-navy">
-            <div className="h-full rounded-full bg-bqa-good" style={{ width: "60%" }} />
-          </div>
-        </div>
-        <div>
-          <div className="mb-1.5 flex items-center justify-between font-sans text-[0.78rem]">
-            <span className="text-bqa-muted">WHO Guideline</span>
-            <span className="font-semibold text-bqa-compare">5 Days Safe</span>
-          </div>
-          <div className="h-1.5 w-full rounded-full bg-bqa-navy">
-            <div className="h-full rounded-full bg-bqa-compare" style={{ width: "16.7%" }} />
-          </div>
-        </div>
-      </div>
-      <p className="mt-3 font-sans text-[0.78rem] text-bqa-dim">
-        • Govt &ldquo;safe&rdquo; ≠ WHO &ldquo;safe&rdquo; — big gap
-      </p>
-    </>
+    </div>
   );
 }
 
@@ -417,6 +350,7 @@ export function ChartHistorySection({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
+  const [chartWrapRef, chartInView] = useInViewOnce<HTMLDivElement>([]);
   const [chartType, setChartType] = useState<ChartType>("bar");
   const [range, setRange] = useState<7 | 30>(30);
   const [metric, setMetric] = useState<Metric>("aqi");
@@ -530,7 +464,12 @@ export function ChartHistorySection({
             },
           },
         },
-        animation: { duration: 600 },
+        animation: chartInView
+          ? {
+              duration: 1000,
+              easing: "easeOutCubic",
+            }
+          : false,
       },
     });
 
@@ -538,7 +477,7 @@ export function ChartHistorySection({
       chartRef.current?.destroy();
       chartRef.current = null;
     };
-  }, [chartType, chartLabels, chartValues, metric]);
+  }, [chartType, chartLabels, chartValues, metric, chartInView]);
 
   return (
     <section id="sec-chart" className="sec-fx border-t border-sky-400/10 py-12 sm:py-14">
@@ -625,7 +564,10 @@ export function ChartHistorySection({
           </div>
 
           <div className="mt-6 border-t border-sky-400/10 pt-5">
-            <div className="relative h-[260px] w-full min-w-0 sm:h-[300px]">
+            <div
+              ref={chartWrapRef}
+              className="relative h-[260px] w-full min-w-0 sm:h-[300px]"
+            >
               <canvas ref={canvasRef} className="max-h-full" />
             </div>
           </div>
@@ -686,7 +628,9 @@ export function ChartHistorySection({
               <ChevronDown className="history-details-chevron" />
             </summary>
             <div className="border-t border-sky-400/10 px-5 pb-5 pt-4">
-              <WhoComplianceBody />
+              <DetailsPanelAnimation>
+                {(active) => <WhoComplianceScorecard active={active} />}
+              </DetailsPanelAnimation>
             </div>
           </details>
         </div>
@@ -724,7 +668,7 @@ export function ChartHistorySection({
               </span>
               <h3 className="font-sans text-base font-bold text-white">Who Compliance Scorecard</h3>
             </div>
-            <WhoComplianceBody />
+            <WhoComplianceScorecard />
           </div>
         </div>
       </div>

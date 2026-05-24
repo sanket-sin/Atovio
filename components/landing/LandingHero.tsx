@@ -3,6 +3,13 @@
 import { useId, useState } from "react";
 import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
 import { AqiBadge, type AqiBadgeVariant } from "./AqiBadge";
+import {
+  AnimatedHorizontalMarker,
+  AnimatedReadingValue,
+  AnimatedStrokeRing,
+  useAnimatedProgress,
+  useInViewOnce,
+} from "./ReadingAnimation";
 
 const HERO_BG = "/images/heroSec_bgImg.png";
 
@@ -151,16 +158,19 @@ function TabWeatherIcon({ active }: { active: boolean }) {
 function WhoHoursRing({
   whoRingGradId,
   ringR,
-  ringC,
-  whoDash,
+  whoHours,
+  active,
   isLight,
 }: {
   whoRingGradId: string;
   ringR: number;
-  ringC: number;
-  whoDash: number;
+  whoHours: number;
+  active: boolean;
   isLight?: boolean;
 }) {
+  const hoursProgress = useAnimatedProgress(active, 1000, 150);
+  const displayHours = Math.round(whoHours * hoursProgress);
+
   return (
     <div
       className="mt-5 flex items-center gap-4"
@@ -176,15 +186,16 @@ function WhoHoursRing({
             stroke={isLight ? "rgba(15,23,42,0.12)" : "rgba(255,255,255,0.08)"}
             strokeWidth="10"
           />
-          <circle
-            cx="50"
-            cy="50"
-            r={ringR}
-            fill="none"
+          <AnimatedStrokeRing
+            radius={ringR}
+            cx={50}
+            cy={50}
+            strokeWidth={10}
+            progress={whoHours / 24}
             stroke={`url(#${whoRingGradId})`}
-            strokeWidth="10"
-            strokeLinecap="round"
-            strokeDasharray={`${whoDash} ${ringC}`}
+            active={active}
+            durationMs={1000}
+            delayMs={150}
           />
           <defs>
             <linearGradient id={whoRingGradId} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -194,7 +205,7 @@ function WhoHoursRing({
           </defs>
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="font-sans text-2xl font-bold tracking-normal text-bqa-text">19</span>
+          <span className="font-sans text-2xl font-bold tracking-normal text-bqa-text">{displayHours}</span>
         </div>
       </div>
       <p className={`text-[0.72rem] leading-snug ${isLight ? "text-slate-600" : "text-bqa-dim"}`}>
@@ -214,11 +225,10 @@ export function LandingHero({
 }: LandingHeroProps) {
   const whoRingGradId = useId().replace(/:/g, "");
   const ringR = 42;
-  const ringC = 2 * Math.PI * ringR;
   const whoHours = 19;
-  const whoDash = (whoHours / 24) * ringC;
 
   const [heroTab, setHeroTab] = useState<"aqi" | "weather">("aqi");
+  const [heroRef, heroActive] = useInViewOnce<HTMLElement>([citySnapshot?.cityName, citySnapshot?.aqi]);
 
   const isDetectingCity = isLocatingLocation && !citySnapshot;
   const needsManualCity = locationUnavailable && !citySnapshot;
@@ -243,6 +253,7 @@ export function LandingHero({
   const markerPct = showPlaceholder
     ? 0
     : Math.min(100, Math.max(0, (d.aqi / 500) * 100));
+  const readingsActive = heroActive && !showPlaceholder;
   const numTone = headlineNumberTone(badgeVariant, isLight);
   const tempUnit = temperatureUnitSymbol(d.weather?.temperatureUnit);
   const temperatureDisplay = showPlaceholder
@@ -301,7 +312,17 @@ export function LandingHero({
         {cityNameDisplay} Air Quality
         <br />
         Index —{" "}
-        <em className={`not-italic font-sans tracking-normal ${numTone}`}>{aqiDisplay}</em>
+        <em className={`not-italic font-sans tracking-normal ${numTone}`}>
+          {showPlaceholder ? (
+            aqiDisplay
+          ) : (
+            <AnimatedReadingValue
+              value={d.aqi}
+              format={(n) => String(Math.round(n))}
+              active={readingsActive}
+            />
+          )}
+        </em>
       </h1>
       <p
         className={`mb-0 max-w-[380px] text-[0.92rem] leading-relaxed sm:text-[0.95rem] ${
@@ -335,6 +356,7 @@ export function LandingHero({
 
   return (
     <section
+      ref={heroRef}
       id="sec-hero"
       className="relative flex min-h-[100dvh] items-center overflow-hidden border-b border-sky-400/10 pt-[7rem] sm:pt-[8rem] md:pt-[7.75rem]"
     >
@@ -404,7 +426,15 @@ export function LandingHero({
                             : `${numTone} drop-shadow-[0_0_40px_rgba(255,140,66,0.28)]`
                         }`}
                       >
-                        {aqiDisplay}
+                        {showPlaceholder ? (
+                          aqiDisplay
+                        ) : (
+                          <AnimatedReadingValue
+                            value={d.aqi}
+                            format={(n) => String(Math.round(n))}
+                            active={readingsActive}
+                          />
+                        )}
                       </span>
                       <AqiBadge
                         variant={badgeVariant}
@@ -435,7 +465,16 @@ export function LandingHero({
                           isLight ? "text-slate-800" : "text-bqa-text"
                         }`}
                       >
-                        {pm25Display}{" "}
+                        {showPlaceholder ? (
+                          pm25Display
+                        ) : (
+                          <AnimatedReadingValue
+                            value={d.pm25}
+                            format={formatOneDecimal}
+                            active={readingsActive}
+                            delayMs={80}
+                          />
+                        )}{" "}
                         <span className={`text-[0.7rem] font-normal ${isLight ? "text-slate-500" : "text-bqa-dim"}`}>
                           µg/m³
                         </span>
@@ -463,7 +502,16 @@ export function LandingHero({
                           isLight ? "text-slate-800" : "text-bqa-text"
                         }`}
                       >
-                        {pm10Display}{" "}
+                        {showPlaceholder ? (
+                          pm10Display
+                        ) : (
+                          <AnimatedReadingValue
+                            value={d.pm10}
+                            format={formatOneDecimal}
+                            active={readingsActive}
+                            delayMs={160}
+                          />
+                        )}{" "}
                         <span className={`text-[0.7rem] font-normal ${isLight ? "text-slate-500" : "text-bqa-dim"}`}>
                           µg/m³
                         </span>
@@ -480,18 +528,30 @@ export function LandingHero({
                         isLight ? "shadow-inner" : "shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)]"
                       }`}
                     >
-                      <div
+                      <AnimatedHorizontalMarker
+                        targetPercent={markerPct}
+                        active={readingsActive}
+                        durationMs={1000}
+                        delayMs={200}
                         className="absolute -top-1.5 h-6 w-0.5 -translate-x-1/2 rounded-sm bg-white shadow-[0_0_12px_rgba(255,255,255,0.85)]"
-                        style={{ left: `${markerPct}%` }}
                       >
                         <span
                           className={`absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded px-1.5 py-0.5 font-sans text-[0.65rem] font-bold tracking-normal shadow-sm ${
                             isLight ? "bg-white text-[#0f172a] ring-1 ring-slate-200" : "bg-white text-[#0a0a1a]"
                           }`}
                         >
-                          {aqiDisplay}
+                          {showPlaceholder ? (
+                            aqiDisplay
+                          ) : (
+                            <AnimatedReadingValue
+                              value={d.aqi}
+                              format={(n) => String(Math.round(n))}
+                              active={readingsActive}
+                              delayMs={200}
+                            />
+                          )}
                         </span>
-                      </div>
+                      </AnimatedHorizontalMarker>
                     </div>
                     <div className="-mx-0.5 flex justify-between gap-1 overflow-x-auto pb-0.5 font-sans text-[0.52rem] font-semibold sm:text-[0.6rem]">
                       <span className="shrink-0 text-bqa-good">Good</span>
@@ -506,8 +566,8 @@ export function LandingHero({
                   <WhoHoursRing
                     whoRingGradId={`${whoRingGradId}-mob`}
                     ringR={ringR}
-                    ringC={ringC}
-                    whoDash={whoDash}
+                    whoHours={whoHours}
+                    active={readingsActive}
                     isLight={isLight}
                   />
                 </>
@@ -608,7 +668,15 @@ export function LandingHero({
                       isLight ? numTone : `${numTone} drop-shadow-[0_0_40px_rgba(255,140,66,0.3)]`
                     }`}
                   >
-                    {aqiDisplay}
+                    {showPlaceholder ? (
+                      aqiDisplay
+                    ) : (
+                      <AnimatedReadingValue
+                        value={d.aqi}
+                        format={(n) => String(Math.round(n))}
+                        active={readingsActive}
+                      />
+                    )}
                   </div>
                   <AqiBadge
                     variant={badgeVariant}
@@ -646,7 +714,17 @@ export function LandingHero({
                 <div className="rounded-lg border-l-[3px] border-bqa-moderate bg-bqa-slate/60 p-3">
                   <div className="mb-0.5 text-[0.68rem] font-semibold tracking-wide text-bqa-dim">PM2.5</div>
                   <div className="font-sans text-xl font-bold tracking-normal text-bqa-text">
-                    {pm25Display} <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
+                    {showPlaceholder ? (
+                      pm25Display
+                    ) : (
+                      <AnimatedReadingValue
+                        value={d.pm25}
+                        format={formatOneDecimal}
+                        active={readingsActive}
+                        delayMs={80}
+                      />
+                    )}{" "}
+                    <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
                   </div>
                   <AqiBadge variant={pm25Variant} className="mt-1.5">
                     {variantLabel(pm25Variant)}
@@ -655,7 +733,17 @@ export function LandingHero({
                 <div className="rounded-lg border-l-[3px] border-bqa-unhealthy bg-bqa-slate/60 p-3">
                   <div className="mb-0.5 text-[0.68rem] font-semibold tracking-wide text-bqa-dim">PM10</div>
                   <div className="font-sans text-xl font-bold tracking-normal text-bqa-text">
-                    {pm10Display} <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
+                    {showPlaceholder ? (
+                      pm10Display
+                    ) : (
+                      <AnimatedReadingValue
+                        value={d.pm10}
+                        format={formatOneDecimal}
+                        active={readingsActive}
+                        delayMs={160}
+                      />
+                    )}{" "}
+                    <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
                   </div>
                   <AqiBadge variant={pm10Variant} className="mt-1.5">
                     {variantLabel(pm10Variant)}
@@ -665,14 +753,26 @@ export function LandingHero({
 
               <div className="mt-4">
                 <div className="relative mb-1.5 h-2.5 rounded-md bg-gradient-to-r from-bqa-good via-bqa-moderate via-bqa-poor via-bqa-unhealthy via-bqa-severe to-bqa-hazardous shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]">
-                  <div
+                  <AnimatedHorizontalMarker
+                    targetPercent={markerPct}
+                    active={readingsActive}
+                    durationMs={1000}
+                    delayMs={200}
                     className="absolute -top-1.5 h-6 w-0.5 -translate-x-1/2 rounded-sm bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]"
-                    style={{ left: `${markerPct}%` }}
                   >
                     <span className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-white px-1.5 py-0.5 font-sans text-[0.65rem] font-bold tracking-normal text-[#0a0a1a]">
-                      {aqiDisplay}
+                      {showPlaceholder ? (
+                        aqiDisplay
+                      ) : (
+                        <AnimatedReadingValue
+                          value={d.aqi}
+                          format={(n) => String(Math.round(n))}
+                          active={readingsActive}
+                          delayMs={200}
+                        />
+                      )}
                     </span>
-                  </div>
+                  </AnimatedHorizontalMarker>
                 </div>
                 <div className="flex justify-between font-sans text-[0.62rem] font-semibold">
                   <span className="text-bqa-good">Good</span>
@@ -736,8 +836,8 @@ export function LandingHero({
               <WhoHoursRing
                 whoRingGradId={whoRingGradId}
                 ringR={ringR}
-                ringC={ringC}
-                whoDash={whoDash}
+                whoHours={whoHours}
+                active={readingsActive}
                 isLight={isLight}
               />
             </div>

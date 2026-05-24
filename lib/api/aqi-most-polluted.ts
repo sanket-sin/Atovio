@@ -40,9 +40,14 @@ export type MostPollutedApiResponse = {
   error: string | null;
 };
 
+export type LeaderboardSort = "most-polluted" | "most-cleanest";
+
 export type FetchMostPollutedOptions = {
   /** 1-based page index when the API supports `?page=` (default 1). */
   page?: number;
+  sort?: LeaderboardSort;
+  /** Required for `most-cleanest` when `page` > 1 — from a prior response’s `pagination.totalPages`. */
+  totalPages?: number;
 };
 
 async function getMostPollutedResponse(
@@ -86,10 +91,37 @@ export type MostAndLeastPollutedResult = {
 export async function fetchMostPollutedLeaderboard(
   options: FetchMostPollutedOptions = {}
 ): Promise<MostPollutedLeaderboardResult> {
-  const d = await getMostPollutedResponse(options);
+  const page = options.page ?? 1;
+  const sort = options.sort ?? "most-polluted";
+
+  if (sort === "most-polluted") {
+    const d = await getMostPollutedResponse({ page });
+    return {
+      cities: d.cities ?? [],
+      pagination: d.pagination,
+    };
+  }
+
+  const meta =
+    page <= 1 && options.totalPages == null
+      ? await getMostPollutedResponse({ page: 1 })
+      : null;
+  const totalPages = options.totalPages ?? meta?.pagination?.totalPages ?? 1;
+  const apiPage = Math.max(1, totalPages - page + 1);
+  const d = await getMostPollutedResponse({ page: apiPage });
+  const rowPerPage = d.pagination?.rowPerPage ?? d.cities?.length ?? 50;
+  const rankOffset = (page - 1) * rowPerPage;
+  const cities = [...(d.cities ?? [])]
+    .reverse()
+    .map((row, i) => ({ ...row, rank: rankOffset + i + 1 }));
+
   return {
-    cities: d.cities ?? [],
-    pagination: d.pagination,
+    cities,
+    pagination: {
+      ...d.pagination,
+      page,
+      totalPages,
+    },
   };
 }
 

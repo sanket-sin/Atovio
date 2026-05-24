@@ -5,6 +5,7 @@ import type { MostPollutedCityRow } from "@/lib/api/aqi-most-polluted";
 import { fetchMostAndLeastPollutedCities } from "@/lib/api/aqi-most-polluted";
 import { getAqiLevel } from "@/lib/air-quality/aqi-levels";
 import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
+import { AnimatedProgressBar, AnimatedReadingValue, useInViewOnce } from "./ReadingAnimation";
 import { RealtimeAqiGoogleMap } from "./RealtimeAqiGoogleMap";
 import { SectionTitle } from "./SectionTitle";
 
@@ -224,6 +225,73 @@ const FALLBACK_LEAST = {
   status: "Good",
 };
 
+function ExtremeCityCard({
+  label,
+  labelClass,
+  borderClass,
+  bgClass,
+  badgeClass,
+  cityTitle,
+  barTrack,
+  barClass,
+  city,
+  aqi,
+  status,
+  barPct,
+  aqiClass,
+  animateKey,
+  delayMs,
+}: {
+  label: string;
+  labelClass: string;
+  borderClass: string;
+  bgClass: string;
+  badgeClass: string;
+  cityTitle: string;
+  barTrack: string;
+  barClass: string;
+  city: string;
+  aqi: number;
+  status: string;
+  barPct: string;
+  aqiClass: string;
+  animateKey: string;
+  delayMs: number;
+}) {
+  const [cardRef, inView] = useInViewOnce<HTMLDivElement>([animateKey, city, aqi]);
+
+  return (
+    <div ref={cardRef} className={`rounded-2xl border p-5 ${borderClass} ${bgClass}`}>
+      <p className={`mb-3 font-sans text-[0.65rem] font-bold uppercase tracking-widest ${labelClass}`}>
+        {label}
+      </p>
+      <h3 className={`mb-2 font-sans text-2xl font-bold ${cityTitle}`}>{city}</h3>
+      <div className="flex items-baseline gap-3">
+        <span className={`font-sans text-4xl font-bold ${aqiClass}`}>
+          <AnimatedReadingValue
+            value={aqi}
+            format={(n) => String(Math.round(n))}
+            active={inView}
+            delayMs={delayMs}
+          />
+        </span>
+        <span className={`rounded-md px-2 py-0.5 font-sans text-[0.75rem] font-semibold ${badgeClass}`}>
+          {status}
+        </span>
+      </div>
+      <div className={`relative mt-5 h-1.5 w-full overflow-hidden rounded-full ${barTrack}`}>
+        <AnimatedProgressBar
+          targetWidth={barPct}
+          className={barClass}
+          active={inView}
+          delayMs={delayMs}
+          durationMs={1100}
+        />
+      </div>
+    </div>
+  );
+}
+
 function toCardData(
   row: MostPollutedCityRow | null,
   fallback: { city: string; aqi: number; status: string }
@@ -282,6 +350,7 @@ export function RealtimeAqiMapSection({
   const barTrack = isLight ? "bg-slate-200/90" : "bg-bqa-navy";
   const mostCity = toCardData(extremes?.most ?? null, FALLBACK_MOST);
   const leastCity = toCardData(extremes?.least ?? null, FALLBACK_LEAST);
+  const extremesKey = `${mostCity.city}:${mostCity.aqi}|${leastCity.city}:${leastCity.aqi}`;
 
   return (
     <section
@@ -323,59 +392,45 @@ export function RealtimeAqiMapSection({
         {/* Most Polluted + Cleanest City */}
         <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
 
-          {/* Most Polluted */}
-          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.07] p-5">
-            <p
-              className={`mb-3 font-sans text-[0.65rem] font-bold uppercase tracking-widest ${
-                isLight ? "text-rose-600" : "text-rose-400"
-              }`}
-            >
-              Most Polluted City Today
-            </p>
-            <h3 className={`mb-2 font-sans text-2xl font-bold ${cityTitle}`}>{mostCity.city}</h3>
-            <div className="flex items-baseline gap-3">
-              <span className={`font-sans text-4xl font-bold ${mostCity.aqiClass}`}>{mostCity.aqi}</span>
-              <span
-                className={`rounded-md px-2 py-0.5 font-sans text-[0.75rem] font-semibold ${
-                  isLight
-                    ? "bg-rose-100 text-rose-900"
-                    : "bg-rose-500/20 text-rose-300"
-                }`}
-              >
-                {mostCity.status}
-              </span>
-            </div>
-            <div className={`mt-5 h-1.5 w-full rounded-full ${barTrack}`}>
-              <div className="h-full rounded-full bg-bqa-unhealthy" style={{ width: mostCity.barPct }} />
-            </div>
-          </div>
+          <ExtremeCityCard
+            label="Most Polluted City Today"
+            labelClass={isLight ? "text-rose-600" : "text-rose-400"}
+            borderClass="border-rose-500/20"
+            bgClass="bg-rose-500/[0.07]"
+            badgeClass={
+              isLight ? "bg-rose-100 text-rose-900" : "bg-rose-500/20 text-rose-300"
+            }
+            cityTitle={cityTitle}
+            barTrack={barTrack}
+            barClass="bg-bqa-unhealthy"
+            city={mostCity.city}
+            aqi={mostCity.aqi}
+            status={mostCity.status}
+            barPct={mostCity.barPct}
+            aqiClass={mostCity.aqiClass}
+            animateKey={extremesKey}
+            delayMs={0}
+          />
 
-          {/* Cleanest City */}
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] p-5">
-            <p
-              className={`mb-3 font-sans text-[0.65rem] font-bold uppercase tracking-widest ${
-                isLight ? "text-emerald-600" : "text-emerald-400"
-              }`}
-            >
-              Cleanest City Today
-            </p>
-            <h3 className={`mb-2 font-sans text-2xl font-bold ${cityTitle}`}>{leastCity.city}</h3>
-            <div className="flex items-baseline gap-3">
-              <span className={`font-sans text-4xl font-bold ${leastCity.aqiClass}`}>{leastCity.aqi}</span>
-              <span
-                className={`rounded-md px-2 py-0.5 font-sans text-[0.75rem] font-semibold ${
-                  isLight
-                    ? "bg-emerald-100 text-emerald-900"
-                    : "bg-emerald-500/20 text-emerald-300"
-                }`}
-              >
-                {leastCity.status}
-              </span>
-            </div>
-            <div className={`mt-5 h-1.5 w-full rounded-full ${barTrack}`}>
-              <div className="h-full rounded-full bg-bqa-good" style={{ width: leastCity.barPct }} />
-            </div>
-          </div>
+          <ExtremeCityCard
+            label="Cleanest City Today"
+            labelClass={isLight ? "text-emerald-600" : "text-emerald-400"}
+            borderClass="border-emerald-500/20"
+            bgClass="bg-emerald-500/[0.07]"
+            badgeClass={
+              isLight ? "bg-emerald-100 text-emerald-900" : "bg-emerald-500/20 text-emerald-300"
+            }
+            cityTitle={cityTitle}
+            barTrack={barTrack}
+            barClass="bg-bqa-good"
+            city={leastCity.city}
+            aqi={leastCity.aqi}
+            status={leastCity.status}
+            barPct={leastCity.barPct}
+            aqiClass={leastCity.aqiClass}
+            animateKey={extremesKey}
+            delayMs={120}
+          />
 
         </div>
       </div>

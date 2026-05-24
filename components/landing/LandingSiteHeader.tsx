@@ -173,9 +173,19 @@ export function LandingSiteHeader({
 
   const navLinkClass = `text-sm font-medium transition-colors ${isLight ? "text-gray-800 hover:text-gray-600" : "text-white hover:text-white/90"}`;
   const rowPad = "px-4 sm:px-6 lg:px-8 xl:px-10";
+  const hasSearchValue = searchQuery.length > 0;
+  const searchInputPadRight = hasSearchValue ? "pr-10 sm:pr-10" : "pr-4 sm:pr-4";
   const searchInputClass = isLight
-    ? "h-10 w-full rounded-[6px] border border-gray-300 bg-gray-100 py-2 pl-10 pr-4 text-[0.78rem] text-gray-800 outline-none transition-colors placeholder:text-gray-400 focus:border-bqa-accent focus:bg-white sm:pl-11 sm:pr-4"
-    : "h-10 w-full rounded-[6px] border border-white/[0.1] bg-[#0a101a] py-2 pl-10 pr-4 text-[0.78rem] text-slate-200 outline-none transition-colors placeholder:text-slate-400 focus:border-white/[0.18] focus:bg-[#0d1420] sm:pl-11 sm:pr-4";
+    ? `h-10 w-full rounded-[6px] border border-gray-300 bg-gray-100 py-2 pl-10 text-[0.78rem] text-gray-800 outline-none transition-colors placeholder:text-gray-400 focus:border-bqa-accent focus:bg-white sm:pl-11 ${searchInputPadRight}`
+    : `h-10 w-full rounded-[6px] border border-white/[0.1] bg-[#0a101a] py-2 pl-10 text-[0.78rem] text-slate-200 outline-none transition-colors placeholder:text-slate-400 focus:border-white/[0.18] focus:bg-[#0d1420] sm:pl-11 ${searchInputPadRight}`;
+
+  function clearSearch() {
+    frozenSearchLabelRef.current = null;
+    setSearchQuery("");
+    setResults([]);
+    setDropdownOpen(false);
+    inputRef.current?.focus();
+  }
   const searchPlaceholder =
     "Search city…";
   const searchIconWrapClass =
@@ -295,7 +305,7 @@ export function LandingSiteHeader({
                 </span>
                 <input
                   ref={inputRef}
-                  type="search"
+                  type="text"
                   value={searchQuery}
                   onChange={(e) => {
                     const v = e.target.value;
@@ -315,6 +325,35 @@ export function LandingSiteHeader({
                   autoComplete="off"
                   enterKeyHint="search"
                 />
+                {hasSearchValue && (
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-sm text-bqa-accent transition-colors hover:text-bqa-accent2 sm:right-3.5"
+                    aria-label="Clear search"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 14 14"
+                      fill="none"
+                      aria-hidden
+                    >
+                      <path
+                        d="M3 3L11 11"
+                        stroke="currentColor"
+                        strokeWidth="1.4"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M11 3L3 11"
+                        stroke="currentColor"
+                        strokeWidth="1.4"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </button>
+                )}
                 <SearchDropdown />
               </div>
             </div>

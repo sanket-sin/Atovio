@@ -4,6 +4,11 @@ import { useState } from "react";
 import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
 import { getPm10Ugm3Level, getPm25Ugm3Level } from "@/lib/air-quality/aqi-levels";
 import { AqiBadge, type AqiBadgeVariant } from "./AqiBadge";
+import {
+  AnimatedProgressBar,
+  AnimatedReadingValue,
+  useInViewOnce,
+} from "./ReadingAnimation";
 import { SectionEyebrow } from "./SectionEyebrow";
 import { SectionTitle } from "./SectionTitle";
 
@@ -11,7 +16,7 @@ type Pol = {
   accent: string;
   tab: string;
   name: string;
-  value: string;
+  numeric: number;
   unit: string;
   fillWidth: string;
   fillClass: string;
@@ -26,7 +31,7 @@ type PollutantKey = "pm2_5" | "pm10" | "co" | "so2" | "no2" | "o3";
 
 const POLLUTANT_META: Record<
   PollutantKey,
-  Omit<Pol, "value" | "fillWidth" | "fillClass" | "thresholdLeft" | "badge" | "badgeLabel"> & {
+  Omit<Pol, "numeric" | "fillWidth" | "fillClass" | "thresholdLeft" | "badge" | "badgeLabel"> & {
     unit: string;
     safeLimit: number;
     maxScale: number;
@@ -153,7 +158,7 @@ function buildPollutants(snapshot?: HeroCitySnapshot | null): Pol[] {
       accent: meta.accent,
       tab: meta.tab,
       name: meta.name,
-      value: formatValue(numeric),
+      numeric,
       unit: meta.unit,
       fillWidth: `${fillPct}%`,
       fillClass: FILL_CLASS_BY_VARIANT[badge],
@@ -166,9 +171,23 @@ function buildPollutants(snapshot?: HeroCitySnapshot | null): Pol[] {
   });
 }
 
-function PollutantCard({ p }: { p: Pol }) {
+function PollutantCard({
+  p,
+  animateKey,
+  staggerIndex = 0,
+}: {
+  p: Pol;
+  animateKey: string;
+  staggerIndex?: number;
+}) {
+  const [cardRef, inView] = useInViewOnce<HTMLDivElement>([animateKey, p.tab]);
+  const delayMs = staggerIndex * 120;
+
   return (
-    <div className="group relative cursor-default overflow-hidden rounded-[20px] border border-sky-400/10 bg-bqa-navy2/70 p-5 pb-5 pl-5 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-sky-400/20 sm:p-6">
+    <div
+      ref={cardRef}
+      className="group relative cursor-default overflow-hidden rounded-[20px] border border-sky-400/10 bg-bqa-navy2/70 p-5 pb-5 pl-5 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-sky-400/20 sm:p-6"
+    >
       <div
         className="absolute bottom-0 left-0 top-0 w-[3px] rounded-l-[20px]"
         style={{ background: p.accent }}
@@ -176,14 +195,21 @@ function PollutantCard({ p }: { p: Pol }) {
       />
       <div className="pl-2.5 text-[0.8rem] font-semibold text-bqa-muted">{p.name}</div>
       <div className="pl-2.5 font-sans text-[1.8rem] font-bold text-bqa-text">
-        {p.value}{" "}
+        <AnimatedReadingValue
+          value={p.numeric}
+          format={formatValue}
+          active={inView}
+          delayMs={delayMs}
+        />{" "}
         <span className="text-[0.75rem] font-normal text-bqa-dim">{p.unit}</span>
       </div>
       <div className="mt-3.5 pl-2.5">
         <div className="relative mb-1.5 h-[7px] rounded bg-bqa-slate2">
-          <div
-            className={`absolute left-0 top-0 h-full rounded ${p.fillClass}`}
-            style={{ width: p.fillWidth }}
+          <AnimatedProgressBar
+            targetWidth={p.fillWidth}
+            className={p.fillClass}
+            active={inView}
+            delayMs={delayMs}
           />
           <div
             className="absolute -top-1 bottom-0 w-0.5 rounded-sm bg-white/45"
@@ -210,6 +236,9 @@ export function PollutantsSection({ citySnapshot = null }: { citySnapshot?: Hero
   const pollutants = buildPollutants(citySnapshot);
   const [sel, setSel] = useState(0);
   const active = pollutants[sel] ?? pollutants[0];
+  const animateKey =
+    citySnapshot?.cityName ??
+    pollutants.map((p) => `${p.tab}:${p.numeric}`).join("|");
 
   return (
     <section
@@ -238,12 +267,16 @@ export function PollutantsSection({ citySnapshot = null }: { citySnapshot?: Hero
               </button>
             ))}
           </div>
-          <PollutantCard p={active} />
+          <PollutantCard
+            key={`${animateKey}-${active.tab}`}
+            p={active}
+            animateKey={`${animateKey}-${sel}`}
+          />
         </div>
 
         <div className="hidden grid-cols-1 gap-[18px] lg:grid lg:grid-cols-3">
-          {pollutants.map((p) => (
-            <PollutantCard key={p.name} p={p} />
+          {pollutants.map((p, i) => (
+            <PollutantCard key={p.name} p={p} animateKey={animateKey} staggerIndex={i} />
           ))}
         </div>
       </div>

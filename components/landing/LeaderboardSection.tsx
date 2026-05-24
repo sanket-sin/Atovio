@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import type { MostPollutedCityRow } from "@/lib/api/aqi-most-polluted";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { LeaderboardSort, MostPollutedCityRow } from "@/lib/api/aqi-most-polluted";
 import { fetchMostPollutedLeaderboard } from "@/lib/api/aqi-most-polluted";
 import type { AqiLevelVariant } from "@/lib/air-quality/aqi-levels";
 import {
@@ -10,6 +10,7 @@ import {
   getAqiLevel,
 } from "@/lib/air-quality/aqi-levels";
 import { AnimatedCigarette } from "./AnimatedCigarette";
+import { AnimatedProgressBar, AnimatedReadingValue, useInViewOnce } from "./ReadingAnimation";
 import { SectionEyebrow } from "./SectionEyebrow";
 import { SectionTitle } from "./SectionTitle";
 
@@ -17,12 +18,13 @@ type Row = {
   rank: string;
   rankClass: string;
   city: string;
-  aqi: string;
+  aqi: number;
   aqiClass: string;
   status: string;
   statusColor: string;
   trend: "up" | "down" | "flat";
   puffPct: number;
+  puffScore: number;
   puffVal: string;
   rowBorder: string;
   levelVariant: AqiLevelVariant;
@@ -62,10 +64,11 @@ function apiCityToRow(c: MostPollutedCityRow): Row {
     ...styles,
     levelVariant: level.variant,
     city: c.city,
-    aqi: String(Math.round(c.aqi)),
+    aqi: Math.round(c.aqi),
     status: level.labelUppercase,
     trend: "flat",
     puffPct,
+    puffScore: c.puff_score,
     puffVal: c.puff_score.toFixed(1),
   };
 }
@@ -87,7 +90,20 @@ function aqiBadgeSurface(variant: AqiLevelVariant, darkClass: string, isLight: b
 const ROW_GRID =
   "grid grid-cols-[52px_minmax(0,1fr)_82px_110px_56px_1fr] items-center gap-x-5 px-4 py-3.5";
 
-function LeaderboardMobileCard({ r, isLight, cardShell }: { r: Row; isLight: boolean; cardShell: string }) {
+function LeaderboardMobileCard({
+  r,
+  isLight,
+  cardShell,
+  animateActive,
+  staggerIndex,
+}: {
+  r: Row;
+  isLight: boolean;
+  cardShell: string;
+  animateActive: boolean;
+  staggerIndex: number;
+}) {
+  const delayMs = staggerIndex * 50;
   const rankNum = parseInt(r.rank, 10);
   const mobileRank = mobileRankClass(rankNum);
 
@@ -112,38 +128,77 @@ function LeaderboardMobileCard({ r, isLight, cardShell }: { r: Row; isLight: boo
             {r.city}
           </span>
           <span className={`${aqiBadgeSurface(r.levelVariant, r.aqiClass, isLight)} aqi-pill-bubble`}>
-            {r.aqi}
+            <AnimatedReadingValue
+              value={r.aqi}
+              format={(n) => String(Math.round(n))}
+              active={animateActive}
+              delayMs={delayMs}
+            />
           </span>
         </div>
         <div
           className={`my-2.5 border-t border-dotted ${isLight ? "border-slate-200" : "border-sky-400/15"}`}
           aria-hidden
         />
-        <div className="flex min-w-0 items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-2">
           <span
-            className={`shrink-0 font-sans text-[0.68rem] font-semibold uppercase tracking-wider ${
+            className={`font-sans text-[0.68rem] font-semibold uppercase tracking-wider ${
               isLight ? "text-slate-500" : "text-bqa-muted"
             }`}
           >
-            Puff Score:
+            Puff Score
           </span>
-          <span
-            className={`min-w-0 truncate text-right font-sans text-sm font-bold tabular-nums ${
-              isLight ? "text-slate-900" : "text-bqa-text"
-            }`}
-          >
-            {r.puffVal}
-            <span className={`ml-1 text-[0.65rem] font-medium ${isLight ? "text-slate-500" : "text-bqa-muted"}`}>
-              cigs/day
+          <div className="flex min-w-0 items-center gap-2">
+            <div
+              className={`relative h-1.5 min-w-0 flex-1 overflow-hidden rounded ${
+                isLight ? "bg-slate-200" : "bg-bqa-slate2"
+              }`}
+            >
+              <AnimatedProgressBar
+                targetWidth={`${r.puffPct}%`}
+                className="bg-gradient-to-r from-bqa-accent2 to-bqa-accent"
+                active={animateActive}
+                delayMs={delayMs + 80}
+                durationMs={900}
+              />
+            </div>
+            <span
+              className={`shrink-0 whitespace-nowrap font-sans text-sm font-bold tabular-nums ${
+                isLight ? "text-slate-900" : "text-bqa-text"
+              }`}
+            >
+              <AnimatedReadingValue
+                value={r.puffScore}
+                format={(n) => n.toFixed(1)}
+                active={animateActive}
+                delayMs={delayMs + 80}
+              />
+              <span className={`ml-1 text-[0.65rem] font-medium ${isLight ? "text-slate-500" : "text-bqa-muted"}`}>
+                cigs/day
+              </span>
             </span>
-          </span>
+          </div>
         </div>
       </div>
     </article>
   );
 }
 
-function LeaderboardDesktopRow({ r, isLight, cardShell }: { r: Row; isLight: boolean; cardShell: string }) {
+function LeaderboardDesktopRow({
+  r,
+  isLight,
+  cardShell,
+  animateActive,
+  staggerIndex,
+}: {
+  r: Row;
+  isLight: boolean;
+  cardShell: string;
+  animateActive: boolean;
+  staggerIndex: number;
+}) {
+  const delayMs = staggerIndex * 50;
+
   return (
     <div className={`rounded-xl border-l-4 ${r.rowBorder} ${cardShell}`}>
       <div className={ROW_GRID}>
@@ -162,17 +217,29 @@ function LeaderboardDesktopRow({ r, isLight, cardShell }: { r: Row; isLight: boo
         <span
           className={`${aqiBadgeSurface(r.levelVariant, r.aqiClass, isLight)} aqi-pill-bubble w-fit justify-self-center`}
         >
-          {r.aqi}
+          <AnimatedReadingValue
+            value={r.aqi}
+            format={(n) => String(Math.round(n))}
+            active={animateActive}
+            delayMs={delayMs}
+          />
         </span>
         <div className={`text-sm font-bold leading-none ${r.statusColor}`}>{r.status}</div>
         <div className="flex justify-center">
           <TrendIcon t={r.trend} />
         </div>
         <div className="flex min-w-0 items-center gap-2">
-          <div className={`h-1.5 min-w-[48px] flex-1 rounded ${isLight ? "bg-slate-200" : "bg-bqa-slate2"}`}>
-            <div
-              className="h-full rounded bg-gradient-to-r from-bqa-accent2 to-bqa-accent"
-              style={{ width: `${r.puffPct}%` }}
+          <div
+            className={`relative h-1.5 min-w-[48px] flex-1 overflow-hidden rounded ${
+              isLight ? "bg-slate-200" : "bg-bqa-slate2"
+            }`}
+          >
+            <AnimatedProgressBar
+              targetWidth={`${r.puffPct}%`}
+              className="bg-gradient-to-r from-bqa-accent2 to-bqa-accent"
+              active={animateActive}
+              delayMs={delayMs + 80}
+              durationMs={900}
             />
           </div>
           <span
@@ -180,7 +247,12 @@ function LeaderboardDesktopRow({ r, isLight, cardShell }: { r: Row; isLight: boo
               isLight ? "text-slate-900" : "text-bqa-text"
             }`}
           >
-            {r.puffVal}
+            <AnimatedReadingValue
+              value={r.puffScore}
+              format={(n) => n.toFixed(1)}
+              active={animateActive}
+              delayMs={delayMs + 80}
+            />
             <span className={`text-[0.65rem] font-medium ${isLight ? "text-slate-500" : "text-bqa-muted"}`}>
               {" "}
               cigs/day
@@ -194,6 +266,7 @@ function LeaderboardDesktopRow({ r, isLight, cardShell }: { r: Row; isLight: boo
 
 export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
   const [q, setQ] = useState("");
+  const [sort, setSort] = useState<LeaderboardSort>("most-polluted");
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -201,6 +274,7 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
   const [total, setTotal] = useState(0);
   const [rowPerPage, setRowPerPage] = useState(50);
   const [totalPages, setTotalPages] = useState(1);
+  const totalPagesRef = useRef(1);
   const [retryTick, setRetryTick] = useState(0);
 
   useEffect(() => {
@@ -209,12 +283,18 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
       setLoading(true);
       setError(null);
       try {
-        const { cities, pagination } = await fetchMostPollutedLeaderboard({ page });
+        const { cities, pagination } = await fetchMostPollutedLeaderboard({
+          page,
+          sort,
+          totalPages: sort === "most-cleanest" ? totalPagesRef.current : undefined,
+        });
         if (cancelled) return;
         setRows(cities.map(apiCityToRow));
         setTotal(pagination.total);
         setRowPerPage(pagination.rowPerPage);
-        setTotalPages(Math.max(1, pagination.totalPages));
+        const pages = Math.max(1, pagination.totalPages);
+        totalPagesRef.current = pages;
+        setTotalPages(pages);
       } catch (e) {
         if (!cancelled) {
           setError(e instanceof Error ? e.message : "Could not load leaderboard.");
@@ -228,7 +308,7 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
     return () => {
       cancelled = true;
     };
-  }, [page, retryTick]);
+  }, [page, sort, retryTick]);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -253,6 +333,8 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
   const headerClass = `pb-2.5 font-sans text-[0.85rem] font-semibold uppercase tracking-widest ${
     isLight ? "text-slate-400" : "text-bqa-dim"
   }`;
+  const [listRef, listInView] = useInViewOnce<HTMLDivElement>([page, sort, loading, filtered.length]);
+  const puffAnimate = !loading && !error && filtered.length > 0 && listInView;
 
   return (
     <section
@@ -273,19 +355,24 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
               disabled={loading || !!error}
               className="w-full rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-sans text-sm text-bqa-text outline-none focus:border-sky-400/30 disabled:opacity-50 sm:w-52"
             />
-            <select
+            {/* <select
               disabled
               className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-sans text-sm text-bqa-muted opacity-70"
               title="Coming soon"
             >
               <option>All India</option>
-            </select>
+            </select> */}
             <select
-              disabled
-              className="cursor-not-allowed rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-sans text-sm text-bqa-muted opacity-70"
-              title="Sorted by most polluted (API)"
+              value={sort}
+              onChange={(e) => {
+                setSort(e.target.value as LeaderboardSort);
+                setPage(1);
+              }}
+              disabled={loading || !!error}
+              className="rounded-[10px] border border-sky-400/10 bg-bqa-slate px-3.5 py-2 font-sans text-sm text-bqa-text outline-none focus:border-sky-400/30 disabled:opacity-50"
             >
-              <option>Most Polluted</option>
+              <option value="most-polluted">Most Polluted</option>
+              <option value="most-cleanest">Most Cleanest</option>
             </select>
           </div>
         </div>
@@ -315,10 +402,18 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
 
         {!loading && !error && (
           <>
+            <div ref={listRef}>
             {/* Mobile: compact cards — no horizontal scroll */}
             <div className="flex flex-col gap-2.5 md:hidden">
-              {filtered.map((r) => (
-                <LeaderboardMobileCard key={`${r.rank}-${r.city}-m`} r={r} isLight={isLight} cardShell={cardShell} />
+              {filtered.map((r, i) => (
+                <LeaderboardMobileCard
+                  key={`${r.rank}-${r.city}-m`}
+                  r={r}
+                  isLight={isLight}
+                  cardShell={cardShell}
+                  animateActive={puffAnimate}
+                  staggerIndex={i}
+                />
               ))}
             </div>
 
@@ -336,15 +431,18 @@ export function LeaderboardSection({ isLight = false }: { isLight?: boolean }) {
                 </span>
               </div>
               <div className="mt-1.5 flex flex-col gap-1.5">
-                {filtered.map((r) => (
+                {filtered.map((r, i) => (
                   <LeaderboardDesktopRow
                     key={`${r.rank}-${r.city}-d`}
                     r={r}
                     isLight={isLight}
                     cardShell={cardShell}
+                    animateActive={puffAnimate}
+                    staggerIndex={i}
                   />
                 ))}
               </div>
+            </div>
             </div>
           </>
         )}
