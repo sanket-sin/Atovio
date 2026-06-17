@@ -7,7 +7,11 @@ import {
   normalizeBeyondAqiSlug,
   type HeroCitySnapshot,
 } from "@/lib/api/aqi-city";
-import { searchAqi, type AqiSearchResult } from "@/lib/api/aqi-search";
+import {
+  citySlugFromSearchResult,
+  isFetchableCitySearchResult,
+  searchAqi,
+} from "@/lib/api/aqi-search";
 import type { DetectedCity } from "@/lib/location/detect-city";
 import { detectUserCity } from "@/lib/location/detect-city";
 import { AirQualityToolkitSection } from "./AirQualityToolkitSection";
@@ -33,14 +37,6 @@ function scrollToRealtimeMap() {
     ?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function citySlugFromSearchResult(result: AqiSearchResult): string | undefined {
-  const fromSlug = result.slug?.trim();
-  if (fromSlug) return fromSlug;
-  const u = result.url?.trim();
-  if (u && !/^https?:\/\//i.test(u) && u.includes("/")) return u;
-  return undefined;
-}
-
 async function fetchDetectedCityAqi(
   detected: DetectedCity
 ): Promise<HeroCitySnapshot> {
@@ -63,14 +59,7 @@ async function fetchDetectedCityAqi(
 
   for (const q of queries) {
     const results = await searchAqi(q);
-    const city = results.find((r) => {
-      const slug = citySlugFromSearchResult(r);
-      const normalized = slug ? normalizeBeyondAqiSlug(slug) : "";
-      return (
-        r.type?.toLowerCase() === "city" &&
-        normalized.split("/").filter(Boolean).length >= 3
-      );
-    });
+    const city = results.find(isFetchableCitySearchResult);
 
     const slug = city ? citySlugFromSearchResult(city) : undefined;
     if (slug) return fetchCityAqiBySlug(normalizeBeyondAqiSlug(slug));

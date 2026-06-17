@@ -9,7 +9,12 @@ import {
   normalizeBeyondAqiSlug,
   type HeroCitySnapshot,
 } from "@/lib/api/aqi-city";
-import { searchAqi, type AqiSearchResult } from "@/lib/api/aqi-search";
+import {
+  citySlugFromSearchResult,
+  isFetchableCitySearchResult,
+  searchAqi,
+  type AqiSearchResult,
+} from "@/lib/api/aqi-search";
 import { aqiLevelToTextClass, getAqiLevel } from "@/lib/air-quality/aqi-levels";
 import { LiveAQITicker } from "./LiveAQITicker";
 
@@ -118,43 +123,20 @@ export function LandingSiteHeader({
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  function citySlugFromResult(result: AqiSearchResult): string | undefined {
-    const fromSlug = result.slug?.trim();
-    if (fromSlug) return fromSlug;
-    const u = result.url?.trim();
-    if (u && !/^https?:\/\//i.test(u) && u.includes("/")) return u;
-    return undefined;
-  }
-
   async function handleResultClick(result: AqiSearchResult) {
     const label = result.city ?? result.name;
     frozenSearchLabelRef.current = label;
     setSearchQuery(label);
     setDropdownOpen(false);
-    const slug = citySlugFromResult(result);
-    const type = result.type?.toLowerCase() ?? "";
+    const slug = citySlugFromSearchResult(result);
     const normalizedSlug = slug ? normalizeBeyondAqiSlug(slug) : "";
-    const segments = normalizedSlug.split("/").filter(Boolean).length;
-    /** Same request as curl GET …/api/aqi/India/Rajasthan/Jaipur — search `slug` → Country/State/City; skip countries. */
-    const shouldFetchCityAqi =
-      !!normalizedSlug &&
-      segments >= 3 &&
-      type === "city";
-
-    if (!shouldFetchCityAqi) {
+    /** Same request as curl GET …/api/aqi/India/Rajasthan/Jaipur — search `url`/`slug` → Country/State/City. */
+    if (!isFetchableCitySearchResult(result)) {
       if (process.env.NODE_ENV === "development") {
-        if (!slug)
-          console.debug("[BeyondAQI] skipped city AQI — no slug/url path:", result);
-        else if (type !== "city")
-          console.debug("[BeyondAQI] skipped city AQI — not a city row (type:", type + "):", result.name);
-        else if (segments < 3)
-          console.debug(
-            "[BeyondAQI] skipped city AQI — need Country/State/City (3 path segments); got",
-            segments,
-            "after normalize:",
-            normalizedSlug,
-            result
-          );
+        console.debug(
+          "[BeyondAQI] skipped city AQI — need Country/State/City path in slug/url:",
+          result
+        );
       }
       return;
     }
