@@ -50,7 +50,7 @@ function mapCityRowToPoint(row: MapCityRow): CityAqiMapPoint | null {
 
 /**
  * GET /api/map — bulk lat/lng + AQI for all map markers.
- * curl -H 'authorization: Token …' https://dev-api.beyondaqi.com/api/map
+ * curl https://dev-api.beyondaqi.com/api/map
  */
 export async function getMapCities(): Promise<CityAqiMapPoint[]> {
   const { data } = await axios.get<MapCitiesApiResponse>(

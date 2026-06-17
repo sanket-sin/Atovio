@@ -200,7 +200,7 @@ export function cityApiToHeroSnapshot(res: CityAqiApiResponse): HeroCitySnapshot
 
 /**
  * GET /api/aqi/{Country}/{State}/{City} — same contract as:
- * curl -H 'authorization: Token …' https://dev-api.beyondaqi.com/api/aqi/India/Rajasthan/Jaipur
+ * curl https://dev-api.beyondaqi.com/api/aqi/India/Rajasthan/Jaipur
  * (`host` is set by the browser; other headers match `beyondaqiRequestHeaders()`.)
  */
 export async function fetchCityAqiBySlug(slug: string): Promise<HeroCitySnapshot> {

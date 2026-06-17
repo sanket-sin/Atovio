@@ -4,10 +4,9 @@
  *   -H 'user-agent: Dart/3.9 (dart:io)'
  *   -H 'accept-encoding: gzip'
  *   -H 'content-length: 0'
- *   -H 'authorization: Token …'
  * Host is implied by the browser for HTTPS (do not set `host` manually in fetch).
  *
- * Override token: NEXT_PUBLIC_BEYONDAQI_API_TOKEN (optional `Token ` prefix).
+ * Public pre-login pages do not send an Authorization header.
  */
 
 export const BEYONDAQI_API_BASE = "https://dev-api.beyondaqi.com";
@@ -15,16 +14,8 @@ export const BEYONDAQI_API_BASE = "https://dev-api.beyondaqi.com";
 /** Per-request cap — dev API can be slow; avoids hung map marker loads. */
 export const BEYONDAQI_REQUEST_TIMEOUT_MS = 12_000;
 
-function beyondaqiAuthHeader(): string {
-  const raw =
-    process.env.NEXT_PUBLIC_BEYONDAQI_API_TOKEN?.trim() ||
-    "0164a035c63d490ff1dc3d8e1686e95d170de3d000d842ec53c7f9900b9f8ec2";
-  return raw.startsWith("Token ") ? raw : `Token ${raw}`;
-}
-
 export function beyondaqiRequestHeaders(): Record<string, string> {
   return {
-    authorization: beyondaqiAuthHeader(),
     "user-agent": "Dart/3.9 (dart:io)",
     "accept-encoding": "gzip",
     "content-length": "0",
