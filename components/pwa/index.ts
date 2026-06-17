@@ -4,3 +4,4 @@
  */
 
 export * from "./ServiceWorkerProvider";
+export * from "./InstallAppModal";
