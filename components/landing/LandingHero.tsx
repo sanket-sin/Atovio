@@ -95,6 +95,38 @@ function formatUpdatedAt(timestamp?: string): string {
   }).format(d);
 }
 
+function formatRelativeUpdatedAt(timestamp?: string): string {
+  if (!timestamp) return "—";
+  const d = new Date(timestamp);
+  if (Number.isNaN(d.getTime())) return "—";
+  const mins = Math.max(0, Math.round((Date.now() - d.getTime()) / 60_000));
+  if (mins < 1) return "Just now";
+  if (mins === 1) return "1 Min ago";
+  if (mins < 60) return `${mins} Mins ago`;
+  const hours = Math.round(mins / 60);
+  if (hours === 1) return "1 Hour ago";
+  if (hours < 24) return `${hours} Hours ago`;
+  const days = Math.round(hours / 24);
+  return days === 1 ? "1 Day ago" : `${days} Days ago`;
+}
+
+function estimateFeelsLikeCelsius(tempC: number, humidity?: number): number {
+  if (!Number.isFinite(tempC)) return tempC;
+  if (humidity == null || !Number.isFinite(humidity)) return Math.round(tempC + 2);
+  return Math.round(tempC + (humidity - 50) * 0.08);
+}
+
+function estimateDailyHighLow(tempC: number): { high: number; low: number } {
+  const base = Number.isFinite(tempC) ? tempC : 0;
+  return { high: Math.round(base + 4), low: Math.round(base - 6) };
+}
+
+function weatherConditionLabel(type?: string, status?: string): string {
+  const raw = (status || type || "").trim();
+  if (!raw) return "—";
+  return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+}
+
 function heroLocationTitle(snapshot: HeroCitySnapshot, fallback: string): string {
   const raw = snapshot.locationName?.trim();
   if (raw) {
@@ -182,6 +214,65 @@ function HeartOutlineIcon({ isLight }: { isLight: boolean }) {
 }
 
 const AQI_SCALE_TICKS = ["0", "50", "100", "150", "200", "300", "301+"] as const;
+
+/** 3D-style weather glyph for the mobile card footer (screenshot 2/3). */
+function MobileWeatherGlyph({ condition }: { condition: string }) {
+  const k = condition.toLowerCase();
+  const rainy = k.includes("rain") || k.includes("drizzle") || k.includes("shower");
+  const cloudy = k.includes("cloud") || k.includes("overcast") || k.includes("fog");
+  const sunny = k.includes("sun") || k.includes("clear") || (!rainy && !cloudy);
+
+  return (
+    <svg width="72" height="72" viewBox="0 0 72 72" fill="none" aria-hidden className="shrink-0">
+      {sunny && (
+        <circle cx="50" cy="22" r="11" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1.2" />
+      )}
+      {(cloudy || rainy) && (
+        <path
+          d="M18 42c0-8.8 7.2-16 16-16 2.2 0 4.3.45 6.2 1.25a10.5 10.5 0 0110-5.25C58.8 22 64 27.2 64 33.5c0 .55-.05 1.08-.14 1.6A7.5 7.5 0 0168.5 42H18z"
+          fill="#BFDBFE"
+          stroke="#93C5FD"
+          strokeWidth="1.2"
+        />
+      )}
+      {rainy && (
+        <>
+          <path d="M28 48v8" stroke="#60A5FA" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M36 50v9" stroke="#60A5FA" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M44 48v8" stroke="#60A5FA" strokeWidth="2.2" strokeLinecap="round" />
+        </>
+      )}
+      {!rainy && sunny && !cloudy && (
+        <path
+          d="M22 48c0-6.6 5.4-12 12-12 1.65 0 3.22.33 4.65.94A7.9 7.9 0 0146.5 30 8 8 0 0154 38a8 8 0 008 8H22z"
+          fill="#E0F2FE"
+          stroke="#BAE6FD"
+          strokeWidth="1.2"
+        />
+      )}
+    </svg>
+  );
+}
+
+function MobileCardWaveDivider() {
+  return (
+    <div className="hero-mobile-aqi-card-wave relative -mb-px h-5 w-full" aria-hidden>
+      <svg viewBox="0 0 400 20" preserveAspectRatio="none" className="h-full w-full">
+        <defs>
+          <linearGradient id="mobile-aqi-wave" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#f8fafc" />
+            <stop offset="45%" stopColor="#f5f3ff" />
+            <stop offset="100%" stopColor="#ffffff" />
+          </linearGradient>
+        </defs>
+        <path
+          d="M0,10 C50,0 100,18 150,10 S250,2 300,10 S380,18 400,10 L400,20 L0,20 Z"
+          fill="url(#mobile-aqi-wave)"
+        />
+      </svg>
+    </div>
+  );
+}
 
 type LandingHeroProps = {
   isLight?: boolean;
@@ -314,6 +405,18 @@ export function LandingHero({
       : d.pm25 > 0
         ? (d.pm25 / 22).toFixed(1)
         : "--";
+  const mobileNumTone = headlineNumberTone(badgeVariant, true);
+  const weatherCondition = weatherConditionLabel(d.weather?.weatherType, d.weather?.weatherStatus);
+  const tempValue = d.weather?.temperature;
+  const feelsLikeValue =
+    tempValue != null && Number.isFinite(tempValue)
+      ? estimateFeelsLikeCelsius(tempValue, d.weather?.humidity)
+      : null;
+  const { high: highTemp, low: lowTemp } =
+    tempValue != null && Number.isFinite(tempValue)
+      ? estimateDailyHighLow(tempValue)
+      : { high: null as number | null, low: null as number | null };
+  const lastUpdatedRelative = showPlaceholder ? "—" : formatRelativeUpdatedAt(d.updatedAt);
   const tempUnit = temperatureUnitSymbol(d.weather?.temperatureUnit);
   const temperatureDisplay = showPlaceholder
     ? "--"
@@ -413,151 +516,201 @@ export function LandingHero({
       <div className="hero-overlay-r absolute inset-0 z-[1]" aria-hidden />
 
       <div className="relative z-[2] mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
-        {/* Mobile — screenshot-style AQI card with location, live reading, puff score, scale */}
+        {/* Mobile — combined AQI + weather card (screenshots 2/3) */}
         <div className="pb-10 pt-4 lg:hidden">
-          <div className="mb-4">{headlineBlock}</div>
-
           <div
-            className={`hero-mobile-aqi-card relative overflow-hidden rounded-[18px] border shadow-[0_12px_40px_rgba(15,23,42,0.14)] ${
-              isLight ? "border-slate-200/90 bg-white" : "border-white/10 bg-[#0c1424]/90"
-            }`}
+            className="hero-mobile-aqi-card relative overflow-hidden rounded-[20px] border border-slate-200/80 bg-white shadow-[0_16px_48px_rgba(15,23,42,0.12)]"
             data-aqi-variant={heroAqiVariant}
           >
-            <div
-              className="hero-mobile-aqi-card-bg absolute inset-0 bg-cover bg-no-repeat"
-              style={{ backgroundImage: `url(${mobileCardBg})` }}
-              aria-hidden
-            />
-            <div
-              className={`hero-mobile-aqi-card-overlay absolute inset-0 ${
-                isLight
-                  ? "bg-gradient-to-r from-white via-white/92 to-white/35"
-                  : "bg-gradient-to-r from-[#0a1220] via-[#0a1220]/92 to-[#0a1220]/35"
-              }`}
-              aria-hidden
-            />
+            {/* ── AQI panel ── */}
+            <div className="relative">
+              <div
+                className="hero-mobile-aqi-card-bg absolute inset-0 bg-cover bg-no-repeat"
+                style={{ backgroundImage: `url(${mobileCardBg})` }}
+                aria-hidden
+              />
+              <div className="hero-mobile-aqi-card-overlay absolute inset-0 bg-gradient-to-r from-white via-white/95 to-white/40" aria-hidden />
 
-            <div className="relative z-[1] p-5 sm:p-6">
-              <div className="mb-4 max-w-[68%]">
-                <div className="mb-1 flex items-center gap-2">
-                  <LocationPinIcon />
-                  <h2
-                    className={`min-w-0 flex-1 truncate font-sans text-[1.35rem] font-bold leading-tight tracking-[-0.02em] sm:text-[1.5rem] ${
-                      isLight ? "text-slate-900" : "text-white"
-                    }`}
-                  >
-                    {locationTitle}
-                  </h2>
-                  <button
-                    type="button"
-                    className="shrink-0 rounded-full p-0.5 transition-opacity hover:opacity-80"
-                    aria-label="Save location to favorites"
-                  >
-                    <HeartOutlineIcon isLight={isLight} />
-                  </button>
+              <div className="relative z-[1] px-5 pb-4 pt-5 sm:px-6 sm:pt-6">
+                <div className="mb-4 max-w-[68%]">
+                  <div className="mb-1 flex items-center gap-2">
+                    <LocationPinIcon />
+                    <h2 className="min-w-0 flex-1 truncate font-sans text-[1.35rem] font-bold leading-tight tracking-[-0.02em] text-slate-900 sm:text-[1.5rem]">
+                      {locationTitle}
+                    </h2>
+                    <button
+                      type="button"
+                      className="shrink-0 rounded-full p-0.5 transition-opacity hover:opacity-80"
+                      aria-label="Save location to favorites"
+                    >
+                      <HeartOutlineIcon isLight />
+                    </button>
+                  </div>
+                  <p className="font-sans text-[0.88rem] text-slate-600">{locationSubtitle}</p>
                 </div>
-                <p className={`font-sans text-[0.88rem] ${isLight ? "text-slate-600" : "text-bqa-muted"}`}>
-                  {locationSubtitle}
-                </p>
-              </div>
 
-              <div className="mb-3 max-w-[68%]">
-                <p
-                  className={`mb-2 inline-flex items-center gap-1.5 font-sans text-[0.78rem] font-semibold ${
-                    isLight ? "text-rose-600" : "text-rose-300"
-                  }`}
-                >
-                  <span
-                    className="h-1.5 w-1.5 animate-blink rounded-full bg-bqa-unhealthy shadow-[0_0_8px_#ff4d6d]"
-                    aria-hidden
-                  />
-                  Live AQI
-                  <InfoIcon className={isLight ? "text-slate-400" : "text-bqa-dim"} />
-                </p>
+                <div className="mb-3 max-w-[68%]">
+                  <p className="mb-2 inline-flex items-center gap-1.5 font-sans text-[0.78rem] font-semibold text-rose-600">
+                    <span
+                      className="h-1.5 w-1.5 animate-blink rounded-full bg-bqa-unhealthy shadow-[0_0_8px_#ff4d6d]"
+                      aria-hidden
+                    />
+                    Live AQI
+                    <InfoIcon className="text-slate-400" />
+                  </p>
 
-                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                  <span
-                    className={`font-sans text-[clamp(2.75rem,14vw,3.75rem)] font-bold leading-none tracking-tight ${numTone}`}
-                  >
-                    {showPlaceholder ? (
-                      aqiDisplay
-                    ) : (
-                      <AnimatedReadingValue
-                        value={d.aqi}
-                        format={(n) => String(Math.round(n))}
-                        active={readingsActive}
-                      />
-                    )}
-                  </span>
-                  <span
-                    className={`inline-flex items-center rounded-lg px-3 py-1 font-sans text-[0.72rem] font-bold uppercase tracking-wide sm:text-[0.78rem] ${solidStatusBadgeClass(
-                      badgeVariant
-                    )}`}
-                  >
-                    {statusDisplay}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mb-5 max-w-[72%]">
-                <div className="flex items-start gap-2.5">
-                  <AnimatedCigarette compact isLight={isLight} className="mt-0.5 shrink-0" />
-                  <p
-                    className={`font-sans text-[0.82rem] leading-snug sm:text-[0.88rem] ${
-                      isLight ? "text-slate-700" : "text-bqa-muted"
-                    }`}
-                  >
-                    Equivalent to{" "}
-                    <strong className={`text-[1.05rem] font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
+                  <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                    <span
+                      className={`font-sans text-[clamp(2.75rem,14vw,3.75rem)] font-bold leading-none tracking-tight ${mobileNumTone}`}
+                    >
                       {showPlaceholder ? (
-                        puffScoreDisplay
+                        aqiDisplay
                       ) : (
                         <AnimatedReadingValue
-                          value={d.puffScore ?? d.pm25 / 22}
-                          format={(n) => n.toFixed(1)}
+                          value={d.aqi}
+                          format={(n) => String(Math.round(n))}
                           active={readingsActive}
-                          delayMs={120}
                         />
                       )}
-                    </strong>{" "}
-                    cigarettes per day
-                    <InfoIcon className={`ml-1 inline align-[-2px] ${isLight ? "text-slate-400" : "text-bqa-dim"}`} />
-                  </p>
+                    </span>
+                    <span
+                      className={`inline-flex items-center rounded-lg px-3 py-1 font-sans text-[0.72rem] font-bold uppercase tracking-wide sm:text-[0.78rem] ${solidStatusBadgeClass(
+                        badgeVariant
+                      )}`}
+                    >
+                      {statusDisplay}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mb-5 max-w-[72%]">
+                  <div className="flex items-start gap-2.5">
+                    <AnimatedCigarette compact isLight className="mt-0.5 shrink-0" />
+                    <p className="font-sans text-[0.82rem] leading-snug text-slate-700 sm:text-[0.88rem]">
+                      Equivalent to{" "}
+                      <strong className="text-[1.05rem] font-bold text-slate-900">
+                        {showPlaceholder ? (
+                          puffScoreDisplay
+                        ) : (
+                          <AnimatedReadingValue
+                            value={d.puffScore ?? d.pm25 / 22}
+                            format={(n) => n.toFixed(1)}
+                            active={readingsActive}
+                            delayMs={120}
+                          />
+                        )}
+                      </strong>{" "}
+                      cigarettes per day
+                      <InfoIcon className="ml-1 inline align-[-2px] text-slate-400" />
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="-mx-0.5 mb-1 flex justify-between gap-0.5 overflow-x-auto font-sans text-[0.52rem] font-semibold sm:text-[0.58rem]">
+                    <span className="shrink-0 text-bqa-good">Good</span>
+                    <span className="shrink-0 text-bqa-moderate">Moderate</span>
+                    <span className="shrink-0 text-bqa-poor">Poor</span>
+                    <span className="shrink-0 text-bqa-unhealthy">Unhealthy</span>
+                    <span className="shrink-0 text-bqa-severe">Severe</span>
+                    <span className="shrink-0 text-bqa-hazardous">Hazardous</span>
+                  </div>
+                  <div className="relative mb-1.5 h-2.5 rounded-full bg-gradient-to-r from-bqa-good via-bqa-moderate via-bqa-poor via-bqa-unhealthy via-bqa-severe to-bqa-hazardous shadow-inner">
+                    <AnimatedHorizontalMarker
+                      targetPercent={markerPct}
+                      active={readingsActive}
+                      durationMs={1000}
+                      delayMs={200}
+                      className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-orange-400 bg-white shadow-[0_1px_6px_rgba(0,0,0,0.25)]"
+                    />
+                  </div>
+                  <div className="flex justify-between gap-0.5 font-sans text-[0.52rem] font-semibold text-slate-500 sm:text-[0.58rem]">
+                    {AQI_SCALE_TICKS.map((tick) => (
+                      <span key={tick} className="shrink-0">
+                        {tick}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div>
-                <div
-                  className={`relative mb-1.5 h-2.5 rounded-full bg-gradient-to-r from-bqa-good via-bqa-moderate via-bqa-poor via-bqa-unhealthy via-bqa-severe to-bqa-hazardous ${
-                    isLight ? "shadow-inner" : "shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)]"
-                  }`}
-                >
-                  <AnimatedHorizontalMarker
-                    targetPercent={markerPct}
-                    active={readingsActive}
-                    durationMs={1000}
-                    delayMs={200}
-                    className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-orange-400 bg-white shadow-[0_1px_6px_rgba(0,0,0,0.25)]"
-                  />
+            <MobileCardWaveDivider />
+
+            {/* ── Weather panel ── */}
+            <div className="relative bg-white px-5 pb-5 pt-3 sm:px-6 sm:pb-6">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-start gap-2 sm:gap-3">
+                  <MobileWeatherGlyph condition={showPlaceholder ? "cloudy" : weatherCondition} />
+                  <div className="min-w-0 pt-1">
+                    <div className="font-sans text-[clamp(1.85rem,8vw,2.35rem)] font-bold leading-none tracking-tight text-slate-900">
+                      {showPlaceholder ? (
+                        "--"
+                      ) : tempValue != null ? (
+                        <>
+                          <AnimatedReadingValue
+                            value={tempValue}
+                            format={(n) => String(Math.round(n))}
+                            active={readingsActive}
+                            delayMs={80}
+                          />
+                          {tempUnit}
+                        </>
+                      ) : (
+                        "--"
+                      )}
+                    </div>
+                    <p className="mt-1 font-sans text-[0.95rem] font-semibold text-slate-800">
+                      {showPlaceholder ? "—" : weatherCondition}
+                    </p>
+                    <p className="mt-0.5 font-sans text-[0.78rem] text-slate-500">
+                      Feels Like{" "}
+                      <span className="font-semibold text-slate-700">
+                        {showPlaceholder || feelsLikeValue == null
+                          ? "--"
+                          : `${feelsLikeValue}${tempUnit}`}
+                      </span>
+                    </p>
+                  </div>
                 </div>
-                <div
-                  className={`mb-1 flex justify-between gap-0.5 font-sans text-[0.52rem] font-semibold sm:text-[0.58rem] ${
-                    isLight ? "text-slate-500" : "text-bqa-dim"
-                  }`}
-                >
-                  {AQI_SCALE_TICKS.map((tick) => (
-                    <span key={tick} className="shrink-0">
-                      {tick}
-                    </span>
-                  ))}
-                </div>
-                <div className="-mx-0.5 flex justify-between gap-0.5 overflow-x-auto pb-0.5 font-sans text-[0.52rem] font-semibold sm:text-[0.58rem]">
-                  <span className="shrink-0 text-bqa-good">Good</span>
-                  <span className="shrink-0 text-bqa-moderate">Moderate</span>
-                  <span className="shrink-0 text-bqa-poor">Poor</span>
-                  <span className="shrink-0 text-bqa-unhealthy">Unhealthy</span>
-                  <span className="shrink-0 text-bqa-severe">Severe</span>
-                  <span className="shrink-0 text-bqa-hazardous">Hazardous</span>
+
+                <div className="flex shrink-0 flex-col items-end gap-3 pt-1">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="text-right">
+                      <p className="font-sans text-[0.95rem] font-bold text-slate-900">
+                        ↑{" "}
+                        {showPlaceholder || highTemp == null ? (
+                          "--"
+                        ) : (
+                          <>
+                            {highTemp}
+                            {tempUnit}
+                          </>
+                        )}
+                      </p>
+                      <p className="font-sans text-[0.72rem] text-slate-500">Highest</p>
+                    </div>
+                    <div className="h-10 w-px bg-slate-200" aria-hidden />
+                    <div className="text-right">
+                      <p className="font-sans text-[0.95rem] font-bold text-slate-900">
+                        ↓{" "}
+                        {showPlaceholder || lowTemp == null ? (
+                          "--"
+                        ) : (
+                          <>
+                            {lowTemp}
+                            {tempUnit}
+                          </>
+                        )}
+                      </p>
+                      <p className="font-sans text-[0.72rem] text-slate-500">Lowest</p>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="font-sans text-[0.72rem] text-slate-500">Last Updated</p>
+                    <p className="font-sans text-[0.82rem] font-bold text-slate-900">{lastUpdatedRelative}</p>
+                  </div>
                 </div>
               </div>
             </div>
