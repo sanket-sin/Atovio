@@ -1,6 +1,7 @@
 import axios from "axios";
 import type { AqiLevelVariant } from "@/lib/air-quality/aqi-levels";
 import { getAqiLevel, getPm10Ugm3Level, getPm25Ugm3Level } from "@/lib/air-quality/aqi-levels";
+import type { AqiSearchResult } from "@/lib/api/aqi-search";
 import {
   BEYONDAQI_API_BASE,
   BEYONDAQI_REQUEST_TIMEOUT_MS,
@@ -99,8 +100,7 @@ function slugSegmentToPathSegment(segment: string): string {
 export function encodeAqiPathSegments(path: string): string {
   return path
     .split("/")
-    .filter(Boolean)
-    .map((segment) => encodeURIComponent(segment))
+    .map((segment) => (segment === "" ? "" : encodeURIComponent(segment)))
     .join("/");
 }
 
@@ -110,13 +110,12 @@ export function encodeAqiPathSegments(path: string): string {
  * Strip one leading `api` segment (case-insensitive) before building the path.
  */
 export function normalizeBeyondAqiSlug(slug: string): string {
-  const parts = slug
-    .split("/")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  let parts = slug.split("/").map((s) => s.trim());
   if (parts.length > 0 && parts[0].toLowerCase() === "api") {
     parts.shift();
   }
+  while (parts.length > 0 && parts[0] === "") parts.shift();
+  while (parts.length > 0 && parts[parts.length - 1] === "") parts.pop();
   return parts.join("/");
 }
 
@@ -125,9 +124,7 @@ export function slugToAqiPath(slug: string): string {
   const normalized = normalizeBeyondAqiSlug(slug);
   return normalized
     .split("/")
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .map(slugSegmentToPathSegment)
+    .map((s) => (s === "" ? "" : slugSegmentToPathSegment(s)))
     .join("/");
 }
 
@@ -205,10 +202,10 @@ export function cityApiToHeroSnapshot(res: CityAqiApiResponse): HeroCitySnapshot
  */
 export async function fetchCityAqiBySlug(slug: string): Promise<HeroCitySnapshot> {
   const path = slugToAqiPath(slug);
-  const depth = path.split("/").filter(Boolean).length;
-  if (depth < 3) {
+  const nonEmptySegments = path.split("/").filter(Boolean).length;
+  if (nonEmptySegments < 2) {
     throw new Error(
-      `BeyondAQI city AQI expects GET .../api/aqi/Country/State/City — got ${depth} segment(s): "${path}"`
+      `BeyondAQI city AQI expects GET .../api/aqi/Country/State/City — got ${nonEmptySegments} non-empty segment(s): "${path}"`
     );
   }
   const { data } = await axios.get<CityAqiApiResponse>(
@@ -219,6 +216,30 @@ export async function fetchCityAqiBySlug(slug: string): Promise<HeroCitySnapshot
     }
   );
   return cityApiToHeroSnapshot(data);
+}
+
+/** Minimal hero snapshot from search row when city detail GET is unavailable. */
+export function searchResultToHeroSnapshot(result: AqiSearchResult): HeroCitySnapshot {
+  const aqi = Number.isFinite(result.aqi) ? result.aqi : 0;
+  const level = getAqiLevel(aqi);
+  const cityName =
+    result.city?.trim() ||
+    result.name.split(",")[0]?.trim() ||
+    result.location_name?.split(",")[0]?.trim() ||
+    result.name;
+
+  return {
+    cityName,
+    stateName: result.state?.trim() || undefined,
+    countryName: result.country?.trim() || "India",
+    aqi,
+    statusLabel: level.labelUppercase,
+    badgeVariant: level.variant as HeroAqiBadgeVariant,
+    pm25: 0,
+    pm10: 0,
+    pm25BadgeVariant: "good" as HeroAqiBadgeVariant,
+    pm10BadgeVariant: "good" as HeroAqiBadgeVariant,
+  };
 }
 
 /** Map marker from a hero/search city snapshot (no extra API call). */

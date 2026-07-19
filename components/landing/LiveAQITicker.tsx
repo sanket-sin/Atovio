@@ -112,11 +112,11 @@ export function LiveAQITicker({
       track.style.animationPlayState = "running";
     };
 
-    track.style.animationPlayState = "paused";
     syncDuration();
 
     const ro = new ResizeObserver(syncDuration);
-    ro.observe(track);
+    const segment = track.children[0] as HTMLElement | undefined;
+    if (segment) ro.observe(segment);
 
     let cancelled = false;
     document.fonts?.ready.then(() => {
@@ -158,7 +158,7 @@ export function LiveAQITicker({
         >
           <div
             ref={trackRef}
-            className="flex w-max animate-ticker transform-gpu [animation-play-state:paused]"
+            className="live-aqi-ticker-track flex w-max animate-ticker transform-gpu will-change-transform"
           >
             <TickerSegment
               rows={rows}

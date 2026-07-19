@@ -15,9 +15,16 @@ export const BEYONDAQI_API_BASE = "https://dev-api.beyondaqi.com";
 export const BEYONDAQI_REQUEST_TIMEOUT_MS = 12_000;
 
 export function beyondaqiRequestHeaders(): Record<string, string> {
-  return {
-    "user-agent": "Dart/3.9 (dart:io)",
-    "accept-encoding": "gzip",
-    "content-length": "0",
+  const headers: Record<string, string> = {
+    Accept: "application/json",
   };
+
+  // Node/server-side only — browsers forbid user-agent, content-length, etc.
+  if (typeof window === "undefined") {
+    headers["user-agent"] = "Dart/3.9 (dart:io)";
+    headers["accept-encoding"] = "gzip";
+    headers["content-length"] = "0";
+  }
+
+  return headers;
 }

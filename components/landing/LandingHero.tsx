@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
 import { AqiBadge, type AqiBadgeVariant } from "./AqiBadge";
+import { aqiVariantToHeroBackground } from "@/lib/air-quality/aqi-levels";
 import {
   AnimatedHorizontalMarker,
   AnimatedReadingValue,
@@ -11,7 +12,7 @@ import {
   useInViewOnce,
 } from "./ReadingAnimation";
 
-const HERO_BG = "/images/heroSec_bgImg.png";
+const HERO_DEFAULT_BG = "/images/heroSec_bgImg.png";
 
 const DEFAULT_HERO: HeroCitySnapshot = {
   cityName: "Mumbai",
@@ -246,6 +247,12 @@ export function LandingHero({
     ? "Select city"
     : d.statusLabel;
   const badgeVariant = (showPlaceholder ? "moderate" : d.badgeVariant) as AqiBadgeVariant;
+  const hasCityData = Boolean(citySnapshot);
+  const heroBg = hasCityData
+    ? aqiVariantToHeroBackground(d.badgeVariant)
+    : HERO_DEFAULT_BG;
+  const heroShowsCharacter = hasCityData;
+  const heroAqiVariant = hasCityData ? d.badgeVariant : "default";
   const pm25Display = showPlaceholder ? "--" : String(d.pm25);
   const pm10Display = showPlaceholder ? "--" : String(d.pm10);
   const pm25Variant = (showPlaceholder ? "moderate" : d.pm25BadgeVariant) as AqiBadgeVariant;
@@ -289,29 +296,27 @@ export function LandingHero({
     ],
   ] as const;
 
+  const liveLabel = isDetectingCity
+    ? "Live · Detecting location"
+    : needsManualCity
+    ? "Live · Search a city"
+    : `Live · Updated ${formatUpdatedAt(d.updatedAt)}`;
+
   const headlineBlock = (
     <>
-      <div
-        className={`mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1 font-sans text-[0.72rem] font-bold uppercase tracking-wider ${
-          isLight
-            ? "border-rose-400 bg-rose-50 text-rose-700"
-            : "border-rose-400/30 bg-rose-500/10 text-rose-200"
+      <p
+        className={`mb-3 inline-flex items-center gap-2 font-sans text-[0.82rem] font-semibold tracking-normal ${
+          isLight ? "text-rose-700" : "text-rose-200"
         }`}
       >
         <span
           className="h-1.5 w-1.5 animate-blink rounded-full bg-bqa-unhealthy shadow-[0_0_8px_#ff4d6d]"
           aria-hidden
         />
-        {isDetectingCity
-          ? "Live · Detecting location"
-          : needsManualCity
-          ? "Live · Search a city"
-          : `Live · Updated ${formatUpdatedAt(d.updatedAt)}`}
-      </div>
-      <h1 className="mb-3.5 font-sans text-[clamp(1.65rem,5.5vw,2.5rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:text-5xl lg:text-[48px] lg:leading-[52.8px]">
-        {cityNameDisplay} Air Quality
-        <br />
-        Index —{" "}
+        {liveLabel}
+      </p>
+      <h1 className="mb-3 font-sans text-[clamp(1.65rem,5.5vw,2.5rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:text-[2.35rem] lg:text-[2.15rem] lg:whitespace-nowrap xl:text-[2.35rem]">
+        {cityNameDisplay} Air Quality Index —{" "}
         <em className={`not-italic font-sans tracking-normal ${numTone}`}>
           {showPlaceholder ? (
             aqiDisplay
@@ -325,7 +330,7 @@ export function LandingHero({
         </em>
       </h1>
       <p
-        className={`mb-0 max-w-[380px] text-[0.92rem] leading-relaxed sm:text-[0.95rem] ${
+        className={`mb-0 max-w-[520px] text-[0.92rem] leading-relaxed sm:text-[0.95rem] lg:max-w-[680px] ${
           isLight ? "text-slate-600" : "text-bqa-muted"
         }`}
       >
@@ -358,11 +363,14 @@ export function LandingHero({
     <section
       ref={heroRef}
       id="sec-hero"
+      data-aqi-variant={heroAqiVariant}
       className="relative flex min-h-[100dvh] items-center overflow-hidden border-b border-sky-400/10 pt-[7rem] sm:pt-[8rem] md:pt-[7.75rem]"
     >
       <div
-        className="hero-bg absolute inset-0 z-0 bg-cover bg-[center_38%] bg-no-repeat"
-        style={{ backgroundImage: `url(${HERO_BG})` }}
+        className={`hero-bg absolute inset-0 z-0 bg-cover bg-no-repeat ${
+          heroShowsCharacter ? "hero-bg-character" : "bg-[center_38%]"
+        }`}
+        style={{ backgroundImage: `url(${heroBg})` }}
         aria-hidden
       />
       <div className="hero-overlay-base absolute inset-0 z-[1]" aria-hidden />
@@ -642,125 +650,33 @@ export function LandingHero({
           </div>
         </div>
 
-        {/* Desktop three-column layout */}
-        <div className="hidden lg:grid lg:grid-cols-[1fr_1fr_1fr] lg:items-stretch lg:gap-5 lg:py-8">
-          <div className="lg:self-center">{headlineBlock}</div>
+        {/* Desktop — heading + compact cards on the left, character space on the right */}
+        <div className="hidden lg:grid lg:grid-cols-[minmax(0,70%)_minmax(0,30%)] lg:items-start lg:gap-5 lg:py-8">
+          <div className="flex flex-col gap-5">
+            {headlineBlock}
 
-          <div className="lg:flex lg:flex-col">
-            <div className="relative flex flex-col flex-1 overflow-hidden rounded-[20px] border border-sky-400/10 bg-bqa-navy2/80 p-6 shadow-[0_24px_48px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl transition-shadow hover:shadow-[0_24px_60px_rgba(0,0,0,0.5),0_0_60px_rgba(255,140,66,0.08)]">
-              <div
-                className="pointer-events-none absolute inset-x-0 top-0 h-[3px] rounded-t-[20px] bg-[linear-gradient(90deg,#00e5aa,#ffd24d,#ff8c42,#ff4d6d,#c77dff,#9b2dff)]"
-                aria-hidden
-              />
+            <div className="grid w-full max-w-[820px] grid-cols-2 gap-4 xl:max-w-[880px]">
+              <div className="relative flex flex-col overflow-hidden rounded-[16px] border border-sky-400/10 bg-bqa-navy2/80 p-[1.125rem] shadow-[0_16px_36px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
+                <div
+                  className="pointer-events-none absolute inset-x-0 top-0 h-[3px] rounded-t-[16px] bg-[linear-gradient(90deg,#00e5aa,#ffd24d,#ff8c42,#ff4d6d,#c77dff,#9b2dff)]"
+                  aria-hidden
+                />
 
-              <div
-                className={`mb-1 font-sans text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] ${
-                  isLight ? "text-sky-800/70" : "text-bqa-dim"
-                }`}
-              >
-                Outdoor AQI · {cityNameDisplay}
-              </div>
-
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div
-                    className={`font-sans text-[clamp(3.5rem,10vw,5.5rem)] font-bold leading-[1] tracking-normal ${
-                      isLight ? numTone : `${numTone} drop-shadow-[0_0_40px_rgba(255,140,66,0.3)]`
-                    }`}
-                  >
-                    {showPlaceholder ? (
-                      aqiDisplay
-                    ) : (
-                      <AnimatedReadingValue
-                        value={d.aqi}
-                        format={(n) => String(Math.round(n))}
-                        active={readingsActive}
-                      />
-                    )}
-                  </div>
-                  <AqiBadge
-                    variant={badgeVariant}
-                    className="mt-3 px-4 py-1.5 font-sans tracking-[0.06em]"
-                  >
-                    {statusDisplay}
-                  </AqiBadge>
+                <div
+                  className={`mb-2 font-sans text-[9px] font-normal uppercase leading-[14px] tracking-[1.6px] ${
+                    isLight ? "text-sky-800/70" : "text-bqa-dim"
+                  }`}
+                >
+                  Outdoor AQI · {cityNameDisplay}
                 </div>
-                <div className="flex shrink-0 flex-col gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={onScrollToMap}
-                    className="rounded-[10px] bg-bqa-accent px-5 py-2.5 text-center text-[0.78rem] font-semibold text-white shadow-[0_4px_16px_rgba(61,158,255,0.25)] transition-all hover:brightness-110 min-w-[10.5rem]"
-                  >
-                    AQI Sensor Map
-                  </button>
-                  <button
-                    type="button"
-                    className={`inline-flex items-center justify-center gap-2 rounded-[10px] border bg-transparent px-5 py-2.5 text-[0.78rem] font-semibold backdrop-blur-sm transition-all min-w-[10.5rem] ${
-                      isLight
-                        ? "border-sky-400/80 text-slate-800 hover:border-bqa-accent hover:bg-sky-50"
-                        : "border-bqa-accent/45 text-white hover:border-bqa-accent hover:bg-bqa-accent/10"
-                    }`}
-                  >
-                    <span
-                      className="h-2 w-2 shrink-0 rounded-full bg-bqa-unhealthy shadow-[0_0_6px_#ff4d6d]"
-                      aria-hidden
-                    />
-                    Ping Location
-                  </button>
-                </div>
-              </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-2.5">
-                <div className="rounded-lg border-l-[3px] border-bqa-moderate bg-bqa-slate/60 p-3">
-                  <div className="mb-0.5 text-[0.68rem] font-semibold tracking-wide text-bqa-dim">PM2.5</div>
-                  <div className="font-sans text-xl font-bold tracking-normal text-bqa-text">
-                    {showPlaceholder ? (
-                      pm25Display
-                    ) : (
-                      <AnimatedReadingValue
-                        value={d.pm25}
-                        format={formatOneDecimal}
-                        active={readingsActive}
-                        delayMs={80}
-                      />
-                    )}{" "}
-                    <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
-                  </div>
-                  <AqiBadge variant={pm25Variant} className="mt-1.5">
-                    {variantLabel(pm25Variant)}
-                  </AqiBadge>
-                </div>
-                <div className="rounded-lg border-l-[3px] border-bqa-unhealthy bg-bqa-slate/60 p-3">
-                  <div className="mb-0.5 text-[0.68rem] font-semibold tracking-wide text-bqa-dim">PM10</div>
-                  <div className="font-sans text-xl font-bold tracking-normal text-bqa-text">
-                    {showPlaceholder ? (
-                      pm10Display
-                    ) : (
-                      <AnimatedReadingValue
-                        value={d.pm10}
-                        format={formatOneDecimal}
-                        active={readingsActive}
-                        delayMs={160}
-                      />
-                    )}{" "}
-                    <span className="text-[0.7rem] font-normal text-bqa-dim">µg/m³</span>
-                  </div>
-                  <AqiBadge variant={pm10Variant} className="mt-1.5">
-                    {variantLabel(pm10Variant)}
-                  </AqiBadge>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <div className="relative mb-1.5 h-2.5 rounded-md bg-gradient-to-r from-bqa-good via-bqa-moderate via-bqa-poor via-bqa-unhealthy via-bqa-severe to-bqa-hazardous shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]">
-                  <AnimatedHorizontalMarker
-                    targetPercent={markerPct}
-                    active={readingsActive}
-                    durationMs={1000}
-                    delayMs={200}
-                    className="absolute -top-1.5 h-6 w-0.5 -translate-x-1/2 rounded-sm bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]"
-                  >
-                    <span className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-white px-1.5 py-0.5 font-sans text-[0.65rem] font-bold tracking-normal text-[#0a0a1a]">
+                <div className="flex flex-col gap-2.5">
+                  <div className="min-w-0">
+                    <div
+                      className={`font-sans text-[clamp(2rem,4.5vw,2.75rem)] font-bold leading-none tracking-normal ${
+                        isLight ? numTone : `${numTone} drop-shadow-[0_0_24px_rgba(255,140,66,0.22)]`
+                      }`}
+                    >
                       {showPlaceholder ? (
                         aqiDisplay
                       ) : (
@@ -768,80 +684,178 @@ export function LandingHero({
                           value={d.aqi}
                           format={(n) => String(Math.round(n))}
                           active={readingsActive}
-                          delayMs={200}
                         />
                       )}
-                    </span>
-                  </AnimatedHorizontalMarker>
+                    </div>
+                    <AqiBadge variant={badgeVariant} className="mt-2 px-2.5 py-0.5 text-[0.62rem] tracking-[0.06em]">
+                      {statusDisplay}
+                    </AqiBadge>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <button
+                      type="button"
+                      onClick={onScrollToMap}
+                      className="rounded-[8px] bg-bqa-accent px-3 py-2 text-center text-[0.72rem] font-semibold text-white shadow-[0_4px_12px_rgba(61,158,255,0.22)] transition-all hover:brightness-110"
+                    >
+                      AQI Sensor Map
+                    </button>
+                    <button
+                      type="button"
+                      className={`inline-flex items-center justify-center gap-1.5 rounded-[8px] border bg-transparent px-3 py-2 text-[0.72rem] font-semibold backdrop-blur-sm transition-all ${
+                        isLight
+                          ? "border-sky-400/80 text-slate-800 hover:border-bqa-accent hover:bg-sky-50"
+                          : "border-bqa-accent/45 text-white hover:border-bqa-accent hover:bg-bqa-accent/10"
+                      }`}
+                    >
+                      <span
+                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-bqa-unhealthy shadow-[0_0_6px_#ff4d6d]"
+                        aria-hidden
+                      />
+                      Ping Location
+                    </button>
+                  </div>
                 </div>
-                <div className="flex justify-between font-sans text-[0.62rem] font-semibold">
-                  <span className="text-bqa-good">Good</span>
-                  <span className="text-bqa-moderate">Moderate</span>
-                  <span className="text-bqa-poor">Poor</span>
-                  <span className="text-bqa-unhealthy">Unhealthy</span>
-                  <span className="text-bqa-severe">Severe</span>
-                  <span className="text-bqa-hazardous">Hazardous</span>
+
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="rounded-lg border-l-[3px] border-bqa-moderate bg-bqa-slate/60 p-2.5">
+                    <div className="mb-0.5 text-[0.62rem] font-semibold tracking-wide text-bqa-dim">PM2.5</div>
+                    <div className="font-sans text-base font-bold tracking-normal text-bqa-text">
+                      {showPlaceholder ? (
+                        pm25Display
+                      ) : (
+                        <AnimatedReadingValue
+                          value={d.pm25}
+                          format={formatOneDecimal}
+                          active={readingsActive}
+                          delayMs={80}
+                        />
+                      )}{" "}
+                      <span className="text-[0.62rem] font-normal text-bqa-dim">µg/m³</span>
+                    </div>
+                    <AqiBadge variant={pm25Variant} className="mt-1 text-[0.58rem]">
+                      {variantLabel(pm25Variant)}
+                    </AqiBadge>
+                  </div>
+                  <div className="rounded-lg border-l-[3px] border-bqa-unhealthy bg-bqa-slate/60 p-2.5">
+                    <div className="mb-0.5 text-[0.62rem] font-semibold tracking-wide text-bqa-dim">PM10</div>
+                    <div className="font-sans text-base font-bold tracking-normal text-bqa-text">
+                      {showPlaceholder ? (
+                        pm10Display
+                      ) : (
+                        <AnimatedReadingValue
+                          value={d.pm10}
+                          format={formatOneDecimal}
+                          active={readingsActive}
+                          delayMs={160}
+                        />
+                      )}{" "}
+                      <span className="text-[0.62rem] font-normal text-bqa-dim">µg/m³</span>
+                    </div>
+                    <AqiBadge variant={pm10Variant} className="mt-1 text-[0.58rem]">
+                      {variantLabel(pm10Variant)}
+                    </AqiBadge>
+                  </div>
+                </div>
+
+                <div className="mt-3">
+                  <div className="relative mb-1 h-2 rounded-md bg-gradient-to-r from-bqa-good via-bqa-moderate via-bqa-poor via-bqa-unhealthy via-bqa-severe to-bqa-hazardous shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]">
+                    <AnimatedHorizontalMarker
+                      targetPercent={markerPct}
+                      active={readingsActive}
+                      durationMs={1000}
+                      delayMs={200}
+                      className="absolute -top-1 h-5 w-0.5 -translate-x-1/2 rounded-sm bg-white shadow-[0_0_10px_rgba(255,255,255,0.9)]"
+                    >
+                      <span className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-white px-1 py-0.5 font-sans text-[0.58rem] font-bold tracking-normal text-[#0a0a1a]">
+                        {showPlaceholder ? (
+                          aqiDisplay
+                        ) : (
+                          <AnimatedReadingValue
+                            value={d.aqi}
+                            format={(n) => String(Math.round(n))}
+                            active={readingsActive}
+                            delayMs={200}
+                          />
+                        )}
+                      </span>
+                    </AnimatedHorizontalMarker>
+                  </div>
+                  <div className="flex justify-between font-sans text-[0.52rem] font-semibold">
+                    <span className="text-bqa-good">Good</span>
+                    <span className="text-bqa-moderate">Moderate</span>
+                    <span className="text-bqa-poor">Poor</span>
+                    <span className="text-bqa-unhealthy">Unhealthy</span>
+                    <span className="text-bqa-severe">Severe</span>
+                    <span className="text-bqa-hazardous">Hazardous</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="lg:flex lg:flex-col">
-            <div className="flex flex-col flex-1 rounded-[20px] border border-sky-400/10 bg-bqa-navy2/80 p-5 backdrop-blur-xl sm:p-6">
               <div
-                className={`mb-4 font-sans text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] ${
-                  isLight ? "text-sky-800/70" : "text-bqa-dim"
+                className={`flex flex-col rounded-[16px] border p-[1.125rem] backdrop-blur-xl ${
+                  heroShowsCharacter
+                    ? "border-white/10 bg-bqa-navy2/35 shadow-[0_12px_32px_rgba(0,0,0,0.22)]"
+                    : "border-sky-400/10 bg-bqa-navy2/80 shadow-[0_16px_36px_rgba(0,0,0,0.35)]"
                 }`}
               >
-                Weather Conditions
-              </div>
-
-              <div className="mb-4 flex items-center gap-3.5">
-                <svg
-                  width="38"
-                  height="38"
-                  fill="none"
-                  stroke="#ffd24d"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.8"
-                  aria-hidden
+                <div
+                  className={`mb-3 font-sans text-[9px] font-normal uppercase leading-[14px] tracking-[1.6px] ${
+                    isLight ? "text-sky-800/70" : "text-bqa-dim"
+                  }`}
                 >
-                  <circle cx="12" cy="12" r="5" />
-                  <line x1="12" y1="1" x2="12" y2="3" />
-                  <line x1="12" y1="21" x2="12" y2="23" />
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                  <line x1="1" y1="12" x2="3" y2="12" />
-                  <line x1="21" y1="12" x2="23" y2="12" />
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                </svg>
-                <div>
-                  <div className="font-sans text-4xl font-bold tracking-normal text-bqa-text">{temperatureDisplay}</div>
-                  <div className={`text-sm ${isLight ? "text-slate-600" : "text-bqa-muted"}`}>
-                    {weatherSummaryDisplay}
+                  Weather Conditions
+                </div>
+
+                <div className="mb-3 flex items-center gap-2.5">
+                  <svg
+                    width="30"
+                    height="30"
+                    fill="none"
+                    stroke="#ffd24d"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.8"
+                    aria-hidden
+                  >
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                  </svg>
+                  <div>
+                    <div className="font-sans text-2xl font-bold tracking-normal text-bqa-text">{temperatureDisplay}</div>
+                    <div className={`text-[0.78rem] leading-snug ${isLight ? "text-slate-600" : "text-bqa-muted"}`}>
+                      {weatherSummaryDisplay}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
-                {weatherRows.map(([k, v]) => (
-                  <div key={k} className="rounded-lg bg-bqa-slate px-3 py-2.5">
-                    <div className="mb-0.5 text-[0.65rem] font-semibold tracking-wide text-bqa-dim">{k}</div>
-                    <div className="font-sans text-[0.95rem] font-semibold tracking-normal text-bqa-text">{v}</div>
-                  </div>
-                ))}
-              </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {weatherRows.map(([k, v]) => (
+                    <div key={k} className="rounded-lg bg-bqa-slate px-2.5 py-2">
+                      <div className="mb-0.5 text-[0.58rem] font-semibold tracking-wide text-bqa-dim">{k}</div>
+                      <div className="font-sans text-[0.82rem] font-semibold tracking-normal text-bqa-text">{v}</div>
+                    </div>
+                  ))}
+                </div>
 
-              <WhoHoursRing
-                whoRingGradId={whoRingGradId}
-                ringR={ringR}
-                whoHours={whoHours}
-                active={readingsActive}
-                isLight={isLight}
-              />
+                <WhoHoursRing
+                  whoRingGradId={whoRingGradId}
+                  ringR={ringR}
+                  whoHours={whoHours}
+                  active={readingsActive}
+                  isLight={isLight}
+                />
+              </div>
             </div>
           </div>
+
+          <div aria-hidden className="min-h-[420px]" />
         </div>
       </div>
     </section>

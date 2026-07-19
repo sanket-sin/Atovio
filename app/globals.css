@@ -127,6 +127,29 @@ body {
   );
 }
 
+.light-theme #sec-hero[data-aqi-variant]:not([data-aqi-variant="default"]) .hero-overlay-base {
+  background: rgba(248, 250, 252, 0.14);
+}
+
+.light-theme #sec-hero[data-aqi-variant]:not([data-aqi-variant="default"]) .hero-overlay-r {
+  background: linear-gradient(
+    to right,
+    rgba(248, 250, 252, 0.88) 0%,
+    rgba(248, 250, 252, 0.48) 36%,
+    rgba(248, 250, 252, 0.08) 58%,
+    transparent 78%
+  );
+}
+
+.light-theme #sec-hero[data-aqi-variant]:not([data-aqi-variant="default"]) .hero-overlay-t {
+  background: linear-gradient(
+    to top,
+    rgba(248, 250, 252, 0.65) 0%,
+    rgba(248, 250, 252, 0.18) 40%,
+    transparent 100%
+  );
+}
+
 /* ── Light mode: map iframe section ── */
 .light-theme #sec-realtime-map .map-shell {
   background: #d8e8f4;

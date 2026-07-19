@@ -7,11 +7,12 @@ import { useDebounce } from "@/hooks/useDebounce";
 import {
   fetchCityAqiBySlug,
   normalizeBeyondAqiSlug,
+  searchResultToHeroSnapshot,
   type HeroCitySnapshot,
 } from "@/lib/api/aqi-city";
 import {
-  citySlugFromSearchResult,
   isFetchableCitySearchResult,
+  resolveSearchResultSlug,
   searchAqi,
   type AqiSearchResult,
 } from "@/lib/api/aqi-search";
@@ -128,26 +129,30 @@ export function LandingSiteHeader({
     frozenSearchLabelRef.current = label;
     setSearchQuery(label);
     setDropdownOpen(false);
-    const slug = citySlugFromSearchResult(result);
-    const normalizedSlug = slug ? normalizeBeyondAqiSlug(slug) : "";
-    /** Same request as curl GET …/api/aqi/India/Rajasthan/Jaipur — search `url`/`slug` → Country/State/City. */
+
     if (!isFetchableCitySearchResult(result)) {
       if (process.env.NODE_ENV === "development") {
-        console.debug(
-          "[BeyondAQI] skipped city AQI — need Country/State/City path in slug/url:",
-          result
-        );
+        console.debug("[BeyondAQI] search row lacks country/city path:", result);
       }
+      onCityDataLoaded?.(searchResultToHeroSnapshot(result));
       return;
     }
+
+    const slug = resolveSearchResultSlug(result)!;
+    const normalizedSlug = normalizeBeyondAqiSlug(slug);
+
     setCityFetchLoading(true);
     try {
       const snapshot = await fetchCityAqiBySlug(normalizedSlug);
       onCityDataLoaded?.(snapshot);
     } catch (err: unknown) {
       if (process.env.NODE_ENV === "development") {
-        console.warn("[BeyondAQI] city AQI GET failed (same as curl /api/aqi/India/…/…):", err);
+        console.warn("[BeyondAQI] city AQI GET failed; using search snapshot:", {
+          slug: normalizedSlug,
+          err,
+        });
       }
+      onCityDataLoaded?.(searchResultToHeroSnapshot(result));
     } finally {
       setCityFetchLoading(false);
     }

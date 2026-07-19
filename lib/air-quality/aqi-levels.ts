@@ -222,6 +222,20 @@ export function aqiVariantToLightBadgeShell(variant: AqiLevelVariant): string {
   }
 }
 
+/** Full-bleed hero backgrounds keyed by overall AQI band. */
+export const AQI_HERO_BACKGROUNDS: Record<AqiLevelVariant, string> = {
+  good: "/images/goodAQIs.svg",
+  moderate: "/images/moderateAQIs.svg",
+  poor: "/images/poorAQIs.svg",
+  unhealthy: "/images/unhealthyAQIs.svg",
+  severe: "/images/severeAQIs.svg",
+  hazardous: "/images/hazardousAQIs.svg",
+};
+
+export function aqiVariantToHeroBackground(variant: AqiLevelVariant): string {
+  return AQI_HERO_BACKGROUNDS[variant];
+}
+
 /** Legend rows for charts / heatmaps: `[hex, "Good (0–50)"]` etc. */
 export const AQI_LEGEND_CHART_TUPLES: [string, string][] = BEYONDAQI_AQI_BANDS.map((b) => [
   COLOR_HEX[b.variant],

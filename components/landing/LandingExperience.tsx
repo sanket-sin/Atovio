@@ -8,8 +8,8 @@ import {
   type HeroCitySnapshot,
 } from "@/lib/api/aqi-city";
 import {
-  citySlugFromSearchResult,
   isFetchableCitySearchResult,
+  resolveSearchResultSlug,
   searchAqi,
 } from "@/lib/api/aqi-search";
 import type { DetectedCity } from "@/lib/location/detect-city";
@@ -61,7 +61,7 @@ async function fetchDetectedCityAqi(
     const results = await searchAqi(q);
     const city = results.find(isFetchableCitySearchResult);
 
-    const slug = city ? citySlugFromSearchResult(city) : undefined;
+    const slug = city ? resolveSearchResultSlug(city) : undefined;
     if (slug) return fetchCityAqiBySlug(normalizeBeyondAqiSlug(slug));
   }
 

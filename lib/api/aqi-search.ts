@@ -17,23 +17,52 @@ export type AqiSearchResult = {
   location_name?: string;
 };
 
+/** Parse search `url` (e.g. `/api/India//Naharlagun`) preserving empty state segments. */
+function parseSearchResultUrl(url?: string | null): string | undefined {
+  const raw = url?.trim();
+  if (!raw || /^https?:\/\//i.test(raw)) return undefined;
+
+  let path = raw.replace(/^\/+/, "");
+  if (path.toLowerCase().startsWith("api/")) {
+    path = path.slice(4);
+  }
+  if (!path.includes("/")) return undefined;
+  return path;
+}
+
+/**
+ * Resolve slug/path for `GET /api/aqi/{Country}/{State}/{City}` from a search row.
+ * Handles empty state (`India//Naharlagun`) and rows that only expose country + city.
+ */
+export function resolveSearchResultSlug(result: AqiSearchResult): string | undefined {
+  const fromSlug = result.slug?.trim();
+  if (fromSlug) return fromSlug;
+
+  const fromUrl = parseSearchResultUrl(result.url);
+  if (fromUrl) return fromUrl;
+
+  const country = result.country?.trim();
+  const city = result.city?.trim();
+  if (!country || !city) return undefined;
+
+  const state = result.state?.trim() ?? "";
+  return `${country}/${state}/${city}`;
+}
+
 /** Slug or path from a search row (e.g. `slug` or `/api/India/Rajasthan/Jaipur`). */
 export function citySlugFromSearchResult(
   result: AqiSearchResult
 ): string | undefined {
-  const fromSlug = result.slug?.trim();
-  if (fromSlug) return fromSlug;
-  const u = result.url?.trim();
-  if (u && !/^https?:\/\//i.test(u) && u.includes("/")) return u;
-  return undefined;
+  return resolveSearchResultSlug(result);
 }
 
-/** True when the row resolves to `GET /api/aqi/{Country}/{State}/{City}`. */
+/** True when the row can attempt `GET /api/aqi/Country/State/City` (incl. empty state). */
 export function isFetchableCitySearchResult(result: AqiSearchResult): boolean {
-  const slug = citySlugFromSearchResult(result);
+  const slug = resolveSearchResultSlug(result);
   if (!slug) return false;
   const normalized = normalizeBeyondAqiSlug(slug);
-  return normalized.split("/").filter(Boolean).length >= 3;
+  const nonEmpty = normalized.split("/").filter(Boolean);
+  return nonEmpty.length >= 2 && Boolean(nonEmpty[0]);
 }
 
 type SearchApiResponse = {
