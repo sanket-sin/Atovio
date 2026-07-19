@@ -26,11 +26,15 @@ export type HeroCitySnapshot = {
   stateName?: string;
   /** From BeyondAQI `location.country` — used for historical and other path-based APIs. */
   countryName?: string;
+  /** Hyperlocal sensor label, e.g. "Janpath" or "Mandir Marg, New Delhi - DPCC". */
+  locationName?: string;
   latitude?: number;
   longitude?: number;
   aqi: number;
   statusLabel: string;
   badgeVariant: HeroAqiBadgeVariant;
+  /** Daily cigarette-equivalent exposure from BeyondAQI (`puff_score`). */
+  puffScore?: number;
   pm25: number;
   pm10: number;
   pm25BadgeVariant: HeroAqiBadgeVariant;
@@ -56,11 +60,14 @@ type CityAqiApiResponse = {
   data: {
     aqi: number;
     aqi_status: string;
+    puff_score?: number;
+    location_name?: string;
     timestamp?: string;
     location: {
       city: string;
       state: string;
       country: string;
+      location_name?: string;
       latitude?: number;
       longitude?: number;
     };
@@ -164,10 +171,23 @@ export function cityApiToHeroSnapshot(res: CityAqiApiResponse): HeroCitySnapshot
   const no2 = pollutantNumber(p.no2, 0);
   const lat = d.location.latitude;
   const lng = d.location.longitude;
+  const puffRaw = d.puff_score;
+  const puffScore =
+    typeof puffRaw === "number" && Number.isFinite(puffRaw)
+      ? puffRaw
+      : pm25 > 0
+        ? Math.round((pm25 / 22) * 10) / 10
+        : undefined;
+  const locationName =
+    d.location_name?.trim() ||
+    d.location.location_name?.trim() ||
+    undefined;
+
   return {
     cityName: d.location.city,
     stateName: d.location.state,
     countryName: d.location.country,
+    locationName,
     latitude:
       typeof lat === "number" && Number.isFinite(lat) ? lat : undefined,
     longitude:
@@ -175,6 +195,7 @@ export function cityApiToHeroSnapshot(res: CityAqiApiResponse): HeroCitySnapshot
     aqi: d.aqi,
     statusLabel: getAqiLevel(d.aqi).labelUppercase,
     badgeVariant: getAqiLevel(d.aqi).variant,
+    puffScore,
     pm25,
     pm10,
     pm25BadgeVariant: pm25ToBadgeVariant(pm25),

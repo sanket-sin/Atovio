@@ -1,8 +1,9 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
 import { AqiBadge, type AqiBadgeVariant } from "./AqiBadge";
+import { AnimatedCigarette } from "./AnimatedCigarette";
 import { aqiVariantToHeroBackground } from "@/lib/air-quality/aqi-levels";
 import {
   AnimatedHorizontalMarker,
@@ -18,9 +19,11 @@ const DEFAULT_HERO: HeroCitySnapshot = {
   cityName: "Mumbai",
   stateName: "Maharashtra",
   countryName: "India",
+  locationName: "Mumbai",
   aqi: 160,
   statusLabel: "Poor",
   badgeVariant: "poor",
+  puffScore: 2.1,
   pm25: 46,
   pm10: 124,
   pm25BadgeVariant: "moderate",
@@ -92,6 +95,94 @@ function formatUpdatedAt(timestamp?: string): string {
   }).format(d);
 }
 
+function heroLocationTitle(snapshot: HeroCitySnapshot, fallback: string): string {
+  const raw = snapshot.locationName?.trim();
+  if (raw) {
+    const first = raw.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  return snapshot.cityName || fallback;
+}
+
+function heroLocationSubtitle(snapshot: HeroCitySnapshot): string {
+  const city = snapshot.cityName?.trim();
+  const country = snapshot.countryName?.trim() || "India";
+  if (city && city.toLowerCase() !== country.toLowerCase()) {
+    return `${city}, ${country}`;
+  }
+  return country;
+}
+
+function solidStatusBadgeClass(variant: AqiBadgeVariant): string {
+  switch (variant) {
+    case "good":
+      return "bg-emerald-600 text-white";
+    case "moderate":
+      return "bg-amber-500 text-[#1a1a1a]";
+    case "poor":
+      return "bg-orange-500 text-white";
+    case "unhealthy":
+      return "bg-rose-600 text-white";
+    case "severe":
+      return "bg-purple-700 text-white";
+    case "hazardous":
+      return "bg-[#8b1538] text-white";
+    default:
+      return "bg-orange-500 text-white";
+  }
+}
+
+function InfoIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M12 10v6M12 7h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function LocationPinIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
+      <path
+        d="M12 21s-6-5.14-6-10a6 6 0 1112 0c0 4.86-6 10-6 10z"
+        fill="#e11d48"
+        stroke="#e11d48"
+        strokeWidth="1.2"
+      />
+      <circle cx="12" cy="11" r="2.2" fill="white" />
+    </svg>
+  );
+}
+
+function HeartOutlineIcon({ isLight }: { isLight: boolean }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className={`shrink-0 ${isLight ? "text-rose-500" : "text-rose-400"}`}
+    >
+      <path
+        d="M12 20.5l-1.1-1C5.4 14.8 2 11.8 2 8.5A4.5 4.5 0 016.5 4 5.2 5.2 0 0112 6.1 5.2 5.2 0 0117.5 4 4.5 4.5 0 0122 8.5c0 3.3-3.4 6.3-8.9 11L12 20.5z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
+const AQI_SCALE_TICKS = ["0", "50", "100", "150", "200", "300", "301+"] as const;
+
 type LandingHeroProps = {
   isLight?: boolean;
   onScrollToMap: () => void;
@@ -100,61 +191,6 @@ type LandingHeroProps = {
   isLocatingLocation?: boolean;
   locationUnavailable?: boolean;
 };
-
-/** Phone + magnifying glass with “AQI” — matches product tab artwork */
-function TabAqiIcon({ active, isLight }: { active: boolean; isLight: boolean }) {
-  const blue = active ? (isLight ? "#2563eb" : "#38bdf8") : isLight ? "#64748b" : "#64748b";
-  const phoneStroke = active ? (isLight ? "#3b82f6" : "#60a5fa") : isLight ? "#94a3b8" : "#64748b";
-  const lensFill = active ? (isLight ? "rgba(59,130,246,0.12)" : "rgba(56,189,248,0.14)") : "transparent";
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
-      <rect
-        x="3.5"
-        y="4"
-        width="9.5"
-        height="16"
-        rx="2"
-        stroke={phoneStroke}
-        strokeWidth="1.35"
-        fill={isLight ? (active ? "rgba(241,245,249,0.95)" : "rgba(226,232,240,0.75)") : "rgba(15,23,42,0.35)"}
-      />
-      <line x1="6" y1="7.5" x2="11" y2="7.5" stroke={phoneStroke} strokeWidth="1" strokeOpacity="0.35" strokeLinecap="round" />
-      <circle cx="15.8" cy="9.8" r="4.1" stroke={blue} strokeWidth="1.35" fill={lensFill} />
-      <path d="M18.8 12.8l2.7 2.7" stroke={blue} strokeWidth="1.35" strokeLinecap="round" />
-      <text
-        x="15.8"
-        y="11.3"
-        textAnchor="middle"
-        fill={blue}
-        style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif", fontSize: "4.5px", fontWeight: 700 }}
-      >
-        AQI
-      </text>
-    </svg>
-  );
-}
-
-/** Sun behind cloud — colorful inactive/active weather glyph */
-function TabWeatherIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
-      <circle cx="17.5" cy="7.2" r="3.6" fill="#fbbf24" opacity={active ? 1 : 0.88} />
-      <path
-        stroke="#f59e0b"
-        strokeWidth="1.15"
-        strokeLinecap="round"
-        d="M17.5 3.4v1.1M17.5 10v1.1M21.3 7.2h1.1M13.7 7.2h1.1"
-      />
-      <path
-        fill="#f1f5f9"
-        stroke="#94a3b8"
-        strokeWidth="1"
-        strokeLinejoin="round"
-        d="M5.8 17.6h11.4a3.15 3.15 0 10-.2-6.25 3.55 3.55 0 00-6.85-.95 2.85 2.85 0 00-4.35 7.2z"
-      />
-    </svg>
-  );
-}
 
 function WhoHoursRing({
   whoRingGradId,
@@ -228,7 +264,6 @@ export function LandingHero({
   const ringR = 42;
   const whoHours = 19;
 
-  const [heroTab, setHeroTab] = useState<"aqi" | "weather">("aqi");
   const [heroRef, heroActive] = useInViewOnce<HTMLElement>([citySnapshot?.cityName, citySnapshot?.aqi]);
 
   const isDetectingCity = isLocatingLocation && !citySnapshot;
@@ -262,6 +297,23 @@ export function LandingHero({
     : Math.min(100, Math.max(0, (d.aqi / 500) * 100));
   const readingsActive = heroActive && !showPlaceholder;
   const numTone = headlineNumberTone(badgeVariant, isLight);
+  const locationTitle = isDetectingCity
+    ? "Detecting location"
+    : needsManualCity
+    ? "Search your city"
+    : heroLocationTitle(d, cityNameDisplay);
+  const locationSubtitle = isDetectingCity
+    ? "Finding nearest sensor"
+    : needsManualCity
+    ? "Use the search bar above"
+    : heroLocationSubtitle(d);
+  const puffScoreDisplay = showPlaceholder
+    ? "--"
+    : d.puffScore != null
+      ? d.puffScore.toFixed(1)
+      : d.pm25 > 0
+        ? (d.pm25 / 22).toFixed(1)
+        : "--";
   const tempUnit = temperatureUnitSymbol(d.weather?.temperatureUnit);
   const temperatureDisplay = showPlaceholder
     ? "--"
@@ -340,24 +392,7 @@ export function LandingHero({
     </>
   );
 
-  const tabBtnBase =
-    "relative flex flex-1 items-center justify-center gap-2 py-3 text-center text-[0.83rem] font-bold transition-colors";
-
-  function tabClass(which: "aqi" | "weather") {
-    const on = heroTab === which;
-    const rounded =
-      which === "aqi" ? "rounded-tl-[14px]" : "rounded-tr-[14px]";
-    if (isLight) {
-      if (on) {
-        return `${rounded} border-t-[3px] border-blue-600 bg-white text-slate-900 shadow-[0_1px_3px_rgba(15,23,42,0.06)]`;
-      }
-      return `${rounded} border-t-[3px] border-transparent bg-slate-200/95 text-slate-500 hover:bg-slate-200 hover:text-slate-700`;
-    }
-    if (on) {
-      return `${rounded} border-t-[3px] border-sky-400 bg-[#152238] text-white`;
-    }
-    return `${rounded} border-t-[3px] border-transparent bg-[#050a14] text-white/55 hover:bg-[#0a1220] hover:text-white/85`;
-  }
+  const mobileCardBg = hasCityData ? heroBg : HERO_DEFAULT_BG;
 
   return (
     <section
@@ -378,274 +413,153 @@ export function LandingHero({
       <div className="hero-overlay-r absolute inset-0 z-[1]" aria-hidden />
 
       <div className="relative z-[2] mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
-        {/* Narrow screens: headline + tabbed dashboard */}
+        {/* Mobile — screenshot-style AQI card with location, live reading, puff score, scale */}
         <div className="pb-10 pt-4 lg:hidden">
           <div className="mb-4">{headlineBlock}</div>
 
           <div
-            className={`overflow-hidden rounded-[18px] border backdrop-blur-xl ${
-              isLight
-                ? "border-slate-200/90 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.1)]"
-                : "border-sky-400/10 bg-bqa-navy2/85 shadow-[0_24px_48px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.05)]"
+            className={`hero-mobile-aqi-card relative overflow-hidden rounded-[18px] border shadow-[0_12px_40px_rgba(15,23,42,0.14)] ${
+              isLight ? "border-slate-200/90 bg-white" : "border-white/10 bg-[#0c1424]/90"
             }`}
+            data-aqi-variant={heroAqiVariant}
           >
             <div
-              className="pointer-events-none h-[3px] rounded-t-[18px] bg-[linear-gradient(90deg,#00e5aa,#ffd24d,#ff8c42,#ff4d6d,#c77dff,#9b2dff)]"
+              className="hero-mobile-aqi-card-bg absolute inset-0 bg-cover bg-no-repeat"
+              style={{ backgroundImage: `url(${mobileCardBg})` }}
+              aria-hidden
+            />
+            <div
+              className={`hero-mobile-aqi-card-overlay absolute inset-0 ${
+                isLight
+                  ? "bg-gradient-to-r from-white via-white/92 to-white/35"
+                  : "bg-gradient-to-r from-[#0a1220] via-[#0a1220]/92 to-[#0a1220]/35"
+              }`}
               aria-hidden
             />
 
-            <div
-              className={`flex overflow-hidden pt-0 ${isLight ? "border-b border-slate-200 bg-slate-100" : "border-b border-white/[0.06] bg-[#060b14]"}`}
-            >
-              <button
-                type="button"
-                onClick={() => setHeroTab("aqi")}
-                className={`${tabBtnBase} ${tabClass("aqi")}`}
-              >
-                <TabAqiIcon active={heroTab === "aqi"} isLight={isLight} />
-                AQI
-              </button>
-              <button
-                type="button"
-                onClick={() => setHeroTab("weather")}
-                className={`${tabBtnBase} ${tabClass("weather")}`}
-              >
-                <TabWeatherIcon active={heroTab === "weather"} />
-                Weather
-              </button>
-            </div>
-
-            <div className={`p-5 sm:p-6 ${isLight ? "bg-white" : ""}`}>
-              {heroTab === "aqi" ? (
-                <>
-                  <div className="mb-5 flex min-w-0 items-center justify-between gap-3">
-                    <p
-                      className={`min-w-0 flex-1 font-sans text-[9px] font-semibold uppercase leading-tight tracking-[0.14em] sm:text-[10.5px] sm:tracking-[0.18em] ${
-                        isLight ? "text-sky-700/75" : "text-bqa-dim"
-                      }`}
-                    >
-                      Outdoor AQI · {cityNameDisplay}
-                    </p>
-                    <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
-                      <span
-                        className={`font-sans text-[clamp(2rem,11vw,3.25rem)] font-bold leading-none tracking-tight ${
-                          isLight
-                            ? numTone
-                            : `${numTone} drop-shadow-[0_0_40px_rgba(255,140,66,0.28)]`
-                        }`}
-                      >
-                        {showPlaceholder ? (
-                          aqiDisplay
-                        ) : (
-                          <AnimatedReadingValue
-                            value={d.aqi}
-                            format={(n) => String(Math.round(n))}
-                            active={readingsActive}
-                          />
-                        )}
-                      </span>
-                      <AqiBadge
-                        variant={badgeVariant}
-                        className="px-2.5 py-0.5 text-[0.62rem] tracking-[0.08em] sm:px-3 sm:py-1 sm:text-[0.68rem]"
-                      >
-                        {statusDisplay}
-                      </AqiBadge>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div
-                      className={`rounded-xl border-l-[3px] border-bqa-moderate p-3 ${
-                        isLight
-                          ? "bg-slate-50 ring-1 ring-slate-200/90"
-                          : "border border-sky-400/10 bg-bqa-slate/60"
-                      }`}
-                    >
-                      <div
-                        className={`mb-1 text-[0.68rem] font-semibold tracking-wide ${
-                          isLight ? "text-slate-500" : "text-bqa-dim"
-                        }`}
-                      >
-                        PM2.5
-                      </div>
-                      <div
-                        className={`font-sans text-xl font-bold tracking-normal ${
-                          isLight ? "text-slate-800" : "text-bqa-text"
-                        }`}
-                      >
-                        {showPlaceholder ? (
-                          pm25Display
-                        ) : (
-                          <AnimatedReadingValue
-                            value={d.pm25}
-                            format={formatOneDecimal}
-                            active={readingsActive}
-                            delayMs={80}
-                          />
-                        )}{" "}
-                        <span className={`text-[0.7rem] font-normal ${isLight ? "text-slate-500" : "text-bqa-dim"}`}>
-                          µg/m³
-                        </span>
-                      </div>
-                      <AqiBadge variant={pm25Variant} className="mt-2">
-                        {variantLabel(pm25Variant)}
-                      </AqiBadge>
-                    </div>
-                    <div
-                      className={`rounded-xl border-l-[3px] border-bqa-unhealthy p-3 ${
-                        isLight
-                          ? "bg-slate-50 ring-1 ring-slate-200/90"
-                          : "border border-sky-400/10 bg-bqa-slate/60"
-                      }`}
-                    >
-                      <div
-                        className={`mb-1 text-[0.68rem] font-semibold tracking-wide ${
-                          isLight ? "text-slate-500" : "text-bqa-dim"
-                        }`}
-                      >
-                        PM10
-                      </div>
-                      <div
-                        className={`font-sans text-xl font-bold tracking-normal ${
-                          isLight ? "text-slate-800" : "text-bqa-text"
-                        }`}
-                      >
-                        {showPlaceholder ? (
-                          pm10Display
-                        ) : (
-                          <AnimatedReadingValue
-                            value={d.pm10}
-                            format={formatOneDecimal}
-                            active={readingsActive}
-                            delayMs={160}
-                          />
-                        )}{" "}
-                        <span className={`text-[0.7rem] font-normal ${isLight ? "text-slate-500" : "text-bqa-dim"}`}>
-                          µg/m³
-                        </span>
-                      </div>
-                      <AqiBadge variant={pm10Variant} className="mt-2">
-                        {variantLabel(pm10Variant)}
-                      </AqiBadge>
-                    </div>
-                  </div>
-
-                  <div className="mt-5">
-                    <div
-                      className={`relative mb-2 h-2.5 rounded-md bg-gradient-to-r from-bqa-good via-bqa-moderate via-bqa-poor via-bqa-unhealthy via-bqa-severe to-bqa-hazardous ${
-                        isLight ? "shadow-inner" : "shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)]"
-                      }`}
-                    >
-                      <AnimatedHorizontalMarker
-                        targetPercent={markerPct}
-                        active={readingsActive}
-                        durationMs={1000}
-                        delayMs={200}
-                        className="absolute -top-1.5 h-6 w-0.5 -translate-x-1/2 rounded-sm bg-white shadow-[0_0_12px_rgba(255,255,255,0.85)]"
-                      >
-                        <span
-                          className={`absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded px-1.5 py-0.5 font-sans text-[0.65rem] font-bold tracking-normal shadow-sm ${
-                            isLight ? "bg-white text-[#0f172a] ring-1 ring-slate-200" : "bg-white text-[#0a0a1a]"
-                          }`}
-                        >
-                          {showPlaceholder ? (
-                            aqiDisplay
-                          ) : (
-                            <AnimatedReadingValue
-                              value={d.aqi}
-                              format={(n) => String(Math.round(n))}
-                              active={readingsActive}
-                              delayMs={200}
-                            />
-                          )}
-                        </span>
-                      </AnimatedHorizontalMarker>
-                    </div>
-                    <div className="-mx-0.5 flex justify-between gap-1 overflow-x-auto pb-0.5 font-sans text-[0.52rem] font-semibold sm:text-[0.6rem]">
-                      <span className="shrink-0 text-bqa-good">Good</span>
-                      <span className="shrink-0 text-bqa-moderate">Moderate</span>
-                      <span className="shrink-0 text-bqa-poor">Poor</span>
-                      <span className="shrink-0 text-bqa-unhealthy">Unhealthy</span>
-                      <span className="shrink-0 text-bqa-severe">Severe</span>
-                      <span className="shrink-0 text-bqa-hazardous">Hazardous</span>
-                    </div>
-                  </div>
-
-                  <WhoHoursRing
-                    whoRingGradId={`${whoRingGradId}-mob`}
-                    ringR={ringR}
-                    whoHours={whoHours}
-                    active={readingsActive}
-                    isLight={isLight}
-                  />
-                </>
-              ) : (
-                <div
-                  className={`flex flex-col flex-1 rounded-[14px] border p-4 sm:p-5 ${
-                    isLight ? "border-slate-200 bg-slate-50/90" : "border-sky-400/10 bg-bqa-navy2/50"
-                  }`}
-                >
-                  <div
-                    className={`mb-4 font-sans text-[10.9px] font-normal uppercase leading-[17.4px] tracking-[2px] ${
-                      isLight ? "text-sky-800/70" : "text-bqa-dim"
+            <div className="relative z-[1] p-5 sm:p-6">
+              <div className="mb-4 max-w-[68%]">
+                <div className="mb-1 flex items-center gap-2">
+                  <LocationPinIcon />
+                  <h2
+                    className={`min-w-0 flex-1 truncate font-sans text-[1.35rem] font-bold leading-tight tracking-[-0.02em] sm:text-[1.5rem] ${
+                      isLight ? "text-slate-900" : "text-white"
                     }`}
                   >
-                    Weather Conditions
-                  </div>
-                  <div className="mb-4 flex items-center gap-3.5">
-                    <svg
-                      width="38"
-                      height="38"
-                      fill="none"
-                      stroke="#ffd24d"
-                      viewBox="0 0 24 24"
-                      strokeWidth="1.8"
-                      aria-hidden
-                    >
-                      <circle cx="12" cy="12" r="5" />
-                      <line x1="12" y1="1" x2="12" y2="3" />
-                      <line x1="12" y1="21" x2="12" y2="23" />
-                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                      <line x1="1" y1="12" x2="3" y2="12" />
-                      <line x1="21" y1="12" x2="23" y2="12" />
-                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                    </svg>
-                    <div>
-                      <div className="font-sans text-4xl font-bold tracking-normal text-bqa-text">{temperatureDisplay}</div>
-                      <div className={`text-sm ${isLight ? "text-slate-600" : "text-bqa-muted"}`}>
-                        {weatherSummaryDisplay}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {weatherRows.map(([k, v]) => (
-                      <div
-                        key={k}
-                        className={`rounded-lg px-3 py-2.5 ${
-                          isLight ? "bg-white ring-1 ring-slate-200/90" : "bg-bqa-slate"
-                        }`}
-                      >
-                        <div
-                          className={`mb-0.5 text-[0.65rem] font-semibold tracking-wide ${
-                            isLight ? "text-slate-500" : "text-bqa-dim"
-                          }`}
-                        >
-                          {k}
-                        </div>
-                        <div
-                          className={`font-sans text-[0.95rem] font-semibold tracking-normal ${
-                            isLight ? "text-slate-900" : "text-bqa-text"
-                          }`}
-                        >
-                          {v}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                    {locationTitle}
+                  </h2>
+                  <button
+                    type="button"
+                    className="shrink-0 rounded-full p-0.5 transition-opacity hover:opacity-80"
+                    aria-label="Save location to favorites"
+                  >
+                    <HeartOutlineIcon isLight={isLight} />
+                  </button>
                 </div>
-              )}
+                <p className={`font-sans text-[0.88rem] ${isLight ? "text-slate-600" : "text-bqa-muted"}`}>
+                  {locationSubtitle}
+                </p>
+              </div>
+
+              <div className="mb-3 max-w-[68%]">
+                <p
+                  className={`mb-2 inline-flex items-center gap-1.5 font-sans text-[0.78rem] font-semibold ${
+                    isLight ? "text-rose-600" : "text-rose-300"
+                  }`}
+                >
+                  <span
+                    className="h-1.5 w-1.5 animate-blink rounded-full bg-bqa-unhealthy shadow-[0_0_8px_#ff4d6d]"
+                    aria-hidden
+                  />
+                  Live AQI
+                  <InfoIcon className={isLight ? "text-slate-400" : "text-bqa-dim"} />
+                </p>
+
+                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                  <span
+                    className={`font-sans text-[clamp(2.75rem,14vw,3.75rem)] font-bold leading-none tracking-tight ${numTone}`}
+                  >
+                    {showPlaceholder ? (
+                      aqiDisplay
+                    ) : (
+                      <AnimatedReadingValue
+                        value={d.aqi}
+                        format={(n) => String(Math.round(n))}
+                        active={readingsActive}
+                      />
+                    )}
+                  </span>
+                  <span
+                    className={`inline-flex items-center rounded-lg px-3 py-1 font-sans text-[0.72rem] font-bold uppercase tracking-wide sm:text-[0.78rem] ${solidStatusBadgeClass(
+                      badgeVariant
+                    )}`}
+                  >
+                    {statusDisplay}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mb-5 max-w-[72%]">
+                <div className="flex items-start gap-2.5">
+                  <AnimatedCigarette compact isLight={isLight} className="mt-0.5 shrink-0" />
+                  <p
+                    className={`font-sans text-[0.82rem] leading-snug sm:text-[0.88rem] ${
+                      isLight ? "text-slate-700" : "text-bqa-muted"
+                    }`}
+                  >
+                    Equivalent to{" "}
+                    <strong className={`text-[1.05rem] font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
+                      {showPlaceholder ? (
+                        puffScoreDisplay
+                      ) : (
+                        <AnimatedReadingValue
+                          value={d.puffScore ?? d.pm25 / 22}
+                          format={(n) => n.toFixed(1)}
+                          active={readingsActive}
+                          delayMs={120}
+                        />
+                      )}
+                    </strong>{" "}
+                    cigarettes per day
+                    <InfoIcon className={`ml-1 inline align-[-2px] ${isLight ? "text-slate-400" : "text-bqa-dim"}`} />
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <div
+                  className={`relative mb-1.5 h-2.5 rounded-full bg-gradient-to-r from-bqa-good via-bqa-moderate via-bqa-poor via-bqa-unhealthy via-bqa-severe to-bqa-hazardous ${
+                    isLight ? "shadow-inner" : "shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)]"
+                  }`}
+                >
+                  <AnimatedHorizontalMarker
+                    targetPercent={markerPct}
+                    active={readingsActive}
+                    durationMs={1000}
+                    delayMs={200}
+                    className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-orange-400 bg-white shadow-[0_1px_6px_rgba(0,0,0,0.25)]"
+                  />
+                </div>
+                <div
+                  className={`mb-1 flex justify-between gap-0.5 font-sans text-[0.52rem] font-semibold sm:text-[0.58rem] ${
+                    isLight ? "text-slate-500" : "text-bqa-dim"
+                  }`}
+                >
+                  {AQI_SCALE_TICKS.map((tick) => (
+                    <span key={tick} className="shrink-0">
+                      {tick}
+                    </span>
+                  ))}
+                </div>
+                <div className="-mx-0.5 flex justify-between gap-0.5 overflow-x-auto pb-0.5 font-sans text-[0.52rem] font-semibold sm:text-[0.58rem]">
+                  <span className="shrink-0 text-bqa-good">Good</span>
+                  <span className="shrink-0 text-bqa-moderate">Moderate</span>
+                  <span className="shrink-0 text-bqa-poor">Poor</span>
+                  <span className="shrink-0 text-bqa-unhealthy">Unhealthy</span>
+                  <span className="shrink-0 text-bqa-severe">Severe</span>
+                  <span className="shrink-0 text-bqa-hazardous">Hazardous</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
