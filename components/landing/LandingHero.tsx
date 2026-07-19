@@ -305,7 +305,7 @@ export function LandingHero({
   const headlineBlock = (
     <>
       <p
-        className={`mb-3 inline-flex items-center gap-2 font-sans text-[0.82rem] font-semibold tracking-normal ${
+        className={`mb-1 inline-flex items-center gap-2 font-sans text-[0.82rem] font-semibold tracking-normal ${
           isLight ? "text-rose-700" : "text-rose-200"
         }`}
       >
@@ -315,7 +315,7 @@ export function LandingHero({
         />
         {liveLabel}
       </p>
-      <h1 className="mb-3 font-sans text-[clamp(1.65rem,5.5vw,2.5rem)] font-bold leading-tight tracking-[-0.03em] text-bqa-text sm:text-[2.35rem] lg:text-[2.15rem] lg:whitespace-nowrap xl:text-[2.35rem]">
+      <h1 className="mb-1.5 font-sans text-[clamp(1.65rem,5.5vw,2.5rem)] font-bold leading-[1.15] tracking-[-0.03em] text-bqa-text sm:text-[2.35rem] lg:text-[2.15rem] lg:whitespace-nowrap xl:text-[2.35rem]">
         {cityNameDisplay} Air Quality Index —{" "}
         <em className={`not-italic font-sans tracking-normal ${numTone}`}>
           {showPlaceholder ? (
@@ -330,7 +330,7 @@ export function LandingHero({
         </em>
       </h1>
       <p
-        className={`mb-0 max-w-[520px] text-[0.92rem] leading-relaxed sm:text-[0.95rem] lg:max-w-[680px] ${
+        className={`mb-0 max-w-[520px] text-[0.92rem] leading-snug sm:text-[0.95rem] lg:max-w-[680px] ${
           isLight ? "text-slate-600" : "text-bqa-muted"
         }`}
       >
@@ -364,7 +364,7 @@ export function LandingHero({
       ref={heroRef}
       id="sec-hero"
       data-aqi-variant={heroAqiVariant}
-      className="relative flex min-h-[100dvh] items-center overflow-hidden border-b border-sky-400/10 pt-[7rem] sm:pt-[8rem] md:pt-[7.75rem]"
+      className="relative flex min-h-[100dvh] items-start overflow-hidden border-b border-sky-400/10 pt-[7rem] sm:pt-[8rem] md:pt-[7.75rem]"
     >
       <div
         className={`hero-bg absolute inset-0 z-0 bg-cover bg-no-repeat ${
@@ -380,7 +380,7 @@ export function LandingHero({
       <div className="relative z-[2] mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
         {/* Narrow screens: headline + tabbed dashboard */}
         <div className="pb-10 pt-4 lg:hidden">
-          <div className="mb-6">{headlineBlock}</div>
+          <div className="mb-4">{headlineBlock}</div>
 
           <div
             className={`overflow-hidden rounded-[18px] border backdrop-blur-xl ${
@@ -651,8 +651,8 @@ export function LandingHero({
         </div>
 
         {/* Desktop — heading + compact cards on the left, character space on the right */}
-        <div className="hidden lg:grid lg:grid-cols-[minmax(0,70%)_minmax(0,30%)] lg:items-start lg:gap-5 lg:py-8">
-          <div className="flex flex-col gap-5">
+        <div className="hidden lg:grid lg:grid-cols-[minmax(0,70%)_minmax(0,30%)] lg:items-start lg:gap-5 lg:py-4 lg:pb-6">
+          <div className="flex flex-col gap-3">
             {headlineBlock}
 
             <div className="grid w-full max-w-[820px] grid-cols-2 gap-4 xl:max-w-[880px]">
