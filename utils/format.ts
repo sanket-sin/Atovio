@@ -10,7 +10,7 @@ export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOpt
   const dateObj = typeof date === "string" ? new Date(date) : date;
   const defaultOptions: Intl.DateTimeFormatOptions = {
     year: "numeric", 
-    month: "long",
+    month: "long",     
     day: "numeric",
   }; 
 
