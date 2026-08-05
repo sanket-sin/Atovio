@@ -222,18 +222,18 @@ export function aqiVariantToLightBadgeShell(variant: AqiLevelVariant): string {
   }
 }
 
-/** Full-bleed hero backgrounds keyed by overall AQI band. */
-export const AQI_HERO_BACKGROUNDS: Record<AqiLevelVariant, string> = {
-  good: "/images/goodAQIs.svg",
-  moderate: "/images/moderateAQIs.svg",
-  poor: "/images/poorAQIs.svg",
-  unhealthy: "/images/unhealthyAQIs.svg",
-  severe: "/images/severeAQIs.svg",
-  hazardous: "/images/hazardousAQIs.svg",
+/** Hero Lottie animations keyed by overall AQI band. */
+export const AQI_HERO_LOTTIES: Record<AqiLevelVariant, string> = {
+  good: "/lottie/goodAQI.lottie",
+  moderate: "/lottie/moderateAQI.lottie",
+  poor: "/lottie/poorAQI.lottie",
+  unhealthy: "/lottie/unhealthyAQI.lottie",
+  severe: "/lottie/severeAQI.lottie",
+  hazardous: "/lottie/hazardousAQI.lottie",
 };
 
-export function aqiVariantToHeroBackground(variant: AqiLevelVariant): string {
-  return AQI_HERO_BACKGROUNDS[variant];
+export function aqiVariantToHeroLottie(variant: AqiLevelVariant): string {
+  return AQI_HERO_LOTTIES[variant];
 }
 
 /** Legend rows for charts / heatmaps: `[hex, "Good (0–50)"]` etc. */

@@ -4,7 +4,8 @@ import { useId } from "react";
 import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
 import { AqiBadge, type AqiBadgeVariant } from "./AqiBadge";
 import { AnimatedCigarette } from "./AnimatedCigarette";
-import { aqiVariantToHeroBackground } from "@/lib/air-quality/aqi-levels";
+import type { AqiLevelVariant } from "@/lib/air-quality/aqi-levels";
+import { AqiHeroLottie } from "./AqiHeroLottie";
 import {
   AnimatedHorizontalMarker,
   AnimatedReadingValue,
@@ -283,11 +284,9 @@ export function LandingHero({
     : d.statusLabel;
   const badgeVariant = (showPlaceholder ? "moderate" : d.badgeVariant) as AqiBadgeVariant;
   const hasCityData = Boolean(citySnapshot);
-  const heroBg = hasCityData
-    ? aqiVariantToHeroBackground(d.badgeVariant)
-    : HERO_DEFAULT_BG;
   const heroShowsCharacter = hasCityData;
   const heroAqiVariant = hasCityData ? d.badgeVariant : "default";
+  const heroLottieVariant = (hasCityData ? d.badgeVariant : "moderate") as AqiLevelVariant;
   const pm25Display = showPlaceholder ? "--" : String(d.pm25);
   const pm10Display = showPlaceholder ? "--" : String(d.pm10);
   const pm25Variant = (showPlaceholder ? "moderate" : d.pm25BadgeVariant) as AqiBadgeVariant;
@@ -392,8 +391,6 @@ export function LandingHero({
     </>
   );
 
-  const mobileCardBg = hasCityData ? heroBg : HERO_DEFAULT_BG;
-
   return (
     <section
       ref={heroRef}
@@ -401,13 +398,15 @@ export function LandingHero({
       data-aqi-variant={heroAqiVariant}
       className="relative flex min-h-[100dvh] items-start overflow-hidden border-b border-sky-400/10 pt-[7rem] sm:pt-[8rem] md:pt-[7.75rem]"
     >
-      <div
-        className={`hero-bg absolute inset-0 z-0 bg-cover bg-no-repeat ${
-          heroShowsCharacter ? "hero-bg-character" : "bg-[center_38%]"
-        }`}
-        style={{ backgroundImage: `url(${heroBg})` }}
-        aria-hidden
-      />
+      {heroShowsCharacter ? (
+        <AqiHeroLottie variant={heroLottieVariant} className="hero-aqi-lottie pointer-events-none absolute inset-0 z-0" />
+      ) : (
+        <div
+          className="hero-bg absolute inset-0 z-0 bg-cover bg-[center_38%] bg-no-repeat"
+          style={{ backgroundImage: `url(${HERO_DEFAULT_BG})` }}
+          aria-hidden
+        />
+      )}
       <div className="hero-overlay-base absolute inset-0 z-[1]" aria-hidden />
       <div className="hero-overlay-t absolute inset-0 z-[1]" aria-hidden />
       <div className="hero-overlay-r absolute inset-0 z-[1]" aria-hidden />
@@ -423,11 +422,19 @@ export function LandingHero({
             }`}
             data-aqi-variant={heroAqiVariant}
           >
-            <div
-              className="hero-mobile-aqi-card-bg absolute inset-0 bg-cover bg-no-repeat"
-              style={{ backgroundImage: `url(${mobileCardBg})` }}
-              aria-hidden
-            />
+            {heroShowsCharacter ? (
+              <AqiHeroLottie
+                variant={heroLottieVariant}
+                placement="card"
+                className="hero-mobile-aqi-card-lottie pointer-events-none absolute inset-0"
+              />
+            ) : (
+              <div
+                className="hero-mobile-aqi-card-bg absolute inset-0 bg-cover bg-no-repeat opacity-55"
+                style={{ backgroundImage: `url(${HERO_DEFAULT_BG})`, backgroundPosition: "right center" }}
+                aria-hidden
+              />
+            )}
             <div
               className={`hero-mobile-aqi-card-overlay absolute inset-0 ${
                 isLight

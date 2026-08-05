@@ -8,7 +8,9 @@ function formatTemperature(point: CityAqiMapPoint): string | null {
 
 export function buildAqiMapInfoWindowHtml(point: CityAqiMapPoint): string {
   const temp = formatTemperature(point);
-  const city = point.city.replace(/</g, "&lt;");
+  // This runs inside a Google Maps listener, so anything thrown here escapes React's
+  // error boundaries and takes down the whole page — never trust the point's shape.
+  const city = (point.city ?? "").replace(/</g, "&lt;") || "Selected location";
   const tempRow = temp
     ? `<div style="margin:4px 0 0;font-size:13px;color:#64748b">Temperature: ${temp}</div>`
     : "";

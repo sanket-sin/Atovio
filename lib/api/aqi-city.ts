@@ -63,10 +63,15 @@ type CityAqiApiResponse = {
     puff_score?: number;
     location_name?: string;
     timestamp?: string;
+    /**
+     * `city`/`state`/`country` are absent for some sensors — area- and pincode-level
+     * locations come back with only `location_name`. Typing them as required let an
+     * `undefined` city reach the map info window and crash the page.
+     */
     location: {
-      city: string;
-      state: string;
-      country: string;
+      city?: string;
+      state?: string;
+      country?: string;
       location_name?: string;
       latitude?: number;
       longitude?: number;
@@ -184,7 +189,13 @@ export function cityApiToHeroSnapshot(res: CityAqiApiResponse): HeroCitySnapshot
     undefined;
 
   return {
-    cityName: d.location.city,
+    // Fall back through the sensor label before giving up, so a city-less payload still
+    // labels itself rather than rendering (and being passed around as) `undefined`.
+    cityName:
+      d.location.city?.trim() ||
+      locationName?.split(",")[0]?.trim() ||
+      d.location.state?.trim() ||
+      "Your location",
     stateName: d.location.state,
     countryName: d.location.country,
     locationName,
@@ -343,9 +354,9 @@ export async function fetchCityAqiMapPoint({
 
     const weather = data.data.basic_weather;
     return {
-      city: loc.city,
-      state: loc.state,
-      country: loc.country,
+      city: loc.city?.trim() || loc.location_name?.trim() || "Your location",
+      state: loc.state ?? "",
+      country: loc.country ?? "India",
       lat,
       lng,
       aqi: data.data.aqi,
