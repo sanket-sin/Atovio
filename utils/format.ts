@@ -12,7 +12,7 @@ export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOpt
     year: "numeric", 
     month: "long",
     day: "numeric",
-  };
+  }; 
 
   return dateObj.toLocaleDateString("en-US", options || defaultOptions);
 }
