@@ -2,7 +2,10 @@
 
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import type { AqiLevelVariant } from "@/lib/air-quality/aqi-levels";
-import { aqiVariantToHeroLottie } from "@/lib/air-quality/aqi-levels";
+import {
+  aqiVariantToHeroLottie,
+  aqiVariantToHeroLottieAlignX,
+} from "@/lib/air-quality/aqi-levels";
 
 type AqiHeroLottieProps = {
   variant: AqiLevelVariant;
@@ -18,10 +21,8 @@ type AqiHeroLottieProps = {
  * card's height and drops roughly a fifth of the width off each side — `contain` would
  * letterbox instead and shrink the figure to nothing.
  *
- * The 0.65 horizontal anchor is what keeps the character whole. Centred (0.5) clips his
- * trailing arm off the right edge; anchored right (1) walks him into the middle of the card
- * and straight over the copy. 0.65 lands him head-to-shoes inside the right-hand third,
- * clear of the text column. Retune it if the artwork's composition changes.
+ * The horizontal anchor is per variant — see AQI_HERO_LOTTIE_ALIGN_X for why one shared
+ * value cannot keep every character in frame.
  */
 export function AqiHeroLottie({ variant, className = "" }: AqiHeroLottieProps) {
   return (
@@ -31,7 +32,7 @@ export function AqiHeroLottie({ variant, className = "" }: AqiHeroLottieProps) {
         src={aqiVariantToHeroLottie(variant)}
         loop
         autoplay
-        layout={{ fit: "cover", align: [0.65, 0] }}
+        layout={{ fit: "cover", align: [aqiVariantToHeroLottieAlignX(variant), 0] }}
         className="h-full w-full"
       />
     </div>

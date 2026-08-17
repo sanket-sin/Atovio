@@ -258,6 +258,35 @@ export function aqiVariantToHeroLottie(variant: AqiLevelVariant): string {
   return AQI_HERO_LOTTIES[variant];
 }
 
+/**
+ * Horizontal crop anchor for the hero animation: 0 pins the source's left edge to the card,
+ * 1 pins its right edge.
+ *
+ * The artwork is 16:9 but the mobile card is far taller, so `cover` has to throw away about
+ * a third of the width — and the character stands somewhere different in every scene. His
+ * right edge runs from roughly 85% of the frame on Moderate out to the very edge on
+ * Hazardous, so a single anchor cannot keep all six whole: anything low enough to sit
+ * Moderate's character on the right clips Hazardous' outstretched arm, and anything high
+ * enough to save that arm walks Moderate's character into the middle of the card, over the
+ * copy. These per-variant values land each character's right edge at the card's right edge —
+ * fully in frame, hard against the side, clear of the text column.
+ *
+ * They are tuned for the mobile card's aspect (~358x321). Retune if that changes materially,
+ * or if the artwork is re-exported with the character in a new position.
+ */
+export const AQI_HERO_LOTTIE_ALIGN_X: Record<AqiLevelVariant, number> = {
+  good: 0.74,
+  moderate: 0.59,
+  poor: 0.73,
+  unhealthy: 0.89,
+  severe: 0.95,
+  hazardous: 1,
+};
+
+export function aqiVariantToHeroLottieAlignX(variant: AqiLevelVariant): number {
+  return AQI_HERO_LOTTIE_ALIGN_X[variant];
+}
+
 /** Legend rows for charts / heatmaps: `[hex, "Good (0–50)"]` etc. */
 export const AQI_LEGEND_CHART_TUPLES: [string, string][] = BEYONDAQI_AQI_BANDS.map((b) => [
   COLOR_HEX[b.variant],
