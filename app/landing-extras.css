@@ -87,18 +87,30 @@
   opacity: 0.55;
 }
 
+/* Holds the headline and AQI readout legible over the animated scene. It is weighted to the
+   left third, where the copy sits, then falls away sharply — the character occupies roughly
+   the right 40% and has to read at close to full contrast, so the far edge only carries
+   enough tint to keep the scale's right-hand labels off the bright background.
+   The light rule below wins purely on source order; neither needs `!important`. */
 .landing-theme .hero-mobile-aqi-card-overlay {
   pointer-events: none;
+  background: linear-gradient(
+    to right,
+    rgba(10, 18, 32, 0.96) 0%,
+    rgba(10, 18, 32, 0.86) 44%,
+    rgba(10, 18, 32, 0.34) 68%,
+    rgba(10, 18, 32, 0.08) 100%
+  );
 }
 
 .light-theme .hero-mobile-aqi-card-overlay {
   background: linear-gradient(
     to right,
-    rgba(255, 255, 255, 0.98) 0%,
-    rgba(255, 255, 255, 0.94) 42%,
-    rgba(255, 255, 255, 0.55) 68%,
-    rgba(255, 255, 255, 0.15) 100%
-  ) !important;
+    rgba(255, 255, 255, 0.97) 0%,
+    rgba(255, 255, 255, 0.88) 44%,
+    rgba(255, 255, 255, 0.38) 68%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
 }
 
 /* One-shot shimmer when section enters view (triggered via data-shimmer-active in LandingExperience) */

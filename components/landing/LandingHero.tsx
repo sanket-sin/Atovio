@@ -514,14 +514,9 @@ export function LandingHero({
                 aria-hidden
               />
             )}
-            <div
-              className={`hero-mobile-aqi-card-overlay absolute inset-0 ${
-                isLight
-                  ? "bg-gradient-to-r from-white via-white/92 to-white/35"
-                  : "bg-gradient-to-r from-[#0a1220] via-[#0a1220]/92 to-[#0a1220]/35"
-              }`}
-              aria-hidden
-            />
+            {/* Both themes' gradients live in landing-extras.css — keeping them together
+                there is what lets the light variant drop its `!important`. */}
+            <div className="hero-mobile-aqi-card-overlay absolute inset-0" aria-hidden />
 
             <div className="relative z-[1] p-5 sm:p-6">
               <div className="mb-4 max-w-[68%]">
