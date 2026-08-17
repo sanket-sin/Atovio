@@ -87,34 +87,6 @@
   opacity: 0.55;
 }
 
-/* Holds the headline and AQI readout legible over the animated scene, and nothing more.
-   The falloff reaches fully transparent at 74% — where the character starts — so the figure
-   is drawn with zero tint of ours over it. The animation carries its own depth-of-field
-   softness and does not need any help looking hazy.
-   The light rule below wins purely on source order; neither needs `!important`. */
-.landing-theme .hero-mobile-aqi-card-overlay {
-  pointer-events: none;
-  background: linear-gradient(
-    to right,
-    rgba(10, 18, 32, 0.96) 0%,
-    rgba(10, 18, 32, 0.84) 42%,
-    rgba(10, 18, 32, 0.34) 60%,
-    rgba(10, 18, 32, 0) 74%,
-    rgba(10, 18, 32, 0) 100%
-  );
-}
-
-.light-theme .hero-mobile-aqi-card-overlay {
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0.97) 0%,
-    rgba(255, 255, 255, 0.86) 42%,
-    rgba(255, 255, 255, 0.36) 60%,
-    rgba(255, 255, 255, 0) 74%,
-    rgba(255, 255, 255, 0) 100%
-  );
-}
-
 /* One-shot shimmer when section enters view (triggered via data-shimmer-active in LandingExperience) */
 .landing-theme .section-shimmer {
   position: relative;

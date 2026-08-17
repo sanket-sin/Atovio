@@ -514,9 +514,8 @@ export function LandingHero({
                 aria-hidden
               />
             )}
-            {/* Both themes' gradients live in landing-extras.css — keeping them together
-                there is what lets the light variant drop its `!important`. */}
-            <div className="hero-mobile-aqi-card-overlay absolute inset-0" aria-hidden />
+            {/* No scrim over the scene: the animation already fades to haze behind the copy,
+                so a gradient of ours only doubled up on a falloff that is baked into the art. */}
 
             <div className="relative z-[1] p-5 sm:p-6">
               <div className="mb-4 max-w-[68%]">
