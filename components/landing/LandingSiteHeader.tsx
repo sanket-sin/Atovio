@@ -191,8 +191,10 @@ export function LandingSiteHeader({
           </div>
         ) : (
           <ul>
+            {/* The API can return the same slug/url twice (e.g. a city and one of its
+                stations), so the index keeps each key unique. */}
             {results.map((r, i) => (
-              <li key={r.slug ?? r.url ?? `${r.name}-${i}`}>
+              <li key={`${r.slug ?? r.url ?? r.name}-${i}`}>
                 <button
                   type="button"
                   onClick={() => handleResultClick(r)}

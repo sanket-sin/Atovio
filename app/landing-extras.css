@@ -24,77 +24,47 @@
   );
 }
 
-/* AQI character Lottie — full-bleed hero background */
-/*
- * The animation is a 924x996 portrait scene. Stretched across the whole hero it has to
- * scale ~1.6x to cover, which crops the figure's head off. Instead it sits right-aligned
- * at its own aspect ratio, tall enough to read but small enough to fit the figure, and
- * its left edge fades into the section background.
- */
-.landing-theme #sec-hero .hero-aqi-lottie {
-  /* The fixed header is ~7rem tall no matter how short the window is, so the offset is
-     part px / part %. A pure percentage tucks the figure's head under the ticker as soon
-     as the viewport gets short. */
-  top: calc(7rem + 2%);
-  right: 0;
-  bottom: auto;
-  left: auto;
-  width: auto;
-  height: 130%;
-  aspect-ratio: 924 / 996;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 45%);
-  mask-image: linear-gradient(to right, transparent 0%, #000 45%);
+/* AQI character backdrop (lg and up only — below lg the card carries the character) —
+   keep the 3D figure on the right fully visible */
+.landing-theme #sec-hero .hero-bg-character {
+  background-position: right calc(100% + 7.5rem);
 }
 
-.landing-theme #sec-hero .hero-aqi-lottie > div {
-  width: 100%;
-  height: 100%;
-}
+/* The lighter overlays exist so the character backdrop reads through; below lg the section
+   falls back to the plain cityscape, which needs the default (darker) treatment. */
+@media (min-width: 1024px) {
+  .landing-theme #sec-hero[data-aqi-variant]:not([data-aqi-variant="default"]) .hero-overlay-base {
+    background: rgba(5, 10, 20, 0.18);
+  }
 
-.landing-theme #sec-hero .hero-aqi-lottie > div canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
+  .landing-theme #sec-hero[data-aqi-variant]:not([data-aqi-variant="default"]) .hero-overlay-r {
+    background: linear-gradient(
+      to right,
+      rgba(5, 10, 20, 0.86) 0%,
+      rgba(5, 10, 20, 0.42) 34%,
+      rgba(5, 10, 20, 0.06) 58%,
+      transparent 78%
+    );
+  }
 
-/* Below lg the AQI card carries the animation, so the section copy behind it is pure
-   ambience — keep it at hero height so it stays out of the headline's way. */
-@media (max-width: 1023.98px) {
-  .landing-theme #sec-hero .hero-aqi-lottie {
-    top: 0;
-    height: 100%;
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 55%);
-    mask-image: linear-gradient(to right, transparent 0%, #000 55%);
+  .landing-theme #sec-hero[data-aqi-variant]:not([data-aqi-variant="default"]) .hero-overlay-t {
+    background: linear-gradient(
+      to top,
+      rgba(5, 10, 20, 0.72) 0%,
+      rgba(5, 10, 20, 0.22) 38%,
+      transparent 100%
+    );
   }
 }
 
-.landing-theme #sec-hero[data-aqi-variant]:not([data-aqi-variant="default"]) .hero-overlay-base {
-  background: rgba(5, 10, 20, 0.18);
-}
-
-.landing-theme #sec-hero[data-aqi-variant]:not([data-aqi-variant="default"]) .hero-overlay-r {
-  background: linear-gradient(
-    to right,
-    rgba(5, 10, 20, 0.86) 0%,
-    rgba(5, 10, 20, 0.42) 34%,
-    rgba(5, 10, 20, 0.06) 58%,
-    transparent 78%
-  );
-}
-
-.landing-theme #sec-hero[data-aqi-variant]:not([data-aqi-variant="default"]) .hero-overlay-t {
-  background: linear-gradient(
-    to top,
-    rgba(5, 10, 20, 0.72) 0%,
-    rgba(5, 10, 20, 0.22) 38%,
-    transparent 100%
-  );
-}
-
-/* Mobile hero AQI card — character illustration on the right (screenshot 1 layout) */
-.landing-theme .hero-mobile-aqi-card {
+/* Mobile hero AQI card — character illustration on the right (screenshot 1 layout).
+   The height floor belongs to the scene zone; the weather strip below it adds its own. */
+.landing-theme .hero-mobile-aqi-card-scene {
   min-height: 17.5rem;
 }
 
+/* The animated scene is the card's backdrop, so it spans the full scene zone — sizing it to
+   the animation's own aspect ratio instead would leave a visible seam down the card. */
 .landing-theme .hero-mobile-aqi-card-lottie,
 .landing-theme .hero-mobile-aqi-card-lottie > div {
   width: 100%;

@@ -27,12 +27,19 @@ export type FeedNewsApiResponse = {
 
 /**
  * GET /api/accounts/feed-news/ — curated AQI / environment news feed.
+ *
+ * The upstream route sends no CORS headers, so from the browser this goes through the
+ * same-origin proxy in app/api/feed-news/route.ts instead.
  */
 export async function fetchFeedNews(): Promise<FeedNewsItem[]> {
-  const { data } = await axios.get<FeedNewsApiResponse>(
-    `${BEYONDAQI_API_BASE}/api/accounts/feed-news/`,
-    { headers: beyondaqiRequestHeaders() }
-  );
+  const url =
+    typeof window === "undefined"
+      ? `${BEYONDAQI_API_BASE}/api/accounts/feed-news/`
+      : "/api/feed-news";
+
+  const { data } = await axios.get<FeedNewsApiResponse>(url, {
+    headers: beyondaqiRequestHeaders(),
+  });
 
   if (!data.success || !data.data?.news) {
     throw new Error(data.message ?? "Feed news request failed");

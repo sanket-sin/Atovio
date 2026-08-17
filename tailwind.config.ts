@@ -32,12 +32,12 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        display: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        body: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        outfit: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        numeric: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+        body: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+        outfit: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+        numeric: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       maxWidth: {
         /** Full-bleed layout: section wrappers use max-w-container + horizontal padding */

@@ -5,6 +5,8 @@ import type { HeroCitySnapshot } from "@/lib/api/aqi-city";
 import { AqiBadge, type AqiBadgeVariant } from "./AqiBadge";
 import { AnimatedCigarette } from "./AnimatedCigarette";
 import type { AqiLevelVariant } from "@/lib/air-quality/aqi-levels";
+import { aqiVariantToHeroBackground } from "@/lib/air-quality/aqi-levels";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { AqiHeroLottie } from "./AqiHeroLottie";
 import {
   AnimatedHorizontalMarker,
@@ -163,6 +165,32 @@ function LocationPinIcon() {
   );
 }
 
+/** Sun, cloud, or rain cloud, picked from the API's free-text `weather_type`. */
+function WeatherGlyph({ type }: { type?: string }) {
+  const kind = (type ?? "").toLowerCase();
+  const rainy = /rain|drizzle|shower|storm|thunder/.test(kind);
+  const cloudy = rainy || /cloud|overcast|haze|fog|mist|smoke/.test(kind);
+
+  return (
+    <svg width="42" height="42" viewBox="0 0 48 48" fill="none" aria-hidden className="shrink-0">
+      <circle cx={cloudy ? 18 : 24} cy={cloudy ? 17 : 24} r={cloudy ? 8 : 10} fill="#ffc43d" />
+      {cloudy && (
+        <path
+          d="M16 32a7 7 0 010-14 9 9 0 0117.2-2.2A6.4 6.4 0 1134 32H16z"
+          fill="#cfd8e3"
+        />
+      )}
+      {rainy && (
+        <g stroke="#5aa9ff" strokeWidth="2.4" strokeLinecap="round">
+          <line x1="19" y1="36" x2="17" y2="41" />
+          <line x1="26" y1="36" x2="24" y2="41" />
+          <line x1="33" y1="36" x2="31" y2="41" />
+        </g>
+      )}
+    </svg>
+  );
+}
+
 function HeartOutlineIcon({ isLight }: { isLight: boolean }) {
   return (
     <svg
@@ -287,6 +315,15 @@ export function LandingHero({
   const heroShowsCharacter = hasCityData;
   const heroAqiVariant = hasCityData ? d.badgeVariant : "default";
   const heroLottieVariant = (hasCityData ? d.badgeVariant : "moderate") as AqiLevelVariant;
+  /* Below lg the AQI character animates (Lottie); lg and up keeps the static illustration,
+     so the animation files are never fetched on desktop. */
+  const useLottieCharacter = useMediaQuery("(max-width: 1023.98px)");
+  /* The character art belongs to the section backdrop on desktop, but to the AQI card on
+     mobile — so below lg the section falls back to the plain cityscape. */
+  const showCharacterBackdrop = hasCityData && !useLottieCharacter;
+  const heroBg = showCharacterBackdrop
+    ? aqiVariantToHeroBackground(d.badgeVariant)
+    : HERO_DEFAULT_BG;
   const pm25Display = showPlaceholder ? "--" : String(d.pm25);
   const pm10Display = showPlaceholder ? "--" : String(d.pm10);
   const pm25Variant = (showPlaceholder ? "moderate" : d.pm25BadgeVariant) as AqiBadgeVariant;
@@ -317,9 +354,11 @@ export function LandingHero({
   const temperatureDisplay = showPlaceholder
     ? "--"
     : `${formatOneDecimal(d.weather?.temperature)}${tempUnit}`;
-  const weatherSummary = [d.weather?.weatherType, d.weather?.weatherStatus]
-    .filter(Boolean)
-    .join(" · ");
+  /* The API often repeats itself here (`weather_type: "Cloudy"`, `weather_status:
+     "Cloudy"`), which reads as "Cloudy · Cloudy" — keep one of each. */
+  const weatherSummary = Array.from(
+    new Set([d.weather?.weatherType, d.weather?.weatherStatus].filter(Boolean))
+  ).join(" · ");
   const weatherSummaryDisplay = isDetectingCity
     ? "Finding local conditions"
     : needsManualCity
@@ -396,42 +435,40 @@ export function LandingHero({
       ref={heroRef}
       id="sec-hero"
       data-aqi-variant={heroAqiVariant}
-      className="relative flex min-h-[100dvh] items-start overflow-hidden border-b border-sky-400/10 pt-[7rem] sm:pt-[8rem] md:pt-[7.75rem]"
+      /* Full-viewport hero is a desktop composition; on mobile the section is only as tall
+         as the card, so the next section follows it directly instead of after a dead gap. */
+      className="relative flex items-start overflow-hidden border-b border-sky-400/10 pt-[7rem] sm:pt-[8rem] md:pt-[7.75rem] lg:min-h-[100dvh]"
     >
-      {heroShowsCharacter ? (
-        <AqiHeroLottie variant={heroLottieVariant} className="hero-aqi-lottie pointer-events-none absolute inset-0 z-0" />
-      ) : (
-        <div
-          className="hero-bg absolute inset-0 z-0 bg-cover bg-[center_38%] bg-no-repeat"
-          style={{ backgroundImage: `url(${HERO_DEFAULT_BG})` }}
-          aria-hidden
-        />
-      )}
+      {/* Section backdrop stays a still image at every width — below lg the character
+          animates inside the AQI card instead, so it is never doubled up behind the copy. */}
+      <div
+        className={`hero-bg absolute inset-0 z-0 bg-cover bg-no-repeat ${
+          showCharacterBackdrop ? "hero-bg-character" : "bg-[center_38%]"
+        }`}
+        style={{ backgroundImage: `url(${heroBg})` }}
+        aria-hidden
+      />
       <div className="hero-overlay-base absolute inset-0 z-[1]" aria-hidden />
       <div className="hero-overlay-t absolute inset-0 z-[1]" aria-hidden />
       <div className="hero-overlay-r absolute inset-0 z-[1]" aria-hidden />
 
       <div className="relative z-[2] mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8 xl:px-10">
-        {/* Mobile — screenshot-style AQI card with location, live reading, puff score, scale */}
-        <div className="pb-10 pt-4 lg:hidden">
-          <div className="mb-4">{headlineBlock}</div>
-
-          <div
-            className={`hero-mobile-aqi-card relative overflow-hidden rounded-[18px] border shadow-[0_12px_40px_rgba(15,23,42,0.14)] ${
-              isLight ? "border-slate-200/90 bg-white" : "border-white/10 bg-[#0c1424]/90"
-            }`}
-            data-aqi-variant={heroAqiVariant}
-          >
-            {heroShowsCharacter ? (
+        {/* Mobile — the AQI card leads on its own; the headline copy is desktop-only, so the
+            card follows straight on from the header search and the live AQI ticker. */}
+        <div className="pb-10 pt-1 lg:hidden">
+          {/* No border, background or shadow on the group: the design has no card frame —
+              the scene is a rounded image and the weather row sits on the page itself. */}
+          <div className="hero-mobile-aqi-card relative" data-aqi-variant={heroAqiVariant}>
+            <div className="hero-mobile-aqi-card-scene relative overflow-hidden rounded-[18px]">
+            {heroShowsCharacter && useLottieCharacter ? (
               <AqiHeroLottie
                 variant={heroLottieVariant}
-                placement="card"
                 className="hero-mobile-aqi-card-lottie pointer-events-none absolute inset-0"
               />
             ) : (
               <div
-                className="hero-mobile-aqi-card-bg absolute inset-0 bg-cover bg-no-repeat opacity-55"
-                style={{ backgroundImage: `url(${HERO_DEFAULT_BG})`, backgroundPosition: "right center" }}
+                className="hero-mobile-aqi-card-bg absolute inset-0 bg-cover bg-no-repeat"
+                style={{ backgroundImage: `url(${heroBg})` }}
                 aria-hidden
               />
             )}
@@ -534,6 +571,16 @@ export function LandingHero({
               </div>
 
               <div>
+                {/* Band names sit above the bar and the numeric ticks below it, per the
+                    design — the two rows read as labels for the gradient between them. */}
+                <div className="-mx-0.5 mb-1 flex justify-between gap-0.5 overflow-x-auto font-sans text-[0.52rem] font-semibold sm:text-[0.58rem]">
+                  <span className="shrink-0 text-bqa-good">Good</span>
+                  <span className="shrink-0 text-bqa-moderate">Moderate</span>
+                  <span className="shrink-0 text-bqa-poor">Poor</span>
+                  <span className="shrink-0 text-bqa-unhealthy">Unhealthy</span>
+                  <span className="shrink-0 text-bqa-severe">Severe</span>
+                  <span className="shrink-0 text-bqa-hazardous">Hazardous</span>
+                </div>
                 <div
                   className={`relative mb-1.5 h-2.5 rounded-full bg-gradient-to-r from-bqa-good via-bqa-moderate via-bqa-poor via-bqa-unhealthy via-bqa-severe to-bqa-hazardous ${
                     isLight ? "shadow-inner" : "shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)]"
@@ -558,13 +605,56 @@ export function LandingHero({
                     </span>
                   ))}
                 </div>
-                <div className="-mx-0.5 flex justify-between gap-0.5 overflow-x-auto pb-0.5 font-sans text-[0.52rem] font-semibold sm:text-[0.58rem]">
-                  <span className="shrink-0 text-bqa-good">Good</span>
-                  <span className="shrink-0 text-bqa-moderate">Moderate</span>
-                  <span className="shrink-0 text-bqa-poor">Poor</span>
-                  <span className="shrink-0 text-bqa-unhealthy">Unhealthy</span>
-                  <span className="shrink-0 text-bqa-severe">Severe</span>
-                  <span className="shrink-0 text-bqa-hazardous">Hazardous</span>
+              </div>
+            </div>
+            </div>
+
+            {/* Weather row — no panel of its own; it reads as page content below the scene. */}
+            <div
+              className={`flex items-center justify-between gap-3 px-1 pt-4 sm:px-2 ${
+                isLight ? "text-slate-900" : "text-white"
+              }`}
+            >
+              <div className="flex min-w-0 items-center gap-2.5">
+                <WeatherGlyph type={d.weather?.weatherType} />
+                <div className="min-w-0">
+                  <div className="font-sans text-[1.6rem] font-bold leading-none tracking-tight">
+                    {temperatureDisplay}
+                  </div>
+                  <div
+                    className={`mt-1 truncate font-sans text-[0.78rem] ${
+                      isLight ? "text-slate-600" : "text-bqa-muted"
+                    }`}
+                  >
+                    {weatherSummaryDisplay}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex shrink-0 items-start gap-5 text-right">
+                <div>
+                  <div className="font-sans text-[1rem] font-bold leading-none">
+                    {showPlaceholder ? "--" : humidityDisplay}
+                  </div>
+                  <div
+                    className={`mt-1 font-sans text-[0.68rem] ${
+                      isLight ? "text-slate-500" : "text-bqa-dim"
+                    }`}
+                  >
+                    Humidity
+                  </div>
+                </div>
+                <div>
+                  <div className="font-sans text-[1rem] font-bold leading-none">
+                    {showPlaceholder ? "--" : windDisplay}
+                  </div>
+                  <div
+                    className={`mt-1 font-sans text-[0.68rem] ${
+                      isLight ? "text-slate-500" : "text-bqa-dim"
+                    }`}
+                  >
+                    Wind
+                  </div>
                 </div>
               </div>
             </div>
