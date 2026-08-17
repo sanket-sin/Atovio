@@ -78,6 +78,23 @@ export function LandingExperience() {
   const locationBootstrapStarted = useRef(false);
   const userSelectedCity = useRef(false);
 
+  /**
+   * Point the tab icon at the brand mark drawn for whichever theme the toggle is on: `_LT`
+   * has a dark glyph for a light tab strip, `_DT` a light one for a dark strip. The static
+   * <link> in app/layout.tsx only covers the dark theme the page boots into.
+   *
+   * The node is replaced rather than having its href reassigned — several browsers cache
+   * the icon per element and ignore a bare href change, but re-read it for a fresh link.
+   */
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.rel = "icon";
+    link.type = "image/x-icon";
+    link.href = isLight ? "/beyondaqi_LT.ico" : "/beyondaqi_DT.ico";
+    document.querySelectorAll('link[rel~="icon"]').forEach((old) => old.remove());
+    document.head.appendChild(link);
+  }, [isLight]);
+
   useEffect(() => {
     if (locationBootstrapStarted.current) return;
     locationBootstrapStarted.current = true;

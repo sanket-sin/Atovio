@@ -22,29 +22,18 @@ export const metadata: Metadata = {
   applicationName: "BeyondAQI",
   icons: {
     /**
-     * Two brand marks, one per scheme: `_LT` has a dark glyph meant for a light tab strip,
-     * `_DT` a light one for a dark strip. The `media` queries let the browser pick; the
-     * unqualified `/favicon.ico` stays last as the fallback for anything that ignores them
-     * (and for the bare `/favicon.ico` request browsers make when no <link> applies).
+     * `_DT` is the light glyph for a dark tab strip, `_LT` the dark glyph for a light one.
+     * Which applies follows the site's own theme toggle, not the OS — so this is only the
+     * pre-hydration default, matching the dark theme the landing page boots into.
+     * LandingExperience swaps the href from there whenever the toggle flips.
      *
-     * The 192/512 PNGs used to be listed here too, but Chrome resolves competing <link
-     * rel=icon> tags by size before anything else — the 192px one won every time and the
-     * scheme pair never showed. They live on in manifest.ts, which is what install and
+     * Deliberately a single entry: `prefers-color-scheme` media queries would track the OS
+     * rather than the toggle, and Chrome resolves competing <link rel=icon> tags by size
+     * before anything else, so extra entries (the 192/512 PNGs that used to sit here) just
+     * win and hide the brand mark. Those live on in manifest.ts, which is what install and
      * home-screen actually read.
      */
-    icon: [
-      {
-        url: "/beyondaqi_LT.ico",
-        media: "(prefers-color-scheme: light)",
-        type: "image/x-icon",
-      },
-      {
-        url: "/beyondaqi_DT.ico",
-        media: "(prefers-color-scheme: dark)",
-        type: "image/x-icon",
-      },
-      { url: "/favicon.ico", type: "image/x-icon" },
-    ],
+    icon: [{ url: "/beyondaqi_DT.ico", type: "image/x-icon" }],
     apple: [
       { url: "/icons/icon-152x152.png", sizes: "152x152", type: "image/png" },
       { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
