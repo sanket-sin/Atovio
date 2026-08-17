@@ -375,6 +375,14 @@ export function LandingHero({
   const scaleMarkerPct = showPlaceholder ? 0 : aqiToScalePercent(d.aqi);
   const readingsActive = heroActive && !showPlaceholder;
   const numTone = headlineNumberTone(badgeVariant, isLight);
+  /**
+   * The mobile card's copy sits straight on the scene now that nothing dims it, and that
+   * scene is bright daytime art — so the card reads dark in both themes. It only falls back
+   * to the theme's own colours when there is no city yet: the placeholder scene is the
+   * dimmed cityscape, which is dark in dark mode and would swallow dark text.
+   */
+  const useDarkCardText = isLight || (heroShowsCharacter && useLottieCharacter);
+  const cardNumTone = headlineNumberTone(badgeVariant, useDarkCardText);
   const locationTitle = isDetectingCity
     ? "Detecting location"
     : needsManualCity
@@ -523,7 +531,7 @@ export function LandingHero({
                   <LocationPinIcon />
                   <h2
                     className={`min-w-0 flex-1 truncate font-sans text-[1.35rem] font-bold leading-tight tracking-[-0.02em] sm:text-[1.5rem] ${
-                      isLight ? "text-slate-900" : "text-white"
+                      useDarkCardText ? "text-slate-900" : "text-white"
                     }`}
                   >
                     {locationTitle}
@@ -533,10 +541,10 @@ export function LandingHero({
                     className="shrink-0 rounded-full p-0.5 transition-opacity hover:opacity-80"
                     aria-label="Save location to favorites"
                   >
-                    <HeartOutlineIcon isLight={isLight} />
+                    <HeartOutlineIcon isLight={useDarkCardText} />
                   </button>
                 </div>
-                <p className={`font-sans text-[0.88rem] ${isLight ? "text-slate-600" : "text-bqa-muted"}`}>
+                <p className={`font-sans text-[0.88rem] ${useDarkCardText ? "text-slate-700" : "text-bqa-muted"}`}>
                   {locationSubtitle}
                 </p>
               </div>
@@ -544,7 +552,7 @@ export function LandingHero({
               <div className="mb-3 max-w-[68%]">
                 <p
                   className={`mb-2 inline-flex items-center gap-1.5 font-sans text-[0.78rem] font-semibold ${
-                    isLight ? "text-rose-600" : "text-rose-300"
+                    useDarkCardText ? "text-slate-900" : "text-rose-300"
                   }`}
                 >
                   <span
@@ -552,12 +560,12 @@ export function LandingHero({
                     aria-hidden
                   />
                   Live AQI
-                  <InfoIcon className={isLight ? "text-slate-400" : "text-bqa-dim"} />
+                  <InfoIcon className={useDarkCardText ? "text-slate-500" : "text-bqa-dim"} />
                 </p>
 
                 <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
                   <span
-                    className={`font-sans text-[clamp(2.75rem,14vw,3.75rem)] font-bold leading-none tracking-tight ${numTone}`}
+                    className={`font-sans text-[clamp(2.75rem,14vw,3.75rem)] font-bold leading-none tracking-tight ${cardNumTone}`}
                   >
                     {showPlaceholder ? (
                       aqiDisplay
@@ -581,14 +589,14 @@ export function LandingHero({
 
               <div className="mb-5 max-w-[72%]">
                 <div className="flex items-start gap-2.5">
-                  <AnimatedCigarette compact isLight={isLight} className="mt-0.5 shrink-0" />
+                  <AnimatedCigarette compact isLight={useDarkCardText} className="mt-0.5 shrink-0" />
                   <p
                     className={`font-sans text-[0.82rem] leading-snug sm:text-[0.88rem] ${
-                      isLight ? "text-slate-700" : "text-bqa-muted"
+                      useDarkCardText ? "text-slate-700" : "text-bqa-muted"
                     }`}
                   >
                     Equivalent to{" "}
-                    <strong className={`text-[1.05rem] font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
+                    <strong className={`text-[1.05rem] font-bold ${useDarkCardText ? "text-slate-900" : "text-white"}`}>
                       {showPlaceholder ? (
                         puffScoreDisplay
                       ) : (
@@ -601,7 +609,7 @@ export function LandingHero({
                       )}
                     </strong>{" "}
                     cigarettes per day
-                    <InfoIcon className={`ml-1 inline align-[-2px] ${isLight ? "text-slate-400" : "text-bqa-dim"}`} />
+                    <InfoIcon className={`ml-1 inline align-[-2px] ${useDarkCardText ? "text-slate-500" : "text-bqa-dim"}`} />
                   </p>
                 </div>
               </div>
@@ -611,7 +619,7 @@ export function LandingHero({
                     design — the two rows read as labels for the gradient between them. */}
                 <div
                   className={`-mx-0.5 mb-1 flex justify-between gap-0.5 overflow-x-auto font-sans text-[0.52rem] font-semibold sm:text-[0.58rem] ${
-                    isLight ? "text-slate-900" : "text-bqa-text"
+                    useDarkCardText ? "text-slate-900" : "text-bqa-text"
                   }`}
                 >
                   {AQI_SCALE_BANDS.map((band) => (
@@ -625,7 +633,7 @@ export function LandingHero({
                       colour bands without also clipping the marker, which overhangs the bar. */}
                   <div
                     className={`absolute inset-0 flex overflow-hidden rounded-full ${
-                      isLight ? "shadow-inner" : "shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)]"
+                      useDarkCardText ? "shadow-inner" : "shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)]"
                     }`}
                     aria-hidden
                   >
@@ -647,7 +655,7 @@ export function LandingHero({
                 </div>
                 <div
                   className={`mb-1 flex justify-between gap-0.5 font-sans text-[0.52rem] font-semibold sm:text-[0.58rem] ${
-                    isLight ? "text-slate-700" : "text-bqa-dim"
+                    useDarkCardText ? "text-slate-700" : "text-bqa-dim"
                   }`}
                 >
                   {AQI_SCALE_TICKS.map((tick) => (
