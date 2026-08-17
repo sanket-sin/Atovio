@@ -87,6 +87,38 @@
   opacity: 0.55;
 }
 
+/* Backing for the card's copy over the full-bleed scene. The JSON artwork runs edge to edge
+   with no haze of its own, so without this the cigarette line and the scale's left labels sit
+   unreadable on city detail.
+   The gradient is fully transparent by 62% and stays there: the character stands in the right
+   third of every variant (nearest is ~66% on Moderate, ~78% on Good), so nothing of this ever
+   touches him. Widening past 62% would start tinting the figure — retune only against the
+   variant whose character sits furthest left. */
+.landing-theme .hero-mobile-aqi-card-scrim {
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(255, 255, 255, 0.82) 38%,
+    rgba(255, 255, 255, 0.42) 52%,
+    rgba(255, 255, 255, 0) 62%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* Only the placeholder scene in dark theme still runs light-on-dark copy, and a white wash
+   under white text would erase it. */
+.landing-theme .hero-mobile-aqi-card-scrim--dark {
+  background: linear-gradient(
+    to right,
+    rgba(10, 18, 32, 0.94) 0%,
+    rgba(10, 18, 32, 0.86) 38%,
+    rgba(10, 18, 32, 0.45) 52%,
+    rgba(10, 18, 32, 0) 62%,
+    rgba(10, 18, 32, 0) 100%
+  );
+}
+
 /* One-shot shimmer when section enters view (triggered via data-shimmer-active in LandingExperience) */
 .landing-theme .section-shimmer {
   position: relative;

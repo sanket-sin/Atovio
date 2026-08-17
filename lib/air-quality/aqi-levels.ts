@@ -236,14 +236,22 @@ export function aqiVariantToHeroBackground(variant: AqiLevelVariant): string {
   return AQI_HERO_BACKGROUNDS[variant];
 }
 
-/** Hero Lottie animations keyed by overall AQI band (mobile). */
+/**
+ * Hero Lottie animations keyed by overall AQI band (mobile).
+ *
+ * The raw `.json` exports, not the `.lottie` archives that sit beside them in the folder:
+ * the two sets are different artwork, and these are the current ones. Casing is theirs as
+ * delivered (`good.json` lowercase, the rest capitalised) — the paths must match the files
+ * on disk exactly, since a case-insensitive local filesystem will happily serve a mismatched
+ * name that then 404s on a case-sensitive deploy target.
+ */
 export const AQI_HERO_LOTTIES: Record<AqiLevelVariant, string> = {
-  good: "/lottie/goodAQI.lottie",
-  moderate: "/lottie/moderateAQI.lottie",
-  poor: "/lottie/poorAQI.lottie",
-  unhealthy: "/lottie/unhealthyAQI.lottie",
-  severe: "/lottie/severeAQI.lottie",
-  hazardous: "/lottie/hazardousAQI.lottie",
+  good: "/lottie/good.json",
+  moderate: "/lottie/Moderate.json",
+  poor: "/lottie/Poor.json",
+  unhealthy: "/lottie/Unhealthy.json",
+  severe: "/lottie/Severe.json",
+  hazardous: "/lottie/Hazardous.json",
 };
 
 export function aqiVariantToHeroLottie(variant: AqiLevelVariant): string {

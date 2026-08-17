@@ -522,8 +522,17 @@ export function LandingHero({
                 aria-hidden
               />
             )}
-            {/* No scrim over the scene: the animation already fades to haze behind the copy,
-                so a gradient of ours only doubled up on a falloff that is baked into the art. */}
+            {/* Left-hand falloff so the copy stays readable on the full-bleed scene. It is
+                done well before the character, who stands in the right third — see the
+                gradient stops in landing-extras.css. Light by default because the card's
+                copy is dark; the dark variant is for the placeholder scene, which keeps
+                light-on-dark copy. */}
+            <div
+              className={`hero-mobile-aqi-card-scrim absolute inset-0 ${
+                useDarkCardText ? "" : "hero-mobile-aqi-card-scrim--dark"
+              }`}
+              aria-hidden
+            />
 
             <div className="relative z-[1] p-5 sm:p-6">
               <div className="mb-4 max-w-[68%]">
