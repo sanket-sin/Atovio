@@ -87,19 +87,20 @@
   opacity: 0.55;
 }
 
-/* Holds the headline and AQI readout legible over the animated scene. It is weighted to the
-   left third, where the copy sits, then falls away sharply — the character occupies roughly
-   the right 40% and has to read at close to full contrast, so the far edge only carries
-   enough tint to keep the scale's right-hand labels off the bright background.
+/* Holds the headline and AQI readout legible over the animated scene, and nothing more.
+   The falloff reaches fully transparent at 74% — where the character starts — so the figure
+   is drawn with zero tint of ours over it. The animation carries its own depth-of-field
+   softness and does not need any help looking hazy.
    The light rule below wins purely on source order; neither needs `!important`. */
 .landing-theme .hero-mobile-aqi-card-overlay {
   pointer-events: none;
   background: linear-gradient(
     to right,
     rgba(10, 18, 32, 0.96) 0%,
-    rgba(10, 18, 32, 0.86) 44%,
-    rgba(10, 18, 32, 0.34) 68%,
-    rgba(10, 18, 32, 0.08) 100%
+    rgba(10, 18, 32, 0.84) 42%,
+    rgba(10, 18, 32, 0.34) 60%,
+    rgba(10, 18, 32, 0) 74%,
+    rgba(10, 18, 32, 0) 100%
   );
 }
 
@@ -107,9 +108,10 @@
   background: linear-gradient(
     to right,
     rgba(255, 255, 255, 0.97) 0%,
-    rgba(255, 255, 255, 0.88) 44%,
-    rgba(255, 255, 255, 0.38) 68%,
-    rgba(255, 255, 255, 0.08) 100%
+    rgba(255, 255, 255, 0.86) 42%,
+    rgba(255, 255, 255, 0.36) 60%,
+    rgba(255, 255, 255, 0) 74%,
+    rgba(255, 255, 255, 0) 100%
   );
 }
 
