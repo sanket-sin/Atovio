@@ -210,7 +210,46 @@ function HeartOutlineIcon({ isLight }: { isLight: boolean }) {
   );
 }
 
-const AQI_SCALE_TICKS = ["0", "50", "100", "150", "200", "300", "301+"] as const;
+/**
+ * The mobile scale draws as six hard-edged blocks of equal width rather than one gradient.
+ * Equal width is what the design asks for even though the bands are not equal in AQI terms
+ * (Severe covers 100 points, Good only 50) — the evenly spaced tick row below the bar was
+ * already drawn that way, so the blocks line up with the ticks.
+ *
+ * Colours are per-scale on purpose and deliberately not the `--bqa-*` tokens: those drive
+ * badges and label text app-wide, and repainting them to match this bar would change far
+ * more than the scale.
+ */
+const AQI_SCALE_BANDS = [
+  { label: "Good", from: 0, to: 50, color: "#7CB342" },
+  { label: "Moderate", from: 50, to: 100, color: "#F2C55C" },
+  { label: "Poor", from: 100, to: 150, color: "#E2912E" },
+  { label: "Unhealthy", from: 150, to: 200, color: "#D75A72" },
+  { label: "Severe", from: 200, to: 300, color: "#9B4FB8" },
+  { label: "Hazardous", from: 300, to: 500, color: "#B93034" },
+] as const;
+
+/* Derived from the bands so the ticks can never drift out of step with the blocks. */
+const AQI_SCALE_TICKS = [
+  ...AQI_SCALE_BANDS.map((band) => String(band.from)),
+  "301+",
+];
+
+/**
+ * Position along the bar — which is not the same as `aqi / 500`. The blocks are equal
+ * sixths, so a linear percentage lands the marker in the wrong colour: AQI 250 is halfway
+ * through Severe but only 50% of 500, which would park it on the Unhealthy/Severe seam.
+ * Find the band that contains the reading and interpolate inside that block instead.
+ */
+function aqiToScalePercent(aqi: number): number {
+  if (!Number.isFinite(aqi) || aqi <= 0) return 0;
+  const index = AQI_SCALE_BANDS.findIndex((band) => aqi <= band.to);
+  if (index === -1) return 100;
+  const band = AQI_SCALE_BANDS[index];
+  const withinBand = (aqi - band.from) / (band.to - band.from);
+  const clamped = Math.min(1, Math.max(0, withinBand));
+  return ((index + clamped) / AQI_SCALE_BANDS.length) * 100;
+}
 
 type LandingHeroProps = {
   isLight?: boolean;
@@ -331,6 +370,9 @@ export function LandingHero({
   const markerPct = showPlaceholder
     ? 0
     : Math.min(100, Math.max(0, (d.aqi / 500) * 100));
+  /* Mobile's banded scale needs the per-block position; the desktop bar is still a smooth
+     gradient and keeps the plain linear `markerPct`. */
+  const scaleMarkerPct = showPlaceholder ? 0 : aqiToScalePercent(d.aqi);
   const readingsActive = heroActive && !showPlaceholder;
   const numTone = headlineNumberTone(badgeVariant, isLight);
   const locationTitle = isDetectingCity
@@ -573,21 +615,36 @@ export function LandingHero({
               <div>
                 {/* Band names sit above the bar and the numeric ticks below it, per the
                     design — the two rows read as labels for the gradient between them. */}
-                <div className="-mx-0.5 mb-1 flex justify-between gap-0.5 overflow-x-auto font-sans text-[0.52rem] font-semibold sm:text-[0.58rem]">
-                  <span className="shrink-0 text-bqa-good">Good</span>
-                  <span className="shrink-0 text-bqa-moderate">Moderate</span>
-                  <span className="shrink-0 text-bqa-poor">Poor</span>
-                  <span className="shrink-0 text-bqa-unhealthy">Unhealthy</span>
-                  <span className="shrink-0 text-bqa-severe">Severe</span>
-                  <span className="shrink-0 text-bqa-hazardous">Hazardous</span>
-                </div>
                 <div
-                  className={`relative mb-1.5 h-2.5 rounded-full bg-gradient-to-r from-bqa-good via-bqa-moderate via-bqa-poor via-bqa-unhealthy via-bqa-severe to-bqa-hazardous ${
-                    isLight ? "shadow-inner" : "shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)]"
+                  className={`-mx-0.5 mb-1 flex justify-between gap-0.5 overflow-x-auto font-sans text-[0.52rem] font-semibold sm:text-[0.58rem] ${
+                    isLight ? "text-slate-900" : "text-bqa-text"
                   }`}
                 >
+                  {AQI_SCALE_BANDS.map((band) => (
+                    <span key={band.label} className="shrink-0">
+                      {band.label}
+                    </span>
+                  ))}
+                </div>
+                <div className="relative mb-1.5 h-2.5">
+                  {/* The blocks live in their own clipped layer so the rounded ends cut the
+                      colour bands without also clipping the marker, which overhangs the bar. */}
+                  <div
+                    className={`absolute inset-0 flex overflow-hidden rounded-full ${
+                      isLight ? "shadow-inner" : "shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)]"
+                    }`}
+                    aria-hidden
+                  >
+                    {AQI_SCALE_BANDS.map((band) => (
+                      <div
+                        key={band.label}
+                        className="h-full flex-1"
+                        style={{ backgroundColor: band.color }}
+                      />
+                    ))}
+                  </div>
                   <AnimatedHorizontalMarker
-                    targetPercent={markerPct}
+                    targetPercent={scaleMarkerPct}
                     active={readingsActive}
                     durationMs={1000}
                     delayMs={200}
@@ -596,7 +653,7 @@ export function LandingHero({
                 </div>
                 <div
                   className={`mb-1 flex justify-between gap-0.5 font-sans text-[0.52rem] font-semibold sm:text-[0.58rem] ${
-                    isLight ? "text-slate-500" : "text-bqa-dim"
+                    isLight ? "text-slate-700" : "text-bqa-dim"
                   }`}
                 >
                   {AQI_SCALE_TICKS.map((tick) => (

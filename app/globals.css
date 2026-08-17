@@ -105,10 +105,11 @@ body {
   border-color: rgba(0 0 0 / 0.07) !important;
 }
 
-/* ── Light mode: star canvas hidden ── */
-.light-theme canvas {
-  display: none;
-}
+/* The star field needs no CSS hiding in light mode — LandingExperience already unmounts it
+   (`{!isLight && <StarFieldCanvas />}`). A blanket `.light-theme canvas { display: none }`
+   used to live here and collapsed every other canvas on the page too: the mobile hero's
+   Lottie character and both chart sections rendered at 0x0 in light mode. Hide a specific
+   canvas by class if one ever needs it; never the bare element. */
 
 /* ── Light mode: hero overlay adjustments ── */
 .light-theme #sec-hero .hero-overlay-t {
