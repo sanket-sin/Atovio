@@ -3,8 +3,10 @@
  * Handles offline fallback and runtime caching for navigations.
  */
 
-const CACHE_NAME = "atovio-beyondaqi-v4";
-const RUNTIME_CACHE = "atovio-beyondaqi-runtime-v4";
+// Bumped to v5 with the theme-aware favicons: `/favicon.ico` is served cache-first, so a
+// returning user would otherwise keep the previous icon out of RUNTIME_CACHE indefinitely.
+const CACHE_NAME = "atovio-beyondaqi-v5";
+const RUNTIME_CACHE = "atovio-beyondaqi-runtime-v5";
 
 const PRECACHE_ASSETS = [
   "/offline.html",
