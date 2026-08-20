@@ -17,9 +17,12 @@ type AqiHeroLottieProps = {
  * Animated AQI character for the mobile hero card. Desktop keeps the still illustration
  * (`aqiVariantToHeroBackground`), so this only ever mounts below lg.
  *
- * The source is a 720x405 opaque 16:9 scene: cityscape across the frame with the character
- * standing right of centre. That is far wider than the card, so `cover` scales it to the
- * card's height and drops roughly a fifth of the width off each side.
+ * The source is an opaque 16:9 scene: cityscape across the frame with the character standing
+ * right of centre. That is far wider than the card, so `cover` scales it to the card's height
+ * and drops roughly a fifth of the width off each side.
+ *
+ * Nothing here depends on the source's pixel dimensions — see public/lottie/README.md for the
+ * resolution the artwork has to be exported at to survive that scale-up.
  *
  * The horizontal anchor is per variant — see AQI_HERO_LOTTIE_ALIGN_X for why one shared
  * value cannot keep every character in frame.
