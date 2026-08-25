@@ -15,6 +15,7 @@ import {
 import type { DetectedCity } from "@/lib/location/detect-city";
 import { detectUserCity } from "@/lib/location/detect-city";
 import { AirQualityToolkitSection } from "./AirQualityToolkitSection";
+import { BlogSection } from "./BlogSection";
 import { ChartHistorySection } from "./ChartHistorySection";
 import { FaqSection } from "./FaqSection";
 import { HealthGuidanceSection } from "./HealthGuidanceSection";
@@ -87,11 +88,29 @@ export function LandingExperience() {
    * the icon per element and ignore a bare href change, but re-read it for a fresh link.
    */
   useEffect(() => {
+    // Only the links a previous run of this effect added may be removed outright.
+    document
+      .querySelectorAll("link[data-theme-favicon]")
+      .forEach((old) => old.remove());
+
+    /**
+     * The static <link rel="icon"> comes from app/layout.tsx metadata, so React owns it and
+     * still tracks it as a hoistable resource. Detaching it used to make React's
+     * unmountHoistable() — `instance.parentNode.removeChild(instance)`, with no null guard —
+     * throw "Cannot read properties of null" on the next route transition.
+     *
+     * Dropping `rel` instead retires it as an icon candidate (a <link> without one is inert)
+     * while leaving the node in place for React to clean up itself.
+     */
+    document
+      .querySelectorAll('link[rel~="icon"]:not([data-theme-favicon])')
+      .forEach((reactOwned) => reactOwned.removeAttribute("rel"));
+
     const link = document.createElement("link");
     link.rel = "icon";
     link.type = "image/x-icon";
+    link.dataset.themeFavicon = "";
     link.href = isLight ? "/beyondaqi_LT.ico" : "/beyondaqi_DT.ico";
-    document.querySelectorAll('link[rel~="icon"]').forEach((old) => old.remove());
     document.head.appendChild(link);
   }, [isLight]);
 
@@ -261,6 +280,13 @@ export function LandingExperience() {
           data-section-shimmer
           style={shimmerDelayStyle(360)}
         >
+          <BlogSection />
+        </div>
+        <div
+          className="section-shimmer"
+          data-section-shimmer
+          style={shimmerDelayStyle(400)}
+        >
           <SubscribeSection />
         </div>
       </main>
@@ -268,7 +294,7 @@ export function LandingExperience() {
       <div
         className="section-shimmer"
         data-section-shimmer
-        style={shimmerDelayStyle(400)}
+        style={shimmerDelayStyle(440)}
       >
         <LandingFooter />
       </div>

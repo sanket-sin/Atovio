@@ -6,6 +6,12 @@ frontend:
         - npm ci
     build:
       commands:
+        # Amplify exposes console environment variables to this build shell, but the SSR
+        # compute bundle does not reliably inherit non-NEXT_PUBLIC_ ones. Materialising them
+        # into .env.production means Next picks them up both while prerendering here and when
+        # the deployed bundle revalidates. Keep setting them in the Amplify console too — this
+        # copies from there, it does not replace it.
+        - env | grep -E '^(SHOPIFY_|NEXT_PUBLIC_)' > .env.production || true
         - npm run build
   artifacts:
     baseDirectory: .next

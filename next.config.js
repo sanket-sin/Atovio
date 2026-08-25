@@ -14,6 +14,12 @@ const nextConfig = {
         hostname: "timesofindia.indiatimes.com",
         pathname: "/**",
       },
+      {
+        // Shopify blog post featured images (next/image on /blog and the landing section)
+        protocol: "https",
+        hostname: "cdn.shopify.com",
+        pathname: "/**",
+      },
     ],
   },
   env: {

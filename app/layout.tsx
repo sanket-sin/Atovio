@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import { AuthProvider } from "@/lib/auth";
+import { SITE_URL } from "@/lib/config/site";
 import "./globals.css";
 
 /**
@@ -17,6 +18,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  /** Resolves relative OG/Twitter URLs, and silences Next's metadataBase warning. */
+  metadataBase: new URL(SITE_URL),
   title: "Atovio BeyondAQI Web",
   description: "Atovio BeyondAQI Web Application",
   applicationName: "BeyondAQI",

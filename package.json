@@ -9,7 +9,8 @@
     "clean": "rm -rf .next node_modules/.cache",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "check:shopify": "node scripts/check-shopify.js"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",

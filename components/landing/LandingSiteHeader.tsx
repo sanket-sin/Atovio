@@ -21,11 +21,18 @@ import { LiveAQITicker } from "./LiveAQITicker";
 
 const NAV = [
   { href: "#sec-realtime-map", label: "Sensor Map" },
+  { href: "/blog", label: "Blog" },
   { href: "#", label: "API" },
   { href: "#", label: "About" },
 ];
 
 function scrollToRealtimeMap() {
+  /** Off the landing page there is no map section to reach, so go home and land on it. */
+  if (!document.getElementById("sec-realtime-map")) {
+    window.location.href = "/#sec-realtime-map";
+    return;
+  }
+
   document
     .getElementById("sec-realtime-map")
     ?.scrollIntoView({ behavior: "smooth", block: "start" });

@@ -1,0 +1,134 @@
+/**
+ * Typography for Shopify post bodies.
+ *
+ * The HTML comes from Shopify's rich-text editor as an opaque blob, so it cannot carry
+ * Tailwind classes — these descendant selectors are what style it. Scoped to
+ * `.shopify-article` so nothing here leaks into the rest of the app.
+ */
+
+.shopify-article {
+  color: rgb(var(--bqa-muted));
+  font-size: 1.02rem;
+  line-height: 1.85;
+}
+
+.shopify-article > * + * {
+  margin-top: 1.15em;
+}
+
+.shopify-article h1,
+.shopify-article h2,
+.shopify-article h3,
+.shopify-article h4 {
+  color: rgb(var(--bqa-text));
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin-top: 2em;
+  margin-bottom: 0.6em;
+}
+
+.shopify-article h1 { font-size: 1.9rem; }
+.shopify-article h2 { font-size: 1.55rem; }
+.shopify-article h3 { font-size: 1.25rem; }
+.shopify-article h4 { font-size: 1.08rem; }
+
+.shopify-article a {
+  color: rgb(var(--bqa-accent2));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.shopify-article a:hover {
+  color: rgb(var(--bqa-accent));
+}
+
+.shopify-article strong {
+  color: rgb(var(--bqa-text));
+  font-weight: 600;
+}
+
+.shopify-article ul,
+.shopify-article ol {
+  padding-left: 1.4em;
+}
+
+.shopify-article ul { list-style: disc; }
+.shopify-article ol { list-style: decimal; }
+
+.shopify-article li + li {
+  margin-top: 0.45em;
+}
+
+.shopify-article li::marker {
+  color: rgb(var(--bqa-accent2) / 0.75);
+}
+
+.shopify-article blockquote {
+  border-left: 3px solid rgb(var(--bqa-accent2) / 0.55);
+  padding: 0.2em 0 0.2em 1.15em;
+  color: rgb(var(--bqa-text));
+  font-style: italic;
+}
+
+/* Shopify emits bare <img>/<iframe> with hard-coded width/height attributes. */
+.shopify-article img,
+.shopify-article video {
+  height: auto;
+  max-width: 100%;
+  border-radius: 14px;
+}
+
+.shopify-article iframe {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  max-width: 100%;
+  border: 0;
+  border-radius: 14px;
+}
+
+.shopify-article code {
+  background: rgb(var(--bqa-slate) / 0.75);
+  border-radius: 5px;
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+}
+
+.shopify-article pre {
+  background: rgb(var(--bqa-slate) / 0.75);
+  border: 1px solid rgb(56 189 248 / 0.12);
+  border-radius: 12px;
+  overflow-x: auto;
+  padding: 1rem 1.15rem;
+}
+
+.shopify-article pre code {
+  background: none;
+  padding: 0;
+}
+
+.shopify-article hr {
+  border: 0;
+  border-top: 1px solid rgb(56 189 248 / 0.14);
+  margin: 2.2em 0;
+}
+
+/* Tables are the one element that must be allowed to scroll on its own. */
+.shopify-article table {
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+}
+
+.shopify-article th,
+.shopify-article td {
+  border: 1px solid rgb(56 189 248 / 0.14);
+  padding: 0.6em 0.85em;
+  text-align: left;
+}
+
+.shopify-article th {
+  color: rgb(var(--bqa-text));
+  font-weight: 600;
+}
