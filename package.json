@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node init && next dev",
     "dev:turbo": "next dev --turbo",
     "dev:clean": "npm run clean && next dev",
     "clean": "rm -rf .next node_modules/.cache",
-    "build": "next build",
-    "start": "next start",
+    "build": "node init && next build",
+    "start": "node init && next start",
     "lint": "next lint",
     "check:shopify": "node scripts/check-shopify.js"
   },
